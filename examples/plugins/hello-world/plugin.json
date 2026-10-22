@@ -1,0 +1,7 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "core": "^1.0.0",
+  "nav": [{ "path": "", "labelKey": "nav", "icon": "Sparkles", "group": "more" }]
+}

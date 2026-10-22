@@ -1,0 +1,12 @@
+{
+  "nav": "Journal",
+  "title": "Journal",
+  "intro": "Eine Notiz pro Tag. Dieses Beispiel-Plugin ersetzt das eingebaute Journal und arbeitet nur über das Plugin-SDK.",
+  "prompt": "Frage des Tages",
+  "placeholder": "Was beschäftigt dich heute?",
+  "save": "Speichern",
+  "saved": "Gespeichert",
+  "error": "Speichern hat nicht geklappt. Bitte versuch es noch einmal.",
+  "history": "Letzte Einträge",
+  "empty": "Noch keine Einträge."
+}

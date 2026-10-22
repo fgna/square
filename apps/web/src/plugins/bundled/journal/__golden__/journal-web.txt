@@ -1,0 +1,106 @@
+## legacy: loaded
+      <h1> Journal
+      <p> Your private journal entries.
+            <p> 2
+            <p> Current streak
+            <p> 4
+            <p> Longest streak
+            <p> 9
+            <p> Total entries
+            <p> 5
+            <p> Last 30 days
+            <button aria-label="Previous month">
+            <h3> October 2026
+            <button aria-label="Next month">
+            <div> Sun
+            <div> Mon
+            <div> Tue
+            <div> Wed
+            <div> Thu
+            <div> Fri
+            <div> Sat
+            <button> 1
+            <button> 2
+            <button> 3
+            <button> 4
+            <button> 5
+            <button> 6
+            <button> 7
+            <button> 8
+            <button> 9
+            <button> 10
+            <button> 11
+            <button> 12
+            <button> 13
+            <button> 14
+            <button> 15
+            <button> 16
+            <button> 17
+            <button> 18
+            <button> 19
+            <button> 20
+            <button> 21
+            <button disabled=""> 22
+            <button disabled=""> 23
+            <button disabled=""> 24
+            <button disabled=""> 25
+            <button disabled=""> 26
+            <button disabled=""> 27
+            <button disabled=""> 28
+            <button disabled=""> 29
+            <button disabled=""> 30
+            <button disabled=""> 31
+          <button> Go to today
+                <h3> Daily prompts
+                <button>
+                  <span> Evening
+                  <p> What went well?
+              <h3> Wednesday, October 21, 2026
+              <p> Today
+              <button disabled=""> Save
+            <p> How are you feeling?
+              <span> Select all
+            <div role="group" aria-label="How are you feeling?">
+              <button type="button"> 🙏 Grateful
+              <button type="button"> 😊 Happy
+              <button type="button"> 🤔 Reflective
+              <button type="button"> 💪 Motivated
+              <button type="button"> 😌 Calm
+              <button type="button"> 😟 Anxious
+              <button type="button"> 😴 Tired
+              <button type="button"> 😤 Frustrated
+              <label> My thoughts
+              <textarea placeholder="What's on your mind today?">
+## legacy: calls
+GET <base>/method {"locale":"en"}
+GET <base>/prompts {"locale":"en"}
+GET <base> {"month":"2026-10"}
+GET <base>/2026-10-21
+GET <base>/stats
+PUT <base>/2026-10-21 {"content":{"threeGoals":["","",""],"mustDoTasks":[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}],"whoIWantToBe":"","lookingForwardTo":"","importantPeople":"","thoughts":"A calm day"},"moods":["grateful"]}
+GET <base> {"month":"2026-10"}
+GET <base>/2026-10-21
+GET <base>/stats
+## pack: loaded
+  <section aria-label="Journal">
+      <h1> Journal
+      <p> sample-v1
+    <label>
+      <span> Select date
+      <input type="date" value="2026-10-21">
+        <label> Notes
+        <textarea>
+        <label> Plans
+          <button type="button"> Add item
+        <label> Tasks
+          <button type="button"> Add item
+        <button> Save
+        <button> Delete
+## pack: calls
+GET <base>/method {"locale":"en"}
+GET <base>/2026-10-21
+GET <base>/prompts {"locale":"en"}
+PUT <base>/method-entry/2026-10-21 {"content":{"notes":"Pack notes","plans":[],"tasks":[]}}
+GET <base>/2026-10-21
+DELETE <base>/2026-10-21
+GET <base>/2026-10-21

@@ -1,0 +1,8 @@
+{
+  "nav": "Hallo Welt",
+  "title": "Hallo Welt",
+  "intro": "Diese Seite kommt aus einem Beispiel-Plugin. Sie zeigt, wie ein Plugin eine Seite, einen Navigationseintrag und eine API-Route hinzufügt.",
+  "greeting": "Hallo, {name}!",
+  "loading": "Wird geladen …",
+  "error": "Die Begrüßung konnte nicht geladen werden."
+}

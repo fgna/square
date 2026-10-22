@@ -1,0 +1,13 @@
+# Local isolated demo runtime only
+.local-community/
+
+# Locally generated APKs are not repository artifacts
+apps/web/debug-apk/
+
+# Plugins copied in by scripts/plugins.mjs (see docs/PLUGINS.md)
+apps/api/src/plugins/installed/
+apps/web/src/plugins/installed/
+/community.plugins.json
+
+# Local uploads must never become source artifacts
+/apps/api/uploads/

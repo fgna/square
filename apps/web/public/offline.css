@@ -1,0 +1,7 @@
+body { margin: 0; background: #090d16; color: #e4e4e7; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; }
+main { max-width: 26rem; padding: 2rem; text-align: center; }
+h1 { color: #c5a880; font-size: 1.5rem; }
+p { color: #a1a1aa; line-height: 1.6; }
+.retry { display: inline-block; background: #c5a880; color: #090d16; font: inherit;
+  font-weight: 650; text-decoration: none; border-radius: .5rem; padding: .75rem 1.25rem; }

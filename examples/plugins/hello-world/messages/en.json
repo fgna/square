@@ -1,0 +1,8 @@
+{
+  "nav": "Hello World",
+  "title": "Hello World",
+  "intro": "This page comes from an example plugin. It shows how a plugin adds a page, a navigation entry and an API route.",
+  "greeting": "Hello, {name}!",
+  "loading": "Loading …",
+  "error": "The greeting could not be loaded."
+}

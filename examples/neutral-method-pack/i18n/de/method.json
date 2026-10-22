@@ -1,0 +1,48 @@
+{
+  "assessment": {
+    "instructions": "Bewerte deine aktuellen Gewohnheiten.",
+    "scaleTitle": "Bewertungsskala",
+    "scale": "Von niedrig bis hoch",
+    "dimensions": {
+      "Focus": "Fokus",
+      "Recovery": "Erholung",
+      "Connection": "Verbundenheit",
+      "Learning": "Lernen",
+      "Wellbeing": "Wohlbefinden"
+    },
+    "dimensionsShort": {
+      "Focus": "Fokus",
+      "Recovery": "Erholung",
+      "Connection": "Kontakte",
+      "Learning": "Lernen",
+      "Wellbeing": "Wohlbefinden"
+    },
+    "bands": "Bewertungsbereiche",
+    "suggestions": {
+      "strength": "Behalte hilfreiche Gewohnheiten bei.",
+      "solid": "Wähle einen nächsten Schritt.",
+      "Focus": "Plane eine konzentrierte Stunde.",
+      "Recovery": "Plane eine Pause.",
+      "Connection": "Wähle eine kleine, machbare Verbesserung.",
+      "Learning": "Wähle eine kleine, machbare Verbesserung.",
+      "Wellbeing": "Wähle eine kleine, machbare Verbesserung."
+    },
+    "introText": "Eine kurze Standortbestimmung.",
+    "pathText": "Wähle einen kleinen nächsten Schritt."
+  },
+  "journal": {
+    "goalsLabel": "Beispieltext",
+    "goalPlaceholder": "Beispieltext",
+    "tasksLabel": "Beispieltext",
+    "taskPlaceholder": "Beispieltext",
+    "whoLabel": "Beispieltext",
+    "whoPlaceholder": "Beispieltext",
+    "forwardLabel": "Beispieltext",
+    "forwardPlaceholder": "Beispieltext",
+    "peopleLabel": "Beispieltext",
+    "peoplePlaceholder": "Beispieltext",
+    "thoughtsLabel": "Beispieltext",
+    "thoughtsPlaceholder": "Beispieltext",
+    "moods": "Beispieltext"
+  }
+}

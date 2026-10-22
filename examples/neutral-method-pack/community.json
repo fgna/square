@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "neutral-sample",
+  "version": "1.0.0",
+  "platformCompatibility": "^1.0.0",
+  "locales": [
+    "de",
+    "en"
+  ],
+  "assessment": {
+    "instrumentId": "neutral-sample",
+    "instrumentVersion": "sample-v2",
+    "definition": "assessments/definition.json"
+  },
+  "journal": {
+    "definition": "journal/definition.json",
+    "translations": {
+      "de": "journal/de.json",
+      "en": "journal/en.json"
+    }
+  }
+}

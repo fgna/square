@@ -1,0 +1,7 @@
+{
+  "id": "journal",
+  "name": "Simple Journal",
+  "version": "1.0.0",
+  "core": "^1.0.0",
+  "nav": [{ "path": "", "labelKey": "nav", "icon": "NotebookPen", "group": "learning", "order": 1 }]
+}

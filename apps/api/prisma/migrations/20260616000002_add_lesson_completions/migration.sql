@@ -1,0 +1,1 @@
+ALTER TABLE "Progress" ADD COLUMN IF NOT EXISTS "completedLessons" JSONB NOT NULL DEFAULT '[]';

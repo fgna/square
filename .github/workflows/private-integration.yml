@@ -1,0 +1,44 @@
+name: Private integration validation
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install dependencies without rewriting lockfile
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm --dir apps/api exec prisma generate
+      - name: API typecheck
+        run: pnpm --dir apps/api exec tsc --noEmit
+      - name: Web typecheck
+        run: pnpm --dir apps/web exec tsc --noEmit
+      - name: API production build
+        run: pnpm --dir apps/api build
+      - name: Web production build
+        run: pnpm --dir apps/web build
+      # Application checks cannot validate a deployment artifact not yet present.\n      # Docker security is a separate hard release gate: issue #11.\n      - name: API application tests (deployment suite tracked in issue #11)\n        run: pnpm --dir apps/api exec vitest run --exclude 'src/config/docker-secrets.adversarial.spec.ts'
+      - name: Web tests
+        run: pnpm --dir apps/web exec vitest run
+      - name: Report unvalidated deployment gate
+        run: |
+          if [ ! -f docker-compose.yml ]; then
+            echo '::warning title=Deployment security not validated::No reviewed compose exists; Docker security suite is uncollected. Release blocked by issue #11.'
+          fi

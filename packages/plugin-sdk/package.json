@@ -1,0 +1,18 @@
+{
+  "name": "@community/plugin-sdk",
+  "version": "1.0.0",
+  "description": "Contract between the Community Core and its plugins (types only)",
+  "private": true,
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts"
+    },
+    "./api": {
+      "types": "./src/api.d.ts"
+    },
+    "./web": {
+      "types": "./src/web.d.ts"
+    }
+  }
+}

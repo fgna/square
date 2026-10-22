@@ -1,0 +1,12 @@
+{
+  "nav": "Journal",
+  "title": "Journal",
+  "intro": "One note a day. This example plugin replaces the built-in journal and works through the plugin SDK only.",
+  "prompt": "Prompt of the day",
+  "placeholder": "What is on your mind today?",
+  "save": "Save",
+  "saved": "Saved",
+  "error": "Could not save. Please try again.",
+  "history": "Last entries",
+  "empty": "No entries yet."
+}

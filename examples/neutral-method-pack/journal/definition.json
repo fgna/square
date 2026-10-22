@@ -1,0 +1,39 @@
+{
+  "version": "sample-v1",
+  "categories": [
+    {
+      "id": "reflection",
+      "label": "Reflection",
+      "color": "#808080"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "prompt-1",
+      "categoryId": "reflection",
+      "text": "What happened today?",
+      "sortOrder": 0
+    }
+  ],
+  "rotation": {
+    "promptsPerDay": 1,
+    "cycle": "day-of-year"
+  },
+  "fields": [
+    {
+      "key": "notes",
+      "label": "Notes",
+      "kind": "text"
+    },
+    {
+      "key": "plans",
+      "label": "Plans",
+      "kind": "text-list"
+    },
+    {
+      "key": "tasks",
+      "label": "Tasks",
+      "kind": "task-list"
+    }
+  ]
+}

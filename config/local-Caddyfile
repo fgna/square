@@ -1,0 +1,20 @@
+{
+  admin off
+  auto_https disable_redirects
+}
+https://192.168.1.121:4443 {
+  tls internal
+
+  handle /health {
+    reverse_proxy 127.0.0.1:4301
+  }
+
+  handle {
+    reverse_proxy 127.0.0.1:4300
+  }
+
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+}

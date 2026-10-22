@@ -1,0 +1,81 @@
+{
+  "instrumentId": "neutral-sample",
+  "instrumentVersion": "sample-v2",
+  "dimensions": [
+    "Focus",
+    "Recovery",
+    "Connection",
+    "Learning",
+    "Wellbeing"
+  ],
+  "minimumAnswersPerDimension": 1,
+  "recommendationCategories": {
+    "Focus": [],
+    "Recovery": [],
+    "Connection": [],
+    "Learning": [],
+    "Wellbeing": []
+  },
+  "questions": [
+    {
+      "id": "focus-1",
+      "dimension": "Focus",
+      "text": "I can focus on one task.",
+      "textDe": "Ich kann mich auf eine Aufgabe konzentrieren."
+    },
+    {
+      "id": "focus-2",
+      "dimension": "Focus",
+      "text": "I set clear priorities.",
+      "textDe": "Ich setze klare Prioritäten."
+    },
+    {
+      "id": "recovery-1",
+      "dimension": "Recovery",
+      "text": "I take breaks when needed.",
+      "textDe": "Ich mache bei Bedarf Pausen."
+    },
+    {
+      "id": "recovery-2",
+      "dimension": "Recovery",
+      "text": "I feel rested in the morning.",
+      "textDe": "Ich fühle mich morgens erholt."
+    },
+    {
+      "id": "connection-1",
+      "dimension": "Connection",
+      "text": "I feel connected to other people.",
+      "textDe": "Ich fühle mich mit anderen Menschen verbunden."
+    },
+    {
+      "id": "connection-2",
+      "dimension": "Connection",
+      "text": "I make time for conversations.",
+      "textDe": "Ich nehme mir Zeit für Gespräche."
+    },
+    {
+      "id": "learning-1",
+      "dimension": "Learning",
+      "text": "I regularly learn new things.",
+      "textDe": "Ich lerne regelmäßig Neues."
+    },
+    {
+      "id": "learning-2",
+      "dimension": "Learning",
+      "text": "I use what I have learned.",
+      "textDe": "Ich wende Gelerntes an."
+    },
+    {
+      "id": "wellbeing-1",
+      "dimension": "Wellbeing",
+      "text": "I look after my wellbeing.",
+      "textDe": "Ich achte auf mein Wohlbefinden."
+    },
+    {
+      "id": "wellbeing-2",
+      "dimension": "Wellbeing",
+      "text": "I handle daily stress well.",
+      "textDe": "Ich komme mit Alltagsstress gut zurecht."
+    }
+  ]
+}

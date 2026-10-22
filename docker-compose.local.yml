@@ -1,0 +1,41 @@
+name: community-core-local-demo
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: "no"
+    environment:
+      POSTGRES_DB: community_core_demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: ${DEMO_DB_PASSWORD:?Generate demo secrets using scripts/dev-instance-up.sh}
+    ports:
+      - "127.0.0.1:5439:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d community_core_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    restart: "no"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6389:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  https:
+    image: caddy:2-alpine
+    restart: "no"
+    network_mode: host
+    volumes:
+      - ./config/local-Caddyfile:/etc/caddy/Caddyfile:ro
+      - local_caddy_data:/data
+      - local_caddy_config:/config
+volumes:
+  local_caddy_data:
+  local_caddy_config:
+  postgres_data:

@@ -1,0 +1,1163 @@
+{
+  "legacy": [
+    {
+      "request": "GET <base>",
+      "role": "MEMBER",
+      "status": 200,
+      "body": [
+        {
+          "id": "e1",
+          "userId": "member-1",
+          "date": "2026-10-21T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-21"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-21T00:00:00.000Z",
+          "updatedAt": "2026-10-21T00:00:00.000Z"
+        },
+        {
+          "id": "e2",
+          "userId": "member-1",
+          "date": "2026-10-20T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-20"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-20T00:00:00.000Z",
+          "updatedAt": "2026-10-20T00:00:00.000Z"
+        },
+        {
+          "id": "e3",
+          "userId": "member-1",
+          "date": "2026-10-19T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-19"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-19T00:00:00.000Z",
+          "updatedAt": "2026-10-19T00:00:00.000Z"
+        },
+        {
+          "id": "e4",
+          "userId": "member-1",
+          "date": "2026-10-15T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-15"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-15T00:00:00.000Z",
+          "updatedAt": "2026-10-15T00:00:00.000Z"
+        },
+        {
+          "id": "e5",
+          "userId": "member-1",
+          "date": "2026-09-30T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-09-30"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-09-30T00:00:00.000Z",
+          "updatedAt": "2026-09-30T00:00:00.000Z"
+        }
+      ],
+      "db": [
+        {
+          "call": "journalEntry.findMany",
+          "args": {
+            "where": {
+              "userId": "member-1"
+            },
+            "orderBy": {
+              "date": "desc"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>?month=2026-10",
+      "role": "MEMBER",
+      "status": 200,
+      "body": [
+        {
+          "id": "e1",
+          "userId": "member-1",
+          "date": "2026-10-21T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-21"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-21T00:00:00.000Z",
+          "updatedAt": "2026-10-21T00:00:00.000Z"
+        },
+        {
+          "id": "e2",
+          "userId": "member-1",
+          "date": "2026-10-20T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-20"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-20T00:00:00.000Z",
+          "updatedAt": "2026-10-20T00:00:00.000Z"
+        },
+        {
+          "id": "e3",
+          "userId": "member-1",
+          "date": "2026-10-19T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-19"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-19T00:00:00.000Z",
+          "updatedAt": "2026-10-19T00:00:00.000Z"
+        },
+        {
+          "id": "e4",
+          "userId": "member-1",
+          "date": "2026-10-15T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-10-15"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-10-15T00:00:00.000Z",
+          "updatedAt": "2026-10-15T00:00:00.000Z"
+        },
+        {
+          "id": "e5",
+          "userId": "member-1",
+          "date": "2026-09-30T00:00:00.000Z",
+          "content": {
+            "thoughts": "entry 2026-09-30"
+          },
+          "moods": [
+            "calm"
+          ],
+          "createdAt": "2026-09-30T00:00:00.000Z",
+          "updatedAt": "2026-09-30T00:00:00.000Z"
+        }
+      ],
+      "db": [
+        {
+          "call": "journalEntry.findMany",
+          "args": {
+            "where": {
+              "userId": "member-1",
+              "date": {
+                "gte": "2026-10-01T00:00:00.000Z",
+                "lt": "2026-11-01T00:00:00.000Z"
+              }
+            },
+            "orderBy": {
+              "date": "desc"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>?month=2026-13",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>?month=2026-13",
+        "message": "Invalid month format. Expected YYYY-MM.",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/method",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "source": "legacy",
+        "version": null,
+        "fields": []
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/method?locale=de",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "source": "legacy",
+        "version": null,
+        "fields": []
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/prompts",
+      "role": "MEMBER",
+      "status": 200,
+      "body": [
+        {
+          "id": "p3",
+          "text": "Prompt p3",
+          "category": "Morning",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "p4",
+          "text": "Prompt p4",
+          "category": "Evening",
+          "color": "#8b5cf6"
+        },
+        {
+          "id": "p1",
+          "text": "Prompt p1",
+          "category": "Morning",
+          "color": "#8b5cf6"
+        }
+      ],
+      "db": [
+        {
+          "call": "journalPrompt.findMany",
+          "args": {
+            "where": {
+              "isActive": true,
+              "category": {
+                "isActive": true
+              }
+            },
+            "include": {
+              "category": {
+                "select": {
+                  "name": true,
+                  "color": true
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "sortOrder": "asc"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>/stats",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "currentStreak": 3,
+        "longestStreak": 3,
+        "totalEntries": 5,
+        "last30DaysCount": 5,
+        "entriesByDate": {
+          "2026-10-21": true,
+          "2026-10-20": true,
+          "2026-10-19": true,
+          "2026-10-15": true,
+          "2026-09-30": true
+        }
+      },
+      "db": [
+        {
+          "call": "journalEntry.findMany",
+          "args": {
+            "where": {
+              "userId": "member-1"
+            },
+            "orderBy": {
+              "date": "desc"
+            },
+            "select": {
+              "date": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>/2026-10-20",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "id": "e2",
+        "userId": "member-1",
+        "date": "2026-10-20T00:00:00.000Z",
+        "content": {
+          "thoughts": "entry 2026-10-20"
+        },
+        "moods": [
+          "calm"
+        ],
+        "createdAt": "2026-10-20T00:00:00.000Z",
+        "updatedAt": "2026-10-20T00:00:00.000Z"
+      },
+      "db": [
+        {
+          "call": "journalEntry.findUnique",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-20T00:00:00.000Z"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>/2026-10-18",
+      "role": "MEMBER",
+      "status": 404,
+      "body": {
+        "statusCode": 404,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/2026-10-18",
+        "message": "Journal entry not found",
+        "error": "Not Found"
+      },
+      "db": [
+        {
+          "call": "journalEntry.findUnique",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-18T00:00:00.000Z"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>/20261020",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/20261020",
+        "message": "Invalid date format. Expected YYYY-MM-DD.",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PUT <base>/2026-10-21",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "id": "e-new",
+        "userId": "member-1",
+        "date": "2026-10-21T00:00:00.000Z",
+        "content": {
+          "threeGoals": [
+            "one",
+            "two"
+          ],
+          "mustDoTasks": [
+            {
+              "text": "call",
+              "done": false
+            }
+          ],
+          "whoIWantToBe": "calm",
+          "lookingForwardTo": "lunch",
+          "importantPeople": "team",
+          "thoughts": "fine"
+        },
+        "moods": [
+          "grateful",
+          "tired"
+        ],
+        "createdAt": "2026-10-21T10:00:00.000Z",
+        "updatedAt": "2026-10-21T10:00:00.000Z"
+      },
+      "db": [
+        {
+          "call": "journalEntry.upsert",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-21T00:00:00.000Z"
+              }
+            },
+            "create": {
+              "userId": "member-1",
+              "date": "2026-10-21T00:00:00.000Z",
+              "content": {
+                "threeGoals": [
+                  "one",
+                  "two"
+                ],
+                "mustDoTasks": [
+                  {
+                    "text": "call",
+                    "done": false
+                  }
+                ],
+                "whoIWantToBe": "calm",
+                "lookingForwardTo": "lunch",
+                "importantPeople": "team",
+                "thoughts": "fine"
+              },
+              "moods": [
+                "grateful",
+                "tired"
+              ]
+            },
+            "update": {
+              "content": {
+                "threeGoals": [
+                  "one",
+                  "two"
+                ],
+                "mustDoTasks": [
+                  {
+                    "text": "call",
+                    "done": false
+                  }
+                ],
+                "whoIWantToBe": "calm",
+                "lookingForwardTo": "lunch",
+                "importantPeople": "team",
+                "thoughts": "fine"
+              },
+              "moods": [
+                "grateful",
+                "tired"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "PUT <base>/2026-10-21",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/2026-10-21",
+        "message": [
+          "each value in moods must be one of the following values: grateful, happy, calm, motivated, reflective, anxious, frustrated, sad, tired, neutral"
+        ],
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PUT <base>/2026-10-21",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/2026-10-21",
+        "message": [
+          "property extra should not exist"
+        ],
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PUT <base>/2026-10-21",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/2026-10-21",
+        "message": [
+          "content.threeGoals must contain no more than 3 elements"
+        ],
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PUT <base>/method-entry/2026-10-21",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/method-entry/2026-10-21",
+        "message": "Pack journal writing requires content pack mode",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "DELETE <base>/2026-10-20",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "message": "Journal entry deleted"
+      },
+      "db": [
+        {
+          "call": "journalEntry.findUnique",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-20T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "call": "journalEntry.delete",
+          "args": {
+            "where": {
+              "id": "e2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "DELETE <base>/2026-10-18",
+      "role": "MEMBER",
+      "status": 404,
+      "body": {
+        "statusCode": 404,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/2026-10-18",
+        "message": "Journal entry not found",
+        "error": "Not Found"
+      },
+      "db": [
+        {
+          "call": "journalEntry.findUnique",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-18T00:00:00.000Z"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>/admin/categories",
+      "role": "MEMBER",
+      "status": 403,
+      "body": {
+        "statusCode": 403,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/admin/categories",
+        "message": "Insufficient permissions",
+        "error": "Forbidden"
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/admin/categories",
+      "role": "ADMIN",
+      "status": 200,
+      "body": [
+        {
+          "id": "c1",
+          "name": "Morning",
+          "color": "#8b5cf6",
+          "isActive": true,
+          "sortOrder": 0,
+          "_count": {
+            "prompts": 2
+          }
+        },
+        {
+          "id": "c2",
+          "name": "Evening",
+          "color": "#8b5cf6",
+          "isActive": true,
+          "sortOrder": 1,
+          "_count": {
+            "prompts": 2
+          }
+        }
+      ],
+      "db": [
+        {
+          "call": "journalPromptCategory.findMany",
+          "args": {
+            "orderBy": {
+              "sortOrder": "asc"
+            },
+            "include": {
+              "_count": {
+                "select": {
+                  "prompts": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "POST <base>/admin/categories",
+      "role": "ADMIN",
+      "status": 201,
+      "body": {
+        "id": "c-new",
+        "color": "#123456",
+        "name": "Noon"
+      },
+      "db": [
+        {
+          "call": "journalPromptCategory.create",
+          "args": {
+            "data": {
+              "name": "Noon",
+              "color": "#123456"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "POST <base>/admin/categories",
+      "role": "ADMIN",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/admin/categories",
+        "message": [
+          "color must be a valid hex color"
+        ],
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PATCH <base>/admin/categories/c1",
+      "role": "ADMIN",
+      "status": 200,
+      "body": {
+        "id": "c1",
+        "isActive": false
+      },
+      "db": [
+        {
+          "call": "journalPromptCategory.update",
+          "args": {
+            "where": {
+              "id": "c1"
+            },
+            "data": {
+              "isActive": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "DELETE <base>/admin/categories/c2",
+      "role": "ADMIN",
+      "status": 200,
+      "body": {
+        "message": "Category deleted"
+      },
+      "db": [
+        {
+          "call": "journalPromptCategory.delete",
+          "args": {
+            "where": {
+              "id": "c2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "GET <base>/admin/prompts?categoryId=c1",
+      "role": "ADMIN",
+      "status": 200,
+      "body": [
+        {
+          "id": "p1",
+          "text": "Prompt p1",
+          "categoryId": "c1",
+          "isActive": true,
+          "sortOrder": 0,
+          "category": {
+            "id": "c1",
+            "name": "Morning",
+            "color": "#8b5cf6"
+          }
+        },
+        {
+          "id": "p2",
+          "text": "Prompt p2",
+          "categoryId": "c2",
+          "isActive": true,
+          "sortOrder": 1,
+          "category": {
+            "id": "c2",
+            "name": "Evening",
+            "color": "#8b5cf6"
+          }
+        },
+        {
+          "id": "p3",
+          "text": "Prompt p3",
+          "categoryId": "c1",
+          "isActive": true,
+          "sortOrder": 2,
+          "category": {
+            "id": "c1",
+            "name": "Morning",
+            "color": "#8b5cf6"
+          }
+        },
+        {
+          "id": "p4",
+          "text": "Prompt p4",
+          "categoryId": "c2",
+          "isActive": true,
+          "sortOrder": 3,
+          "category": {
+            "id": "c2",
+            "name": "Evening",
+            "color": "#8b5cf6"
+          }
+        }
+      ],
+      "db": [
+        {
+          "call": "journalPrompt.findMany",
+          "args": {
+            "where": {
+              "categoryId": "c1"
+            },
+            "orderBy": [
+              {
+                "category": {
+                  "sortOrder": "asc"
+                }
+              },
+              {
+                "sortOrder": "asc"
+              }
+            ],
+            "include": {
+              "category": {
+                "select": {
+                  "id": true,
+                  "name": true,
+                  "color": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "POST <base>/admin/prompts",
+      "role": "ADMIN",
+      "status": 201,
+      "body": {
+        "id": "p-new",
+        "text": "New prompt",
+        "categoryId": "c1",
+        "category": {
+          "id": "c1",
+          "name": "Morning",
+          "color": "#8b5cf6"
+        }
+      },
+      "db": [
+        {
+          "call": "journalPrompt.create",
+          "args": {
+            "data": {
+              "text": "New prompt",
+              "categoryId": "c1"
+            },
+            "include": {
+              "category": {
+                "select": {
+                  "id": true,
+                  "name": true,
+                  "color": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "PATCH <base>/admin/prompts/p1",
+      "role": "ADMIN",
+      "status": 200,
+      "body": {
+        "id": "p1",
+        "sortOrder": 5,
+        "category": {
+          "id": "c1",
+          "name": "Morning",
+          "color": "#8b5cf6"
+        }
+      },
+      "db": [
+        {
+          "call": "journalPrompt.update",
+          "args": {
+            "where": {
+              "id": "p1"
+            },
+            "data": {
+              "sortOrder": 5
+            },
+            "include": {
+              "category": {
+                "select": {
+                  "id": true,
+                  "name": true,
+                  "color": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "DELETE <base>/admin/prompts/p1",
+      "role": "ADMIN",
+      "status": 200,
+      "body": {
+        "message": "Prompt deleted"
+      },
+      "db": [
+        {
+          "call": "journalPrompt.delete",
+          "args": {
+            "where": {
+              "id": "p1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "DELETE <base>/admin/prompts/p1",
+      "role": "MEMBER",
+      "status": 403,
+      "body": {
+        "statusCode": 403,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/admin/prompts/p1",
+        "message": "Insufficient permissions",
+        "error": "Forbidden"
+      },
+      "db": []
+    }
+  ],
+  "pack": [
+    {
+      "request": "GET <base>/method",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "source": "pack",
+        "version": "sample-v1",
+        "fields": [
+          {
+            "key": "notes",
+            "label": "Notes",
+            "kind": "text"
+          },
+          {
+            "key": "plans",
+            "label": "Plans",
+            "kind": "text-list"
+          },
+          {
+            "key": "tasks",
+            "label": "Tasks",
+            "kind": "task-list"
+          }
+        ]
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/method?locale=de",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "source": "pack",
+        "version": "sample-v1",
+        "fields": [
+          {
+            "key": "notes",
+            "label": "Notizen",
+            "kind": "text"
+          },
+          {
+            "key": "plans",
+            "label": "Pläne",
+            "kind": "text-list"
+          },
+          {
+            "key": "tasks",
+            "label": "Aufgaben",
+            "kind": "task-list"
+          }
+        ]
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/method?locale=fr",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/method?locale=fr",
+        "message": "Unsupported journal locale",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/prompts?locale=en",
+      "role": "MEMBER",
+      "status": 200,
+      "body": [
+        {
+          "id": "prompt-1",
+          "text": "What happened today?",
+          "category": "Reflection",
+          "color": "#808080"
+        }
+      ],
+      "db": []
+    },
+    {
+      "request": "GET <base>/admin/categories",
+      "role": "ADMIN",
+      "status": 200,
+      "body": [
+        {
+          "id": "reflection",
+          "name": "Reflection",
+          "color": "#808080",
+          "isActive": true,
+          "sortOrder": 0,
+          "_count": {
+            "prompts": 1
+          }
+        }
+      ],
+      "db": []
+    },
+    {
+      "request": "GET <base>/admin/prompts",
+      "role": "ADMIN",
+      "status": 200,
+      "body": [
+        {
+          "id": "prompt-1",
+          "text": "What happened today?",
+          "categoryId": "reflection",
+          "isActive": true,
+          "sortOrder": 0,
+          "category": {
+            "id": "reflection",
+            "name": "Reflection",
+            "color": "#808080"
+          }
+        }
+      ],
+      "db": []
+    },
+    {
+      "request": "POST <base>/admin/categories",
+      "role": "ADMIN",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/admin/categories",
+        "message": "Journal prompts are managed by the active content pack",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "DELETE <base>/admin/prompts/p1",
+      "role": "ADMIN",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/admin/prompts/p1",
+        "message": "Journal prompts are managed by the active content pack",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PUT <base>/2026-10-21",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/2026-10-21",
+        "message": "Use the active journal method entry endpoint",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "PUT <base>/method-entry/2026-10-21",
+      "role": "MEMBER",
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "timestamp": "2026-10-21T10:00:00.000Z",
+        "path": "<base>/method-entry/2026-10-21",
+        "message": "Journal fields do not match active method",
+        "error": "Bad Request"
+      },
+      "db": []
+    },
+    {
+      "request": "GET <base>/2026-10-20",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "id": "e2",
+        "userId": "member-1",
+        "date": "2026-10-20T00:00:00.000Z",
+        "content": {
+          "thoughts": "entry 2026-10-20"
+        },
+        "moods": [
+          "calm"
+        ],
+        "createdAt": "2026-10-20T00:00:00.000Z",
+        "updatedAt": "2026-10-20T00:00:00.000Z"
+      },
+      "db": [
+        {
+          "call": "journalEntry.findUnique",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-20T00:00:00.000Z"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "request": "PUT <base>/method-entry/2026-10-21",
+      "role": "MEMBER",
+      "status": 200,
+      "body": {
+        "id": "e-new",
+        "userId": "member-1",
+        "date": "2026-10-21T00:00:00.000Z",
+        "content": {
+          "notes": "text",
+          "plans": [
+            "one"
+          ],
+          "tasks": [
+            {
+              "text": "task",
+              "done": true
+            }
+          ]
+        },
+        "moods": [],
+        "createdAt": "2026-10-21T10:00:00.000Z",
+        "updatedAt": "2026-10-21T10:00:00.000Z"
+      },
+      "db": [
+        {
+          "call": "journalEntry.upsert",
+          "args": {
+            "where": {
+              "userId_date": {
+                "userId": "member-1",
+                "date": "2026-10-21T00:00:00.000Z"
+              }
+            },
+            "create": {
+              "userId": "member-1",
+              "date": "2026-10-21T00:00:00.000Z",
+              "content": {
+                "notes": "text",
+                "plans": [
+                  "one"
+                ],
+                "tasks": [
+                  {
+                    "text": "task",
+                    "done": true
+                  }
+                ]
+              },
+              "moods": []
+            },
+            "update": {
+              "content": {
+                "notes": "text",
+                "plans": [
+                  "one"
+                ],
+                "tasks": [
+                  {
+                    "text": "task",
+                    "done": true
+                  }
+                ]
+              },
+              "moods": []
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

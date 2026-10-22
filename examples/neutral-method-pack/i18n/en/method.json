@@ -1,0 +1,48 @@
+{
+  "assessment": {
+    "instructions": "Rate your current habits.",
+    "scaleTitle": "Rating scale",
+    "scale": "From low to high",
+    "dimensions": {
+      "Focus": "Focus",
+      "Recovery": "Recovery",
+      "Connection": "Connection",
+      "Learning": "Learning",
+      "Wellbeing": "Wellbeing"
+    },
+    "dimensionsShort": {
+      "Focus": "Focus",
+      "Recovery": "Rest",
+      "Connection": "People",
+      "Learning": "Learning",
+      "Wellbeing": "Wellbeing"
+    },
+    "bands": "Rating bands",
+    "suggestions": {
+      "strength": "Keep helpful habits.",
+      "solid": "Choose one next step.",
+      "Focus": "Plan one focused hour.",
+      "Recovery": "Schedule a break.",
+      "Connection": "Choose one small, achievable improvement.",
+      "Learning": "Choose one small, achievable improvement.",
+      "Wellbeing": "Choose one small, achievable improvement."
+    },
+    "introText": "A quick self-check.",
+    "pathText": "Choose a small next step."
+  },
+  "journal": {
+    "goalsLabel": "Sample text",
+    "goalPlaceholder": "Sample text",
+    "tasksLabel": "Sample text",
+    "taskPlaceholder": "Sample text",
+    "whoLabel": "Sample text",
+    "whoPlaceholder": "Sample text",
+    "forwardLabel": "Sample text",
+    "forwardPlaceholder": "Sample text",
+    "peopleLabel": "Sample text",
+    "peoplePlaceholder": "Sample text",
+    "thoughtsLabel": "Sample text",
+    "thoughtsPlaceholder": "Sample text",
+    "moods": "Sample text"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "fields": {
+    "notes": "Notes",
+    "plans": "Plans",
+    "tasks": "Tasks"
+  },
+  "categories": {
+    "reflection": "Reflection"
+  },
+  "prompts": {
+    "prompt-1": "What happened today?"
+  }
+}

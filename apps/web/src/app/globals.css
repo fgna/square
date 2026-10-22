@@ -1,0 +1,323 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Theme variables - set by JavaScript */
+  --theme-primary: #c5a880;
+  --theme-secondary: #6366f1;
+  --theme-accent: #c5a880;
+  --theme-success: #22c55e;
+  --theme-warning: #f59e0b;
+  --theme-danger: #ef4444;
+  --theme-background: #090d16;
+  --theme-surface: rgba(10, 15, 26, 0.85);
+  --theme-card: rgba(17, 24, 39, 0.7);
+  --theme-text: #f3f4f6;
+  --theme-text-muted: #9ca3af;
+  --theme-border: rgba(255, 255, 255, 0.08);
+  --theme-glow: rgba(197, 168, 128, 0.25);
+  --theme-blur: 16px;
+  --sidebar-width: 280px;
+
+  /* shadcn/ui variables mapped to theme */
+  --background: 222 47% 7%;
+  --foreground: 213 31% 95%;
+  --card: 222 47% 9%;
+  --card-foreground: 213 31% 95%;
+  --popover: 222 47% 9%;
+  --popover-foreground: 213 31% 95%;
+  --primary: 36 42% 65%;
+  --primary-foreground: 222 47% 7%;
+  --secondary: 240 5% 35%;
+  --secondary-foreground: 213 31% 95%;
+  --muted: 222 47% 13%;
+  --muted-foreground: 215 16% 62%;
+  --accent: 36 42% 65%;
+  --accent-foreground: 222 47% 7%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 213 31% 95%;
+  --border: 222 47% 15%;
+  --input: 222 47% 15%;
+  --ring: 36 42% 65%;
+  --radius: 0.75rem;
+}
+
+[data-theme='corporate-light'] {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 6%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 6%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 6%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 221 83% 53%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 221 83% 53%;
+}
+
+[data-theme='high-contrast'] {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 60 100% 50%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 80%;
+  --accent: 180 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 30%;
+  --input: 0 0% 30%;
+  --ring: 0 0% 100%;
+}
+
+* {
+  box-sizing: border-box;
+  border-color: hsl(var(--border));
+}
+
+html {
+  /* Testing found the type too small throughout. Every Tailwind size is in
+     rem, so raising the root (16px → 17px) enlarges all text evenly; a
+     percentage keeps the member's own browser font setting in effect. */
+  font-size: 106.25%;
+  background-color: var(--theme-background);
+  color: var(--theme-text);
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--theme-background);
+  color: var(--theme-text);
+  min-height: 100vh;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: var(--theme-surface);
+  backdrop-filter: blur(var(--theme-blur));
+  -webkit-backdrop-filter: blur(var(--theme-blur));
+  border: 1px solid var(--theme-border);
+}
+
+.glass-card {
+  background: var(--theme-card);
+  backdrop-filter: blur(var(--theme-blur));
+  -webkit-backdrop-filter: blur(var(--theme-blur));
+  border: 1px solid var(--theme-border);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-muted);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Selection */
+::selection {
+  background: var(--theme-primary);
+  color: var(--theme-background);
+}
+
+/* Markdown rendering */
+.md-content strong { font-weight: 600; color: var(--theme-text); }
+.md-content em { font-style: italic; }
+.md-content code.md-code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  color: var(--theme-primary);
+}
+.md-content pre.md-code-block {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin: 8px 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+}
+.md-content blockquote.md-quote {
+  border-left: 3px solid var(--theme-primary);
+  padding-left: 12px;
+  margin: 8px 0;
+  opacity: 0.8;
+  font-style: italic;
+}
+.md-content a.md-link {
+  color: var(--theme-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Hashtags */
+.md-content .md-hashtag {
+  color: var(--theme-primary);
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0 2px;
+  transition: background 0.15s;
+}
+.md-content .md-hashtag:hover {
+  background: rgba(197,168,128,0.12);
+}
+
+/* Tiptap rich-text editor */
+.prose-editor {
+  padding: 12px 16px;
+  min-height: 80px;
+  outline: none;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--theme-text);
+}
+.prose-editor.compact {
+  min-height: 48px;
+}
+.prose-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--theme-text-muted);
+  pointer-events: none;
+  height: 0;
+}
+.prose-editor h2 { font-size: 1.25rem; font-weight: 600; margin: 0.75em 0 0.25em; }
+.prose-editor h3 { font-size: 1.1rem; font-weight: 600; margin: 0.75em 0 0.25em; }
+.prose-editor strong { font-weight: 600; }
+.prose-editor em { font-style: italic; }
+.prose-editor code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  color: var(--theme-primary);
+}
+.prose-editor pre {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.prose-editor pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: var(--theme-text);
+}
+.prose-editor blockquote {
+  border-left: 3px solid var(--theme-primary);
+  padding-left: 12px;
+  margin: 8px 0;
+  opacity: 0.8;
+  font-style: italic;
+}
+.prose-editor a {
+  color: var(--theme-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-editor ul { list-style: disc; padding-left: 1.5em; margin: 4px 0; }
+.prose-editor ol { list-style: decimal; padding-left: 1.5em; margin: 4px 0; }
+.prose-editor li { margin: 2px 0; }
+.prose-editor hr {
+  border: none;
+  border-top: 1px solid var(--theme-border);
+  margin: 12px 0;
+}
+.prose-editor p { margin: 0 0 0.5em; }
+.prose-editor p:last-child { margin-bottom: 0; }
+
+/* Tiptap rendered content in post cards */
+.tiptap-content h2 { font-size: 1.2rem; font-weight: 600; margin: 0.5em 0 0.25em; }
+.tiptap-content h3 { font-size: 1.05rem; font-weight: 600; margin: 0.5em 0 0.25em; }
+.tiptap-content strong { font-weight: 600; }
+.tiptap-content em { font-style: italic; }
+.tiptap-content code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  color: var(--theme-primary);
+}
+.tiptap-content pre {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.tiptap-content pre code {
+  background: none;
+  padding: 0;
+  color: var(--theme-text);
+}
+.tiptap-content blockquote {
+  border-left: 3px solid var(--theme-primary);
+  padding-left: 12px;
+  margin: 8px 0;
+  opacity: 0.8;
+  font-style: italic;
+}
+.tiptap-content a {
+  color: var(--theme-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tiptap-content ul { list-style: disc; padding-left: 1.5em; margin: 4px 0; }
+.tiptap-content ol { list-style: decimal; padding-left: 1.5em; margin: 4px 0; }
+.tiptap-content li { margin: 2px 0; }
+.tiptap-content hr {
+  border: none;
+  border-top: 1px solid var(--theme-border);
+  margin: 8px 0;
+}
+.tiptap-content p { margin: 0 0 0.25em; }
+.tiptap-content p:last-child { margin-bottom: 0; }
