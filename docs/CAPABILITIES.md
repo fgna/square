@@ -14,10 +14,10 @@ NEXT_PUBLIC_SQUARE_CAPABILITIES=courses,assessments
 ```
 
 Supported names: `feed`, `messages`, `events`, `courses`, `journal`,
-`assessments`. An empty value disables all six. Unset values enable all six,
+`assessments`. An empty value disables all seven. Unset values enable all seven,
 preserving existing full-featured deployments. Unknown names fail startup/build.
 Each capability can be selected independently; there are currently no required
-dependencies between these six core capabilities.
+dependencies between these seven core capabilities.
 
 The API's global capability guard rejects matching disabled endpoints with 404,
 independent of authorization or whether the caller knows the URL. Next middleware
