@@ -25,6 +25,12 @@ function video(size: number, { brand = 'isom', codec = 'avc1', moovLast = false 
 }
 const mp4 = (size: number) => video(size);
 
+/** Prisma stub: no lesson or recording uses any video unless listed. */
+function unused(used: string[] = []) {
+  const count = vi.fn(async ({ where }: any) => (used.includes(where.videoUrl ?? where.url) ? 1 : 0));
+  return { lesson: { count }, recording: { count } };
+}
+
 describe('VideosService: chunked MP4 uploads', () => {
   let root: string;
   let service: VideosService;
@@ -33,7 +39,7 @@ describe('VideosService: chunked MP4 uploads', () => {
     root = mkdtempSync(join(tmpdir(), 'videos-'));
     vi.spyOn(process, 'cwd').mockReturnValue(root);
     vi.stubEnv('VIDEO_MAX_SIZE_MB', '64');
-    service = new VideosService();
+    service = new VideosService(unused() as any);
   });
 
   afterEach(() => {
@@ -91,6 +97,25 @@ describe('VideosService: chunked MP4 uploads', () => {
     }
   });
 
+  it('deletes finished videos nothing uses after a day, keeps used and fresh ones', async () => {
+    const upload = async (svc: VideosService) => {
+      const { id } = await svc.start('a', { filename: 'v.mp4', size: 3000 });
+      await svc.appendChunk(id, 0, mp4(3000));
+      return (await svc.complete(id)).url;
+    };
+    const used = await upload(service);
+    const forgotten = await upload(service);
+    const fresh = await upload(service);
+    const old = new Date(Date.now() - 25 * 60 * 60 * 1000);
+    for (const url of [used, forgotten]) utimesSync(hostedVideoFile(url)!, old, old);
+
+    const svc = new VideosService(unused([used]) as any);
+    expect(await svc.removeUnusedVideos()).toBe(1);
+    expect(existsSync(hostedVideoFile(used)!)).toBe(true);
+    expect(existsSync(hostedVideoFile(forgotten)!)).toBe(false);
+    expect(existsSync(hostedVideoFile(fresh)!)).toBe(true);
+  });
+
   it('will not finish an incomplete upload', async () => {
     const file = mp4(VIDEO_CHUNK_BYTES + 10);
     const { id } = await service.start('a', { filename: 'part.mp4', size: file.length });
@@ -125,7 +150,7 @@ describe('deleteUnusedHostedVideos', () => {
   });
 
   it('deletes a video file only when no lesson or recording uses it any more', async () => {
-    const service = new VideosService();
+    const service = new VideosService(unused() as any);
     const { id } = await service.start('a', { filename: 'v.mp4', size: 100 });
     await service.appendChunk(id, 0, mp4(100));
     const { url } = await service.complete(id);
