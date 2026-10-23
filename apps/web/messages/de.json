@@ -1468,8 +1468,8 @@
     "button": "Video hochladen",
     "progress": "{percent} % hochgeladen",
     "cancel": "Hochladen abbrechen",
-    "hint": "MP4 (H.264/AAC). Das Video bleibt auf dieser Plattform und spielt nur hier; andere Formate vorher umwandeln, z. B. mit HandBrake.",
-    "onlyMp4": "Bitte eine MP4-Datei wählen.",
+    "hint": "MP4 oder MOV mit H.264, 720p reicht. In QuickTime: Ablage → Exportieren als → 720p. Das Video bleibt auf dieser Plattform und spielt nur hier.",
+    "onlyMp4": "Bitte eine MP4- oder MOV-Datei wählen.",
     "failed": "Hochladen fehlgeschlagen. Versuch es noch einmal.",
     "uploaded": "Hochgeladenes Video"
   }
