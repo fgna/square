@@ -24,3 +24,12 @@ vi.mock('next-intl', async (importOriginal) => {
     NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => children,
   };
 });
+
+// jsdom does not implement Range layout geometry used by ProseMirror focus scrolling.
+// Provide inert geometry solely in tests; browsers continue using native layout.
+if (!Range.prototype.getClientRects) {
+  Range.prototype.getClientRects = () => ({ length: 0, item: () => null, [Symbol.iterator]: function* () {} } as unknown as DOMRectList);
+}
+if (!Range.prototype.getBoundingClientRect) {
+  Range.prototype.getBoundingClientRect = () => new DOMRect(0, 0, 0, 0);
+}
