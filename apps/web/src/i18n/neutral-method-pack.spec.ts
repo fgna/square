@@ -11,7 +11,7 @@ describe('neutral method pack bilingual overlays', () => {
     const deAssessment = result.de.assessment as Record<string, Record<string, string>>;
     const enAssessment = result.en.assessment as Record<string, Record<string, string>>;
     expect(Object.keys(deAssessment.dimensions)).toEqual(['Focus', 'Recovery', 'Connection', 'Learning', 'Wellbeing']);
-    expect(Object.keys(enAssessment.dimensions)).toEqual(['Focus', 'Recovery']);
+    expect(Object.keys(enAssessment.dimensions)).toEqual(['Focus', 'Recovery', 'Connection', 'Learning', 'Wellbeing']);
     expect(deAssessment.dimensions.Focus).toBe('Fokus');
     expect(enAssessment.dimensions.Focus).toBe('Focus');
     expect(result.de.auth).toBe(de.auth);
