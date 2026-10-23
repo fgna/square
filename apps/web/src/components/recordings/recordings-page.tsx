@@ -7,12 +7,16 @@ import { Play, Calendar, Clock, ExternalLink, Search, Loader2, FileText } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/api-client';
+import { ClickToLoadVideo } from '@/components/common/click-to-load-video';
 
 interface Recording {
   id: string;
   title: string;
   description?: string;
-  url: string;
+  /** Plays inside the platform (YouTube, Vimeo, Loom); members get no share link for these. */
+  embedUrl?: string | null;
+  /** Only for links that cannot be embedded, and for admins. */
+  url?: string | null;
   duration?: number;
   thumbnailUrl?: string;
   createdAt: string;
@@ -137,48 +141,58 @@ export function RecordingsPage() {
                 border: '1px solid var(--theme-border)',
               }}
             >
-              {/* Thumbnail */}
-              <a
-                href={recording.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={recording.title}
-                className="relative aspect-video flex items-center justify-center"
-                style={{
-                  background: recording.thumbnailUrl
-                    ? `url(${recording.thumbnailUrl}) center/cover`
-                    : 'linear-gradient(135deg, rgba(197,168,128,0.1), rgba(99,102,241,0.1))',
-                }}
-              >
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+              {/* Player inside the platform; a link only for videos that cannot be embedded */}
+              {recording.embedUrl ? (
+                <ClickToLoadVideo embedUrl={recording.embedUrl} title={recording.title} />
+              ) : (
+                <a
+                  href={recording.url ?? undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={recording.title}
+                  className="relative aspect-video flex items-center justify-center"
                   style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    backdropFilter: 'blur(4px)',
+                    background: recording.thumbnailUrl
+                      ? `url(${recording.thumbnailUrl}) center/cover`
+                      : 'linear-gradient(135deg, rgba(197,168,128,0.1), rgba(99,102,241,0.1))',
                   }}
                 >
-                  <Play size={20} fill="white" style={{ color: 'white', marginLeft: 2 }} />
-                </div>
-                {recording.duration && (
-                  <span
-                    className="absolute bottom-2 right-2 px-2 py-0.5 rounded text-xs font-medium"
-                    style={{ background: 'rgba(0,0,0,0.7)', color: '#fff' }}
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                    style={{
+                      background: 'rgba(0,0,0,0.6)',
+                      backdropFilter: 'blur(4px)',
+                    }}
                   >
-                    {formatDuration(recording.duration, t)}
-                  </span>
-                )}
-              </a>
+                    <Play size={20} fill="white" style={{ color: 'white', marginLeft: 2 }} />
+                  </div>
+                  {recording.duration && (
+                    <span
+                      className="absolute bottom-2 right-2 px-2 py-0.5 rounded text-xs font-medium"
+                      style={{ background: 'rgba(0,0,0,0.7)', color: '#fff' }}
+                    >
+                      {formatDuration(recording.duration, t)}
+                    </span>
+                  )}
+                </a>
+              )}
 
               {/* Info */}
               <div className="p-4 space-y-2">
-                <a href={recording.url} target="_blank" rel="noopener noreferrer">
-                  <h3
-                    className="text-sm font-semibold line-clamp-2 hover:underline inline-flex items-center gap-1"
-                    style={{ color: 'var(--theme-text)' }}
-                  >
-                    {recording.title} <ExternalLink size={11} />
+                {recording.embedUrl || !recording.url ? (
+                  <h3 className="text-sm font-semibold line-clamp-2" style={{ color: 'var(--theme-text)' }}>
+                    {recording.title}
                   </h3>
-                </a>
+                ) : (
+                  <a href={recording.url} target="_blank" rel="noopener noreferrer">
+                    <h3
+                      className="text-sm font-semibold line-clamp-2 hover:underline inline-flex items-center gap-1"
+                      style={{ color: 'var(--theme-text)' }}
+                    >
+                      {recording.title} <ExternalLink size={11} />
+                    </h3>
+                  </a>
+                )}
                 {recording.description && (
                   <p
                     className="text-xs line-clamp-2"
