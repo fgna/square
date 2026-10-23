@@ -34,7 +34,10 @@ jobs:
         run: pnpm --dir apps/api build
       - name: Web production build
         run: pnpm --dir apps/web build
-      # Application checks cannot validate a deployment artifact not yet present.\n      # Docker security is a separate hard release gate: issue #11.\n      - name: API application tests (deployment suite tracked in issue #11)\n        run: pnpm --dir apps/api exec vitest run --exclude 'src/config/docker-secrets.adversarial.spec.ts'
+      # Application checks cannot validate a deployment artifact not yet present.
+      # Docker security is a separate hard release gate: issue #11.
+      - name: API application tests (deployment suite tracked in issue #11)
+        run: pnpm --dir apps/api exec vitest run --exclude 'src/config/docker-secrets.adversarial.spec.ts'
       - name: Web tests
         run: pnpm --dir apps/web exec vitest run
       - name: Report unvalidated deployment gate
