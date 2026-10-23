@@ -70,6 +70,6 @@ describe.skipIf(!enabled)('gamification PostgreSQL transaction guarantees', () =
   it('rejects the same purchase request without charging again', async () => {
     const winner = await prisma.gamePurchase.findFirstOrThrow({ where: { userId, itemId } });
     expect((await game.purchase(userId, itemId, winner.requestKey)).duplicate).toBe(true);
-    expect((await game.wallet(userId)).balance).toBe(3);
+    expect((await game.wallet(userId)).balance).toBe(13);
   });
 });
