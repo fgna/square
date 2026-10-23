@@ -18,6 +18,7 @@ import { mailDate, mailTime } from '../email/mail-format';
 import { htmlToText } from '../email/html-to-text';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
+import { toVideoEmbed } from '../courses/video-url';
 import { unlink } from 'fs/promises';
 import { resolve, sep } from 'path';
 
@@ -172,11 +173,27 @@ function unexpiredRecordings() {
   return cutoff ? { createdAt: { gte: cutoff } } : {};
 }
 
-/** Signed links for the attachments, and the date the recording disappears (null if never). */
-function withRecordingLinks<T extends { createdAt: Date; attachments?: { url: string }[] }>(recording: T) {
+/**
+ * How a recording's video reaches the browser. A YouTube, Vimeo or Loom video
+ * is played inside the platform, and members get only the player link (embedUrl):
+ * the share link itself would play anywhere once copied, and recordings show
+ * members. Admins keep the share link to manage the recording. Other links
+ * (e.g. a cloud folder) cannot be embedded and stay a plain link.
+ */
+export function recordingVideo(url: string, forAdmin: boolean) {
+  const embedUrl = toVideoEmbed(url)?.embedUrl ?? null;
+  return { url: forAdmin || !embedUrl ? url : null, embedUrl };
+}
+
+/** Player link, signed links for the attachments, and the date the recording disappears (null if never). */
+function withRecordingLinks<T extends { url: string; createdAt: Date; attachments?: { url: string }[] }>(
+  recording: T,
+  forAdmin: boolean,
+) {
   const days = recordingRetentionDays();
   return {
     ...recording,
+    ...recordingVideo(recording.url, forAdmin),
     availableUntil: days ? new Date(recording.createdAt.getTime() + days * 86_400_000) : null,
     attachments: (recording.attachments ?? []).map((a) => ({ ...a, url: absoluteUploadUrl(signUploadPath(a.url)) })),
   };
@@ -417,7 +434,7 @@ export class EventsService {
 
   // ── Recordings ─────────────────────────────────────────────────────────
 
-  async findAllRecordings(page = 1, limit = 20) {
+  async findAllRecordings(page = 1, limit = 20, forAdmin = false) {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
@@ -437,16 +454,16 @@ export class EventsService {
       this.prisma.recording.count({ where }),
     ]);
 
-    return { data: data.map(withRecordingLinks), total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data: data.map((r) => withRecordingLinks(r, forAdmin)), total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findRecordingsByEvent(eventId: string) {
+  async findRecordingsByEvent(eventId: string, forAdmin = false) {
     const recordings = await this.prisma.recording.findMany({
       where: { eventId, ...unexpiredRecordings() },
       orderBy: { createdAt: 'desc' },
       include: { attachments: { orderBy: { order: 'asc' } } },
     });
-    return recordings.map(withRecordingLinks);
+    return recordings.map((r) => withRecordingLinks(r, forAdmin));
   }
 
   /** Attaches a file already stored through POST /uploads/file (slides, handouts). */

@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 
 export interface WelcomeVideo {
-  videoUrl: string | null;
   videoEmbedUrl: string | null;
   dismissed: boolean;
 }

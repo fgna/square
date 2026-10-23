@@ -94,8 +94,9 @@ export class EventsController {
   findAllRecordings(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
+    @CurrentUser() user: any,
   ) {
-    return this.eventsService.findAllRecordings(Number(page), Number(limit));
+    return this.eventsService.findAllRecordings(Number(page), Number(limit), user?.role === 'ADMIN');
   }
 
   @Get('recordings/retention')
@@ -106,8 +107,8 @@ export class EventsController {
 
   @Get(':id/recordings')
   @ApiOperation({ summary: 'Get recordings for an event' })
-  findRecordings(@Param('id') id: string) {
-    return this.eventsService.findRecordingsByEvent(id);
+  findRecordings(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.eventsService.findRecordingsByEvent(id, user?.role === 'ADMIN');
   }
 
   @Post(':id/recordings')
