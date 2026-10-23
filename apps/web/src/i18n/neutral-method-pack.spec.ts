@@ -7,12 +7,12 @@ import { prepareCompleteBilingualMethodMessages } from './private-method-loader'
 describe('neutral method pack bilingual overlays', () => {
   it('activates complete synthetic DE/EN method labels against neutral UI without overriding auth', async () => {
     const root = resolve(process.cwd(), '../../examples/neutral-method-pack');
-    const result = await prepareCompleteBilingualMethodMessages(root, { de, en }, { dimensions: ['Focus', 'Recovery'] });
+    const result = await prepareCompleteBilingualMethodMessages(root, { de, en }, { dimensions: ['Focus', 'Recovery', 'Connection', 'Learning', 'Wellbeing'] });
     const deAssessment = result.de.assessment as Record<string, Record<string, string>>;
     const enAssessment = result.en.assessment as Record<string, Record<string, string>>;
-    expect(Object.keys(deAssessment.dimensions)).toEqual(['Focus', 'Recovery']);
-    expect(Object.keys(enAssessment.dimensions)).toEqual(['Focus', 'Recovery']);
-    expect(deAssessment.dimensions.Focus).toBe('Konzentration');
+    expect(Object.keys(deAssessment.dimensions)).toEqual(['Focus', 'Recovery', 'Connection', 'Learning', 'Wellbeing']);
+    expect(Object.keys(enAssessment.dimensions)).toEqual(['Focus', 'Recovery', 'Connection', 'Learning', 'Wellbeing']);
+    expect(deAssessment.dimensions.Focus).toBe('Fokus');
     expect(enAssessment.dimensions.Focus).toBe('Focus');
     expect(result.de.auth).toBe(de.auth);
     expect(result.en.auth).toBe(en.auth);

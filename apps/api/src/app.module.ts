@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
+import { CapabilityGuard } from './config/capabilities.guard';
 import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
 import { normalizeRequestId } from './common/request-id';
 import { PrismaModule } from './prisma/prisma.module';
@@ -107,6 +108,7 @@ import { PluginsModule } from './plugins/plugins.module';
     // UserThrottlerGuard uses authenticated userId as throttle key (falls back to IP),
     // which is more accurate than IP-based limiting behind a reverse proxy.
     { provide: APP_GUARD, useClass: UserThrottlerGuard },
+    { provide: APP_GUARD, useClass: CapabilityGuard },
   ],
 })
 export class AppModule {}

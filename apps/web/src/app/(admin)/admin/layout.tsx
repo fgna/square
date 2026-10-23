@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, BookOpen, Calendar, Shield, Flag, ClipboardList, ArrowLeft, BarChart2, Settings, Mail, Menu, X, FileDown, Newspaper, Lightbulb, Tag, ClipboardCheck, Star, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
+import { isPathEnabled } from '@/lib/capabilities';
 
 const adminNav = [
   { href: '/admin', labelKey: 'overview', icon: LayoutDashboard, exact: true },
@@ -51,7 +52,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {adminNav.map(({ href, labelKey, icon: Icon, ...rest }) => {
+        {adminNav.filter(({ href }) => isPathEnabled(href)).map(({ href, labelKey, icon: Icon, ...rest }) => {
           const isActive = 'exact' in rest && rest.exact ? pathname === href : pathname.startsWith(href);
           return (
             <Link

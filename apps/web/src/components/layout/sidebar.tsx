@@ -12,6 +12,7 @@ import { useBranding } from '@/hooks/use-branding';
 import { LegalLinks } from '@/components/common/legal-links';
 import type { NavGroup, NavIcon } from '@community/plugin-sdk';
 import { pluginNavItems, type PluginNavItem } from '@/plugins';
+import { isPathEnabled } from '@/lib/capabilities';
 
 // labelKey is below "nav" for the Core's entries and a full key for plugins'.
 type NavItem = { href: string; labelKey: string; icon: LucideIcon; plugin?: boolean };
@@ -151,7 +152,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 {t(headingKey)}
               </p>
             )}
-            {items.map(({ href, labelKey, icon: Icon, plugin }) => {
+            {items.filter(({ href }) => isPathEnabled(href)).map(({ href, labelKey, icon: Icon, plugin }) => {
               const isActive = pathname === href || pathname.startsWith(href + '/');
               return (
                 <Link

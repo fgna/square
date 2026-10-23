@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@community/shared';
+import { isPathEnabled } from '@/lib/capabilities';
 
 interface NavCommand {
   kind: 'nav';
@@ -86,6 +87,7 @@ export function CommandPalette() {
 
     const filteredNav = navCommands.filter(cmd => {
       if (cmd.adminOnly && user?.role !== 'ADMIN') return false;
+      if (!isPathEnabled(cmd.id === 'analytics' ? '/admin/analytics' : '/' + cmd.id)) return false;
       if (!q) return true;
       return cmd.label.toLowerCase().includes(q) || cmd.description?.toLowerCase().includes(q);
     });
@@ -99,19 +101,19 @@ export function CommandPalette() {
       avatarUrl: u.avatarUrl, action: () => navigate(`/members/${u.id}`),
     }));
 
-    (searchData.posts ?? []).forEach((p: any) => results.push({
+    (isPathEnabled('/feed') ? searchData.posts ?? [] : []).forEach((p: any) => results.push({
       kind: 'result', id: `p-${p.id}`,
       label: p.content.length > 60 ? p.content.slice(0, 60) + '…' : p.content,
       sub: t('postBy', { name: p.author?.name ?? '' }), icon: FileText,
       action: () => navigate('/feed'),
     }));
 
-    (searchData.courses ?? []).forEach((c: any) => results.push({
+    (isPathEnabled('/courses') ? searchData.courses ?? [] : []).forEach((c: any) => results.push({
       kind: 'result', id: `c-${c.id}`, label: c.title, sub: t('course'), icon: GraduationCap,
       action: () => navigate('/courses'),
     }));
 
-    (searchData.events ?? []).forEach((e: any) => results.push({
+    (isPathEnabled('/events') ? searchData.events ?? [] : []).forEach((e: any) => results.push({
       kind: 'result', id: `e-${e.id}`, label: e.title, sub: t('event'), icon: Calendar,
       action: () => navigate('/events'),
     }));
