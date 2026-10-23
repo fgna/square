@@ -80,6 +80,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir apps/api exec prisma generate
       - name: Apply schema in disposable PostgreSQL database
-        run: pnpm --dir apps/api exec prisma db push --skip-generate
+        run: pnpm --dir apps/api exec prisma migrate deploy
       - name: Verify gamification database contract
         run: pnpm --dir apps/api exec vitest run src/gamification/gamification.postgres.spec.ts
