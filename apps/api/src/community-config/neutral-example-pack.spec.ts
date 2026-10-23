@@ -32,8 +32,8 @@ describe('fully synthetic neutral installation contract', () => {
       journalPrompt: { findMany },
     } as unknown as PrismaService;
     const assessment = await new AssessmentsService(prisma).getQuestions();
-    expect(assessment.dimensions.map(d => d.key)).toEqual(['Focus', 'Recovery']);
-    expect(assessment.totalQuestions).toBe(2);
+    expect(assessment.dimensions.map(d => d.key)).toEqual(['Focus', 'Recovery', 'Connection', 'Learning', 'Wellbeing']);
+    expect(assessment.totalQuestions).toBe(10);
     const journal = journalService(prisma);
     expect((await journal.getMethodFields('de')).fields.map(f => f.label)).toEqual(['Notizen', 'Pläne', 'Aufgaben']);
     expect((await journal.getMethodFields('en')).fields.map(f => f.label)).toEqual(['Notes', 'Plans', 'Tasks']);
