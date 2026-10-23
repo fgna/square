@@ -75,10 +75,10 @@ describe('gamification HTTP access control', () => {
 
   it('derives the wallet and purchase owner from identity rather than the request body', async () => {
     const wallet = await request(app.getHttpServer()).get('/api/gamification/wallet')
-      .set('x-test-identity', 'member').expect(200);
+      .set('Authorization', 'Bearer ' + token('member-1', 'MEMBER')).expect(200);
     expect(wallet.body.userId).toBe('member-1');
     await request(app.getHttpServer()).post('/api/gamification/purchase')
-      .set('x-test-identity', 'member')
+      .set('Authorization', 'Bearer ' + token('member-1', 'MEMBER'))
       .send({ userId: 'victim', itemId: 'badge', requestKey: 'p1' }).expect(201);
     expect(game.purchase).toHaveBeenCalledWith('member-1', 'badge', 'p1');
   });
