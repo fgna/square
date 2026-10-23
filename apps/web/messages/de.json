@@ -1463,5 +1463,14 @@
     "added": "Aufzeichnung hinzugefügt",
     "failed": "Die Aufzeichnung konnte nicht gespeichert werden",
     "uploadFailed": "Die Datei konnte nicht hochgeladen werden"
+  },
+  "videoUpload": {
+    "button": "Video hochladen",
+    "progress": "{percent} % hochgeladen",
+    "cancel": "Hochladen abbrechen",
+    "hint": "MP4 (H.264/AAC). Das Video bleibt auf dieser Plattform und spielt nur hier; andere Formate vorher umwandeln, z. B. mit HandBrake.",
+    "onlyMp4": "Bitte eine MP4-Datei wählen.",
+    "failed": "Hochladen fehlgeschlagen. Versuch es noch einmal.",
+    "uploaded": "Hochgeladenes Video"
   }
 }

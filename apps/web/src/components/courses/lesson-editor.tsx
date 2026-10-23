@@ -11,6 +11,7 @@ import { formatFileSize, isViewableInBrowser } from './lesson-view';
 import { Switch } from '@/components/ui/switch';
 import { uploadLessonImage, useCourseEditor } from '@/hooks/use-course-editor';
 import type { Lesson } from '@community/shared';
+import { VideoUploadButton } from '@/components/common/video-upload-button';
 
 // Mirrors the API's FILE_TYPES for POST /uploads/file.
 const ATTACHMENT_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.mp3,.m4a,.wav';
@@ -76,7 +77,7 @@ export function LessonEditor({
 
           <div className="space-y-1.5">
             <Label htmlFor="lesson-video" className="flex items-center gap-1.5">
-              <Video size={14} /> Video link
+              <Video size={14} /> Video
             </Label>
             <Input
               id="lesson-video"
@@ -85,9 +86,10 @@ export function LessonEditor({
               onChange={(e) => setVideoUrl(e.target.value)}
             />
             <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-              Paste the share link from YouTube (unlisted works), Vimeo or Loom. Leave empty for a lesson
-              without video.
+              Paste the share link from YouTube (unlisted works), Vimeo or Loom, or upload an MP4 so the video
+              stays on this platform. Leave empty for a lesson without video.
             </p>
+            <VideoUploadButton onUploaded={(url) => setVideoUrl(url)} />
             <label
               className="flex items-start gap-2 text-sm pt-1"
               style={{ color: videoHostAllowsDownload ? 'var(--theme-text)' : 'var(--theme-text-muted)' }}
