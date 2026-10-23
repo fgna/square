@@ -4,7 +4,8 @@ import { randomUUID } from 'crypto';
 import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { decodeUploadFilename } from '../uploads/decode-filename';
-import { VIDEO_CHUNK_BYTES, hostedVideoPath, videoMaxBytes, videosDir } from './hosted-video';
+import { PrismaService } from '../prisma/prisma.service';
+import { VIDEO_CHUNK_BYTES, deleteUnusedHostedVideos, hostedVideoPath, videoMaxBytes, videosDir } from './hosted-video';
 import { looksLikeMp4OrMov, videoCodec } from './video-codec';
 
 const UPLOAD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -31,6 +32,8 @@ interface UploadMeta {
 @Injectable()
 export class VideosService {
   private readonly logger = new Logger(VideosService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
 
   private partialDir() {
     return join(videosDir(), '.partial');
@@ -166,6 +169,31 @@ export class VideosService {
       }
     }
     if (removed) this.logger.log(`Removed ${removed} unfinished video uploads`);
+    return removed;
+  }
+
+  /**
+   * Deletes finished videos that no lesson and no recording uses, e.g. when
+   * an admin uploaded a video and closed the dialog without saving. A day of
+   * grace keeps a video that was just uploaded and is about to be saved.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async removeUnusedVideos(now = Date.now()) {
+    let names: string[];
+    try {
+      names = await readdir(videosDir());
+    } catch {
+      return 0;
+    }
+    const old: string[] = [];
+    for (const name of names) {
+      const id = name.endsWith('.mp4') ? name.slice(0, -'.mp4'.length) : '';
+      if (!UPLOAD_ID.test(id)) continue;
+      const info = await stat(join(videosDir(), name)).catch(() => null);
+      if (info && now - info.mtimeMs > STALE_MS) old.push(hostedVideoPath(id));
+    }
+    const removed = await deleteUnusedHostedVideos(this.prisma, old, this.logger);
+    if (removed > 0) this.logger.log(`Removed ${removed} videos that no lesson or recording uses`);
     return removed;
   }
 }

@@ -53,6 +53,7 @@ export function videoMaxBytes(): number {
  * more. Called after a video was replaced or its lesson/recording deleted.
  */
 export async function deleteUnusedHostedVideos(prisma: PrismaService, urls: (string | null | undefined)[], logger: Logger) {
+  let deleted = 0;
   for (const url of new Set(urls.filter(isHostedVideo))) {
     const [lessons, recordings] = await Promise.all([
       prisma.lesson.count({ where: { videoUrl: url } }),
@@ -61,8 +62,12 @@ export async function deleteUnusedHostedVideos(prisma: PrismaService, urls: (str
     if (lessons > 0 || recordings > 0) continue;
     const file = hostedVideoFile(url);
     if (!file) continue;
-    await unlink(file).catch((err: NodeJS.ErrnoException) => {
-      if (err.code !== 'ENOENT') logger.warn(`Could not delete ${url}: ${err.message}`);
-    });
+    await unlink(file).then(
+      () => deleted++,
+      (err: NodeJS.ErrnoException) => {
+        if (err.code !== 'ENOENT') logger.warn(`Could not delete ${url}: ${err.message}`);
+      },
+    );
   }
+  return deleted;
 }
