@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -6,11 +7,17 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { VIDEO_CHUNK_BYTES } from './hosted-video';
 import { VideosService } from './videos.service';
 
-/** Admin-only upload of videos hosted by the platform itself. */
+/**
+ * Admin-only upload of videos hosted by the platform itself. Not rate-limited:
+ * a video of one hour is about 60–120 chunks, more than the per-route limits
+ * allow, and only admins can reach these routes.
+ */
 @ApiTags('videos')
 @ApiBearerAuth()
 @Controller('videos/uploads')
 @Roles('ADMIN')
+// Both throttlers by name: SkipThrottle() alone only skips "default".
+@SkipThrottle({ default: true, auth: true })
 export class VideosController {
   constructor(private readonly videos: VideosService) {}
 
@@ -21,6 +28,7 @@ export class VideosController {
   }
 
   @Get(':id')
+  @Header('Cache-Control', 'no-store')
   @ApiOperation({ summary: 'How much of an upload the server has (to resume)' })
   status(@Param('id') id: string) {
     return this.videos.status(id);
