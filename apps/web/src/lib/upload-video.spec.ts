@@ -52,3 +52,30 @@ describe('uploadVideo', () => {
     expect(isHostedVideoPath('/uploads/videos/../x.mp4')).toBe(false);
   });
 });
+
+describe('uploadVideo with the real API client', () => {
+  it('sends each chunk as multipart form data, not as JSON', async () => {
+    const { default: axios } = await import('axios');
+    const sent: { contentType: string; isForm: boolean; timeout?: number }[] = [];
+    // Same defaults as the app's API client (JSON content type, 30 s timeout).
+    const api = axios.create({ headers: { 'Content-Type': 'application/json' }, timeout: 30000 });
+    api.defaults.adapter = async (config) => {
+      if (config.method === 'put') {
+        const type = String(config.headers?.['Content-Type'] ?? config.headers?.get?.('Content-Type'));
+        sent.push({ contentType: type, isForm: config.data instanceof FormData, timeout: config.timeout });
+        return { data: { received: 10 }, status: 200, statusText: 'OK', headers: {}, config };
+      }
+      const data = config.url!.endsWith('/complete')
+        ? { url: '/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4', filename: 'a.mov' }
+        : { id: 'u1', chunkSize: 16, received: 0, size: 10 };
+      return { data, status: 200, statusText: 'OK', headers: {}, config };
+    };
+
+    await uploadVideo(api, new File([new Uint8Array(10)], 'a.mov'), () => undefined);
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0].isForm).toBe(true);
+    expect(sent[0].contentType).toMatch(/multipart\/form-data/);
+    expect(sent[0].timeout).toBeGreaterThan(30000);
+  });
+});

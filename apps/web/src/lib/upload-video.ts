@@ -15,6 +15,7 @@ interface UploadState {
 }
 
 const RETRIES = 4;
+const CHUNK_TIMEOUT_MS = 10 * 60 * 1000;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,7 +43,15 @@ export async function uploadVideo(
       let attempt = 0;
       for (;;) {
         try {
-          received = (await api.put(`/videos/uploads/${started.id}/chunks/${index}`, body, { signal })).data.received;
+          received = (
+            await api.put(`/videos/uploads/${started.id}/chunks/${index}`, body, {
+              signal,
+              // The API client sends JSON by default, which would turn the form into "{}".
+              headers: { 'Content-Type': 'multipart/form-data' },
+              // 8 MB can take minutes on a slow connection.
+              timeout: CHUNK_TIMEOUT_MS,
+            })
+          ).data.received;
           break;
         } catch (err: any) {
           if (signal?.aborted) throw err;
