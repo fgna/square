@@ -380,6 +380,16 @@ export function SettingsPage() {
   const [profileName, setProfileName] = useState(user?.name ?? '');
   const [profileBio, setProfileBio] = useState('');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatarUrl ?? '');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarPreviewRef = useRef<string | null>(null);
+  const clearAvatarPreview = () => {
+    if (avatarPreviewRef.current) URL.revokeObjectURL(avatarPreviewRef.current);
+    avatarPreviewRef.current = null;
+    setAvatarPreview(null);
+  };
+  useEffect(() => () => {
+    if (avatarPreviewRef.current) URL.revokeObjectURL(avatarPreviewRef.current);
+  }, []);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['me'],
@@ -425,10 +435,12 @@ export function SettingsPage() {
       }).then((r) => r.data);
     },
     onSuccess: (data) => {
+      clearAvatarPreview();
       setProfileAvatar(data.avatarUrl);
       updateUser({ avatarUrl: data.avatarUrl });
       queryClient.invalidateQueries({ queryKey: ['me'] });
     },
+    onError: () => clearAvatarPreview(),
   });
 
   const exportData = useMutation({
@@ -492,10 +504,18 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={profileAvatar || user.avatarUrl || undefined} alt={user.name} />
-                  <AvatarFallback className="text-lg">{getInitials(user.name)}</AvatarFallback>
-                </Avatar>
+                <button
+                  type="button"
+                  className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-primary)]"
+                  aria-label={t('profile.changePhoto')}
+                  disabled={uploadAvatar.isPending}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={avatarPreview || profileAvatar || user.avatarUrl || undefined} alt={user.name} />
+                    <AvatarFallback className="text-lg">{getInitials(user.name)}</AvatarFallback>
+                  </Avatar>
+                </button>
                 <div>
                   <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>
                     {user.name}
@@ -507,11 +527,16 @@ export function SettingsPage() {
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
-                    className="hidden"
+                    className="sr-only"
+                    aria-label={t('profile.changePhoto')}
                     onChange={async (e) => {
                       const picked = e.target.files?.[0];
                       e.target.value = '';
                       if (!picked) return;
+                      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(picked.type)) {
+                        toast.error(t('profile.photoUnreadable'), t('profile.unreadableHint'));
+                        return;
+                      }
                       let readable: File;
                       try {
                         readable = await readLocalFile(picked);
@@ -525,6 +550,10 @@ export function SettingsPage() {
                         toast.error(t('profile.photoTooLarge'), t('profile.photoTooLargeText', { mb: (file.size / (1024 * 1024)).toFixed(1) }));
                         return;
                       }
+                      clearAvatarPreview();
+                      const previewUrl = URL.createObjectURL(file);
+                      avatarPreviewRef.current = previewUrl;
+                      setAvatarPreview(previewUrl);
                       uploadAvatar.mutate(file);
                     }}
                   />
