@@ -1490,5 +1490,14 @@
     "added": "Recording added",
     "failed": "The recording could not be saved",
     "uploadFailed": "The file could not be uploaded"
+  },
+  "videoUpload": {
+    "button": "Upload video",
+    "progress": "{percent}% uploaded",
+    "cancel": "Cancel upload",
+    "hint": "MP4 (H.264/AAC). The video stays on this platform and plays only here; convert other formats first, e.g. with HandBrake.",
+    "onlyMp4": "Please choose an MP4 file.",
+    "failed": "Upload failed. Please try again.",
+    "uploaded": "Uploaded video"
   }
 }

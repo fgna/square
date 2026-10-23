@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { VideoUploadButton } from '@/components/common/video-upload-button';
+import { isHostedVideoPath } from '@/lib/upload-video';
 
 // Mirrors the API's FILE_TYPES for POST /uploads/file.
 const ATTACHMENT_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.mp3,.m4a,.wav';
@@ -21,6 +23,8 @@ interface AdminRecording {
   title: string;
   description?: string | null;
   url: string;
+  /** Signed link of a video uploaded to the platform. */
+  fileUrl?: string | null;
   duration?: number | null;
   availableUntil: string | null;
   attachments: { id: string; filename: string; url: string; size: number }[];
@@ -54,7 +58,7 @@ export function RecordingsAdminDialog({ event, onClose }: { event: { id: string;
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
   const [minutes, setMinutes] = useState('');
-  const urlValid = /^https?:\/\/\S+\.\S+/i.test(url.trim());
+  const urlValid = /^https?:\/\/\S+\.\S+/i.test(url.trim()) || isHostedVideoPath(url);
 
   const create = useMutation({
     mutationFn: () =>
@@ -111,7 +115,8 @@ export function RecordingsAdminDialog({ event, onClose }: { event: { id: string;
             <div key={r.id} className="rounded-lg p-3 space-y-2" style={{ border: '1px solid var(--theme-border)' }}>
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:underline inline-flex items-center gap-1" style={{ color: 'var(--theme-text)' }}>
+                  {/* An uploaded video opens through its signed link; the stored path alone is refused. */}
+                  <a href={r.fileUrl ?? r.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:underline inline-flex items-center gap-1" style={{ color: 'var(--theme-text)' }}>
                     {r.title} <ExternalLink size={12} />
                   </a>
                   {r.availableUntil && (
@@ -175,6 +180,7 @@ export function RecordingsAdminDialog({ event, onClose }: { event: { id: string;
             <Label htmlFor="rec-url">{t('recUrl')}</Label>
             <Input id="rec-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://vimeo.com/…" />
             <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('recUrlHint')}</p>
+            <VideoUploadButton onUploaded={(uploaded) => setUrl(uploaded)} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="rec-desc">{t('recDescription')}</Label>

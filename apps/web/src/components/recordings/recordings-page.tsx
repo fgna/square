@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/api-client';
 import { ClickToLoadVideo } from '@/components/common/click-to-load-video';
+import { HostedVideo } from '@/components/common/hosted-video';
 
 interface Recording {
   id: string;
@@ -15,6 +16,8 @@ interface Recording {
   description?: string;
   /** Plays inside the platform (YouTube, Vimeo, Loom); members get no share link for these. */
   embedUrl?: string | null;
+  /** A video uploaded to the platform: signed, expiring link for the player. */
+  fileUrl?: string | null;
   /** Only for links that cannot be embedded, and for admins. */
   url?: string | null;
   duration?: number;
@@ -142,7 +145,9 @@ export function RecordingsPage() {
               }}
             >
               {/* Player inside the platform; a link only for videos that cannot be embedded */}
-              {recording.embedUrl ? (
+              {recording.fileUrl ? (
+                <HostedVideo src={recording.fileUrl} title={recording.title} />
+              ) : recording.embedUrl ? (
                 <ClickToLoadVideo embedUrl={recording.embedUrl} title={recording.title} />
               ) : (
                 <a
@@ -179,7 +184,7 @@ export function RecordingsPage() {
 
               {/* Info */}
               <div className="p-4 space-y-2">
-                {recording.embedUrl || !recording.url ? (
+                {recording.fileUrl || recording.embedUrl || !recording.url ? (
                   <h3 className="text-sm font-semibold line-clamp-2" style={{ color: 'var(--theme-text)' }}>
                     {recording.title}
                   </h3>
