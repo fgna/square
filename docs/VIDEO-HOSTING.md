@@ -18,10 +18,16 @@ plays only inside the platform. External links keep working.
 
 ## Format
 
-Only **MP4 (H.264 video, AAC audio)** is accepted; every current browser plays
-it. Recordings from Zoom, Teams or OBS usually already are MP4. Convert other
-files before uploading, e.g. with HandBrake (preset "Fast 720p30", "Web
-Optimized") or ffmpeg:
+**MP4 or QuickTime MOV with H.264 video** is accepted; every current browser
+plays it (a MOV is stored as `.mp4`, the container is the same family). The
+server reads the codec from the file's `moov` box after the upload and refuses
+**HEVC/H.265** (Firefox and many Windows computers cannot play it) and other
+codecs such as ProRes. Recordings from Zoom, Teams or OBS usually already are
+MP4/H.264. 720p is enough for most recordings.
+
+Converting on a Mac: QuickTime Player → File → Export As → 720p (H.264); for
+1080p choose "Greater Compatibility (H.264)". Or HandBrake (preset "Fast
+720p30", "Web Optimized"), or ffmpeg:
 
 ```bash
 ffmpeg -i input.mov -c:v libx264 -preset medium -crf 23 -vf "scale=-2:720" -c:a aac -b:a 128k -movflags +faststart output.mp4

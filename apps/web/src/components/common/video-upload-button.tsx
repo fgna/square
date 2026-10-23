@@ -8,7 +8,7 @@ import apiClient from '@/lib/api-client';
 import { uploadVideo } from '@/lib/upload-video';
 
 /**
- * Admins upload an MP4 to the platform instead of linking a video host. On
+ * Admins upload an MP4 or MOV (H.264) to the platform instead of linking a video host. On
  * success the caller receives the video's path for the lesson or recording.
  */
 export function VideoUploadButton({ onUploaded }: { onUploaded: (url: string, filename: string) => void }) {
@@ -20,7 +20,7 @@ export function VideoUploadButton({ onUploaded }: { onUploaded: (url: string, fi
 
   const start = async (file: File) => {
     setError(null);
-    if (!/\.(mp4|m4v)$/i.test(file.name)) {
+    if (!/\.(mp4|m4v|mov)$/i.test(file.name)) {
       setError(t('onlyMp4'));
       return;
     }
@@ -45,7 +45,7 @@ export function VideoUploadButton({ onUploaded }: { onUploaded: (url: string, fi
       <input
         ref={input}
         type="file"
-        accept="video/mp4,.mp4,.m4v"
+        accept="video/mp4,video/quicktime,.mp4,.m4v,.mov"
         className="hidden"
         onChange={(e) => e.target.files?.[0] && start(e.target.files[0])}
       />

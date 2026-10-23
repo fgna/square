@@ -5,6 +5,7 @@ import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from 'fs/
 import { join } from 'path';
 import { decodeUploadFilename } from '../uploads/decode-filename';
 import { VIDEO_CHUNK_BYTES, hostedVideoPath, videoMaxBytes, videosDir } from './hosted-video';
+import { looksLikeMp4OrMov, videoCodec } from './video-codec';
 
 const UPLOAD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const STALE_MS = 24 * 60 * 60 * 1000;
@@ -22,8 +23,10 @@ interface UploadMeta {
  * where it stopped. Chunks are appended in order to uploads/videos/.partial/<id>.part;
  * completing the upload moves the file to uploads/videos/<id>.mp4.
  *
- * Only MP4 (H.264/AAC) is accepted: every current browser plays it without
- * conversion. Other formats are converted before uploading.
+ * MP4 and QuickTime MOV with H.264 video are accepted: every current browser
+ * plays them without conversion (a MOV is stored as .mp4, the container is the
+ * same family). HEVC/H.265 is refused, because Firefox and many Windows
+ * computers cannot play it; other formats are converted before uploading.
  */
 @Injectable()
 export class VideosService {
@@ -54,8 +57,8 @@ export class VideosService {
   async start(userId: string, dto: { filename: string; size: number }) {
     const filename = decodeUploadFilename(String(dto.filename ?? '')).trim();
     const size = Number(dto.size);
-    if (!/\.(mp4|m4v)$/i.test(filename)) {
-      throw new BadRequestException('Only MP4 videos (H.264/AAC) can be uploaded');
+    if (!/\.(mp4|m4v|mov)$/i.test(filename)) {
+      throw new BadRequestException('Only MP4 or MOV videos (H.264) can be uploaded');
     }
     if (!Number.isInteger(size) || size <= 0) throw new BadRequestException('Invalid file size');
     const max = videoMaxBytes();
@@ -96,9 +99,9 @@ export class VideosService {
     if (offset !== received) {
       throw new ConflictException({ message: 'Chunk out of order', received });
     }
-    // An MP4 file starts with a box of type "ftyp" at byte 4.
-    if (index === 0 && chunk.subarray(4, 8).toString('latin1') !== 'ftyp') {
-      throw new BadRequestException('This is not an MP4 video');
+    // An MP4/MOV file starts with a box: 4 bytes size, then its type ("ftyp" for MP4).
+    if (index === 0 && !looksLikeMp4OrMov(chunk)) {
+      throw new BadRequestException('This is not an MP4 or MOV video');
     }
     const handle = await open(this.files(id).part, 'a');
     try {
@@ -116,6 +119,18 @@ export class VideosService {
       throw new ConflictException({ message: 'Upload incomplete', received });
     }
     const { meta: metaFile, part } = this.files(id);
+    const codec = await videoCodec(part);
+    if (codec === 'hevc') {
+      await this.abort(id);
+      throw new BadRequestException(
+        'HEVC (H.265) videos do not play in every browser. Export with H.264, e.g. in QuickTime: "Greater compatibility (H.264)".',
+      );
+    }
+    if (codec !== 'h264') {
+      // ProRes, MPEG-4 Part 2 and other codecs from cameras or editing software.
+      await this.abort(id);
+      throw new BadRequestException('The video must be H.264 (MP4 or MOV). Convert it first, e.g. QuickTime "Export As".');
+    }
     await rename(part, join(videosDir(), `${id}.mp4`));
     await rm(metaFile, { force: true });
     return { url: hostedVideoPath(id), filename: meta.filename, size: meta.size };

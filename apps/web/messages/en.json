@@ -1495,8 +1495,8 @@
     "button": "Upload video",
     "progress": "{percent}% uploaded",
     "cancel": "Cancel upload",
-    "hint": "MP4 (H.264/AAC). The video stays on this platform and plays only here; convert other formats first, e.g. with HandBrake.",
-    "onlyMp4": "Please choose an MP4 file.",
+    "hint": "MP4 or MOV with H.264; 720p is enough. In QuickTime: File → Export As → 720p. The video stays on this platform and plays only here.",
+    "onlyMp4": "Please choose an MP4 or MOV file.",
     "failed": "Upload failed. Please try again.",
     "uploaded": "Uploaded video"
   }
