@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
 import { getInitials } from '@community/shared';
+import { isPathEnabled } from '@/lib/capabilities';
 
 interface TopbarProps {
   title?: string;
@@ -109,18 +110,18 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
               {t('myProfile')}
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+          {isPathEnabled("/bookmarks") && <DropdownMenuItem asChild className="gap-2 cursor-pointer">
             <Link href="/bookmarks">
               <Bookmark size={14} />
               {tn('bookmarks')}
             </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+          </DropdownMenuItem>}
+          {isPathEnabled("/messages") && <DropdownMenuItem asChild className="gap-2 cursor-pointer">
             <Link href="/messages">
               <Mail size={14} />
               {tn('messages')}
             </Link>
-          </DropdownMenuItem>
+          </DropdownMenuItem>}
           <DropdownMenuItem asChild className="gap-2 cursor-pointer">
             <Link href="/settings">
               <Settings size={14} />

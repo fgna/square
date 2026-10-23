@@ -2,6 +2,7 @@ import type { NavGroup, NavIcon } from '@community/plugin-sdk';
 import type { PluginApiClient } from '@community/plugin-sdk/web';
 import apiClient from '@/lib/api-client';
 import { webPlugins } from './registry.generated';
+import { isPathEnabled } from '@/lib/capabilities';
 
 /**
  * Installed plugins as written by scripts/plugins.mjs. The helpers take the
@@ -23,7 +24,7 @@ export interface PluginNavItem {
 }
 
 export function pluginNavItems(plugins: InstalledWebPlugins = webPlugins): PluginNavItem[] {
-  return plugins.flatMap(({ id, nav, bundled }) =>
+  return plugins.filter(({ id }) => isPathEnabled('/p/' + id)).flatMap(({ id, nav, bundled }) =>
     nav.map(({ path, labelKey, icon, group, order }) => ({
       href: path ? `/p/${id}/${path}` : `/p/${id}`,
       messageKey: bundled ? labelKey : `plugin.${id}.${labelKey}`,

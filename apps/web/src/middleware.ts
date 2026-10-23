@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { isPathEnabled } from './lib/capabilities';
 
 const PUBLIC_PATHS = ['/', '/login', '/register', '/api/health'];
 const AUTH_PATHS = ['/login', '/register'];
@@ -94,6 +95,8 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/')) {
     return next();
   }
+
+  if (!isPathEnabled(pathname)) return redirect('/dashboard');
 
   const authToken = request.cookies.get('auth-session')?.value;
   const userRole = request.cookies.get('user-role')?.value;
