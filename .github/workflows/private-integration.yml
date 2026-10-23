@@ -45,3 +45,41 @@ jobs:
           if [ ! -f docker-compose.yml ]; then
             echo '::warning title=Deployment security not validated::No reviewed compose exists; Docker security suite is uncollected. Release blocked by issue #11.'
           fi
+
+  gamification-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: square_test
+          POSTGRES_PASSWORD: square_test
+          POSTGRES_DB: square_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U square_test -d square_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://square_test:square_test@localhost:5432/square_test?schema=public
+      GAMIFICATION_INTEGRATION_TEST: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/api exec prisma generate
+      - name: Apply schema in disposable PostgreSQL database
+        run: pnpm --dir apps/api exec prisma db push --skip-generate
+      - name: Verify gamification database contract
+        run: pnpm --dir apps/api exec vitest run src/gamification/gamification.postgres.spec.ts
