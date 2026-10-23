@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsUrl, IsInt, Min, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsUrl, IsInt, Min, MinLength, MaxLength, ValidateIf } from 'class-validator';
+import { isHostedVideo } from '../../videos/hosted-video';
 
 export class CreateRecordingDto {
   @IsString()
@@ -12,6 +13,9 @@ export class CreateRecordingDto {
   @MaxLength(2000)
   description?: string;
 
+  /** A link (Vimeo, YouTube, Loom, cloud folder) or a video uploaded to the platform (/uploads/videos/<id>.mp4). */
+  @IsString()
+  @ValidateIf((dto: CreateRecordingDto) => !isHostedVideo(dto.url))
   @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   url: string;
 

@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { Test } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { CoursesService } from './courses.service';
@@ -164,6 +167,25 @@ describe('CoursesService — course content', () => {
       expect(created.order).toBe(4);
       expect(created.content).toBe('<p>Hello</p>');
       expect(created.videoEmbedUrl).toBe('https://player.vimeo.com/video/76979871');
+    });
+
+    it('accepts a video uploaded to the platform only when its file exists, and plays it from a signed link', async () => {
+      const missing = '/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4';
+      await expect(service.createLesson('m1', { title: 'Intro', videoUrl: missing })).rejects.toBeInstanceOf(BadRequestException);
+
+      const root = mkdtempSync(join(tmpdir(), 'lesson-video-'));
+      vi.spyOn(process, 'cwd').mockReturnValue(root);
+      try {
+        mkdirSync(join(root, 'uploads', 'videos'), { recursive: true });
+        writeFileSync(join(root, 'uploads', 'videos', '0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4'), 'x');
+        const created = await service.createLesson('m1', { title: 'Intro', videoUrl: missing });
+        expect(created.videoEmbedUrl).toBeNull();
+        expect(created.videoFileUrl).toMatch(/\/uploads\/videos\/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e\.mp4\?exp=\d+&sig=[0-9a-f]+$/);
+        expect(created.videoDownloadUrl).toBeNull();
+      } finally {
+        vi.restoreAllMocks();
+        rmSync(root, { recursive: true, force: true });
+      }
     });
 
     it('refuses a video link that cannot be embedded', async () => {

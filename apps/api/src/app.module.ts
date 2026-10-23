@@ -28,6 +28,7 @@ import { GoalsModule } from './goals/goals.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { EventProposalsModule } from './event-proposals/event-proposals.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { VideosModule } from './videos/videos.module';
 import { LearningGroupsModule } from './learning-groups/learning-groups.module';
 import { TierModule } from './tier/tier.module';
 import { DigestTemplateModule } from './digest/digest-template.module';
@@ -96,6 +97,7 @@ import { PluginsModule } from './plugins/plugins.module';
     AssessmentsModule,
     EventProposalsModule,
     UploadsModule,
+    VideosModule,
     LearningGroupsModule,
     TierModule,
     DigestTemplateModule,

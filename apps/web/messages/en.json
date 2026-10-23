@@ -1463,5 +1463,14 @@
     "added": "Recording added",
     "failed": "The recording could not be saved",
     "uploadFailed": "The file could not be uploaded"
+  },
+  "videoUpload": {
+    "button": "Upload video",
+    "progress": "{percent}% uploaded",
+    "cancel": "Cancel upload",
+    "hint": "MP4 or MOV with H.264; 720p is enough. In QuickTime: File → Export As → 720p. The video stays on this platform and plays only here.",
+    "onlyMp4": "Please choose an MP4 or MOV file.",
+    "failed": "Upload failed. Please try again.",
+    "uploaded": "Uploaded video"
   }
 }
