@@ -43,17 +43,28 @@ describe.skipIf(!enabled)('gamification PostgreSQL transaction guarantees', () =
     expect(await prisma.gameTransaction.count({ where: { userId, kind: 'REWARD' } })).toBe(1);
   });
 
+  it('never double-credits simultaneously submitted identical reward events', async () => {
+    const results = await Promise.allSettled([
+      game.issueReward(userId, token, token + ':simultaneous'),
+      game.issueReward(userId, token, token + ':simultaneous'),
+    ]);
+    expect(results.some((result) => result.status === 'fulfilled')).toBe(true);
+    expect(await prisma.gameRewardEvent.count({ where: { userId, eventKey: token + ':simultaneous' } })).toBe(1);
+    expect(await prisma.gameTransaction.count({ where: { userId, kind: 'REWARD' } })).toBe(2);
+    expect((await game.wallet(userId)).balance).toBe(20);
+  });
+
   it('cannot debit twice under competing purchases and persists the ledger', async () => {
     const attempts = await Promise.allSettled([
       game.purchase(userId, itemId, token + ':purchase-a'),
       game.purchase(userId, itemId, token + ':purchase-b'),
     ]);
     expect(attempts.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
-    expect((await game.wallet(userId)).balance).toBe(3);
+    expect((await game.wallet(userId)).balance).toBe(13);
     expect(await prisma.gameInventory.count({ where: { userId, itemId } })).toBe(1);
     expect(await prisma.gamePurchase.count({ where: { userId, itemId } })).toBe(1);
     expect((await prisma.gameTransaction.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }))
-      .reduce((sum, row) => sum + row.delta, 0)).toBe(3);
+      .reduce((sum, row) => sum + row.delta, 0)).toBe(13);
   });
 
   it('rejects the same purchase request without charging again', async () => {
