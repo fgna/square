@@ -33,7 +33,9 @@ export class TaskAttemptStore implements PluginTaskAttempts {
       });
       if (!existing) throw err;
       const same = existing.taskId === data.taskId && existing.taskVersion === data.taskVersion
-        && JSON.stringify(existing.response) === JSON.stringify(data.response)
+        && (Array.isArray(existing.response) && Array.isArray(data.response)
+          ? JSON.stringify([...existing.response].sort()) === JSON.stringify([...data.response].sort())
+          : JSON.stringify(existing.response) === JSON.stringify(data.response))
         && existing.correct === data.correct && existing.hintsUsed === data.hintsUsed;
       if (!same) throw new ConflictException('Idempotency key already used for a different attempt');
       return existing as unknown as PluginTaskAttemptRecord;
