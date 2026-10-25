@@ -1,0 +1,6 @@
+{
+  "title": "Reusable task and quiz plugin prototype",
+  "category": "new",
+  "description": "Signed-in members can answer numeric and choice tasks through a reusable plugin and review their saved attempts. The capability is an opt-in prototype and is not yet production-ready.",
+  "pr": 20
+}

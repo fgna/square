@@ -53,6 +53,8 @@ model User {
   challenge        Challenge?
   goals            Goal[]
   journalEntries   JournalEntry[]
+  taskHintSessions TaskHintSession[]
+  taskAttempts     TaskAttempt[]
   assessments      Assessment[]
   eventProposals   EventProposal[]
   proposalVotes    ProposalVote[]
@@ -855,4 +857,38 @@ model LearningGroupInvite {
 
   @@unique([groupId, userId])
   @@index([userId])
+}
+
+/** Domain-neutral, immutable attempts for installed task/quiz capabilities.
+ *  Never store public answer keys here; task definitions stay in the owning plugin.
+ */
+model TaskAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId         String
+  taskVersion    Int
+  response       Json
+  correct        Boolean
+  hintsUsed      Int      @default(0)
+  idempotencyKey String
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, taskId, createdAt])
+}
+
+/** Trusted hint state, keyed to one member's attempt idempotency key. */
+model TaskHintSession {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId         String
+  taskVersion    Int
+  idempotencyKey String
+  hintsUsed      Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, taskId])
 }
