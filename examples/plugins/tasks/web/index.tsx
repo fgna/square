@@ -17,6 +17,7 @@ type PendingSubmission = { taskId: string; taskVersion: number; response: number
 
 function QuizPage({ api }: PluginPageProps) {
   const [task, setTask] = useState<Task | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [number, setNumber] = useState('');
   const [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -31,8 +32,8 @@ function QuizPage({ api }: PluginPageProps) {
     api.get<HistoricalAttempt[]>('attempts')
       .then(rows => { if (active) setHistory(rows); })
       .catch(() => { if (active) setError('Could not load previous attempts.'); });
-    api.get<Task>('tasks/first')
-      .then(t => { if (active) setTask(t); })
+    api.get<Task[]>('tasks')
+      .then(rows => { if (active) { setTasks(rows); setTask(rows[0] ?? null); } })
       .catch(() => { if (active) setError('Could not load the task.'); });
     return () => { active = false; };
   }, [api]);
@@ -82,6 +83,15 @@ function QuizPage({ api }: PluginPageProps) {
 
   return <main className="mx-auto max-w-xl space-y-4 p-4">
     <h1 className="text-2xl font-bold">Practice</h1>
+    <label className="block">Task
+      <select aria-label="Task" value={task.id} disabled={busy || !!pending}
+        onChange={e => {
+          const next = tasks.find(item => item.id === e.target.value);
+          if (next) { setTask(next); setSelected([]); setNumber(''); setAttempt(null); setHint(null); setError(''); }
+        }} className="block w-full rounded border p-2">
+        {tasks.map(item => <option key={item.id} value={item.id}>{item.prompt}</option>)}
+      </select>
+    </label>
     <p>{task.prompt}</p>
     {task.responseType === 'number'
       ? <label className="block">Your answer
