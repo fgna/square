@@ -6,6 +6,16 @@ container="square-task-attempts-$$"
 cleanup() { docker rm -f "$container" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
+# Install local workspace binaries if this checkout has not been bootstrapped.
+# Prisma is a project devDependency and is intentionally not installed globally.
+if [[ ! -x "$root/apps/api/node_modules/.bin/prisma" ]]; then
+  echo "Local Prisma CLI missing; installing lockfile-pinned workspace dependencies."
+  (cd "$root" && bash scripts/dev-pnpm.sh install --frozen-lockfile)
+fi
+[[ -x "$root/apps/api/node_modules/.bin/prisma" ]] || {
+  echo "Prisma CLI still unavailable after dependency install" >&2
+  exit 1
+}
 command -v docker >/dev/null || { echo "Docker is required" >&2; exit 1; }
 docker info >/dev/null 2>&1 || { echo "Docker daemon is unavailable" >&2; exit 1; }
 
