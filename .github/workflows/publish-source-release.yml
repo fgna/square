@@ -6,6 +6,10 @@ on:
         description: 'New semver tag, e.g. v1.1.0'
         required: true
         type: string
+      reviewed_sha:
+        description: 'Commit SHA from the reviewed preview (required when publishing)'
+        required: false
+        type: string
       publish:
         description: 'Explicitly approve publishing a GitHub Release'
         required: true
@@ -43,6 +47,9 @@ jobs:
           [ -n "$PREVIOUS" ] || { echo "No previous version tag"; exit 1; }
           git merge-base --is-ancestor "$PREVIOUS" HEAD || { echo "Previous tag is not ancestor of HEAD"; exit 1; }
           [ -n "$(git diff --name-only "$PREVIOUS"..HEAD)" ] || { echo "Nothing changed since previous tag"; exit 1; }
+          if [ "$(printf '%s\\n%s\\n' "$PREVIOUS" "$VERSION" | sort -V | tail -n 1)" != "$VERSION" ] || [ "$VERSION" = "$PREVIOUS" ]; then
+            echo "Requested version must exceed $PREVIOUS"; exit 1
+          fi
           echo "PREVIOUS=$PREVIOUS" >> "$GITHUB_ENV"
       - name: Run release history regression tests
         run: node --test scripts/release-history.test.mjs
@@ -70,6 +77,15 @@ jobs:
           if [ "$PUBLISH" != true ]; then
             echo "Preview only. No tag or GitHub Release published."
           fi
+      - name: Verify reviewed preview commit
+        if: inputs.publish
+        env:
+          REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+        run: |
+          [ -n "$REVIEWED_SHA" ] && [ "$REVIEWED_SHA" = "$GITHUB_SHA" ] || {
+            echo 'Publishing requires the exact commit SHA reviewed in preview; rerun preview if main has advanced.'
+            exit 1
+          }
       - name: Publish tag and GitHub Release together
         if: inputs.publish
         env:
