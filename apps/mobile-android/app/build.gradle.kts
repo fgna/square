@@ -1,3 +1,5 @@
+import java.net.URI
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -12,7 +14,7 @@ require(whiteLabelId.matches(Regex("[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-
 }
 require(whiteLabelName.isNotBlank()) { "communityName may not be blank" }
 require(whiteLabelUrl.isEmpty() || (
-    java.net.URI(whiteLabelUrl).let { it.scheme == "https" && !it.host.isNullOrBlank() &&
+    URI(whiteLabelUrl).let { it.scheme == "https" && !it.host.isNullOrBlank() &&
         it.rawUserInfo == null && it.rawQuery == null && it.rawFragment == null &&
         (it.rawPath.isNullOrEmpty() || it.rawPath == "/") }
 )) { "communityUrl must be an HTTPS origin without path, credentials, query or fragment." }
