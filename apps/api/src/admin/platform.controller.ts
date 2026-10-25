@@ -20,12 +20,13 @@ export class PlatformController {
   async branding() {
     const settings = await this.prisma.platformSettings.findUnique({
       where: { id: 'default' },
-      select: { platformName: true, logoUrl: true, allowSignups: true },
+      select: { platformName: true, logoUrl: true, allowSignups: true, onboardingMode: true },
     });
     return {
       platformName: settings?.platformName ?? 'Community',
       logoUrl: settings?.logoUrl ?? null,
       allowSignups: settings?.allowSignups ?? true,
+      onboardingMode: settings?.onboardingMode ?? 'REQUIRED',
     };
   }
 }
