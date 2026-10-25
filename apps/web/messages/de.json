@@ -485,6 +485,8 @@
       "shareSuccess": "Erfolg teilen"
     },
     "card": {
+      "pin": "Oben anpinnen",
+      "unpin": "Nicht mehr anpinnen",
       "edit": "Bearbeiten",
       "report": "Melden",
       "delete": "Löschen",

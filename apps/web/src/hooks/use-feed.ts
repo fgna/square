@@ -107,3 +107,18 @@ export function useDeletePost() {
     },
   });
 }
+
+/** Admins pin a post to the top of the feed, or unpin it. */
+export function useTogglePin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const { data } = await apiClient.patch(`/admin/posts/${postId}/pin`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['post'] });
+    },
+  });
+}
