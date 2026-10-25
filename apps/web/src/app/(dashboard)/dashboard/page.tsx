@@ -16,14 +16,18 @@ import { MyChallenge } from '@/components/dashboard/my-challenge';
 import { MyGoals } from '@/components/dashboard/my-goals';
 import { EventProposalsSection } from '@/components/event-proposals/event-proposals-section';
 import { WelcomeVideoCard } from '@/components/onboarding/welcome-video';
+import { enabledCapabilities } from '@/lib/capabilities';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const showFeed = enabledCapabilities.has('feed');
+  const showEvents = enabledCapabilities.has('events');
+  const showCourses = enabledCapabilities.has('courses');
   const t = useTranslations('dashboard');
   const tc = useTranslations('common');
-  const { data: feedData, isLoading: feedLoading, isError: feedError } = useFeed(1, 3);
+  const { data: feedData, isLoading: feedLoading, isError: feedError } = useFeed(1, 3, undefined, undefined, showFeed);
   const { data: coursesData, isError: coursesError } = useCourses(1, 1);
-  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useEvents(1, 3);
+  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useEvents(1, 3, showEvents);
   const { data: membersData, isError: membersError } = useMembers(1, 1);
 
   const upcomingEvents = eventsData?.data?.filter(
@@ -44,8 +48,9 @@ export default function DashboardPage() {
         <MyGoals />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {(showFeed || showEvents) && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent posts */}
+        {showFeed && (
         <div className="lg:col-span-2 space-y-4">
           <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
             {t('recentPosts')}
@@ -65,7 +70,9 @@ export default function DashboardPage() {
           )}
         </div>
 
+        )}
         {/* Upcoming events */}
+        {showEvents && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
             {t('upcomingEvents')}
@@ -87,7 +94,8 @@ export default function DashboardPage() {
           )}
           <EventProposalsSection compact />
         </div>
-      </div>
+        )}
+      </div>}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -97,24 +105,24 @@ export default function DashboardPage() {
           icon={Users}
           description={membersError ? t('failedPosts') : t('totalMembersDesc')}
         />
-        <StatsCard
+        {showFeed && <StatsCard
           title={t('communityPosts')}
           value={feedError ? '!' : (feedData?.total ?? '—')}
           icon={MessageCircle}
           description={feedError ? t('failedPosts') : t('communityPostsDesc')}
-        />
-        <StatsCard
+        />}
+        {showCourses && <StatsCard
           title={t('availableCourses')}
           value={coursesError ? '!' : (coursesData?.total ?? '—')}
           icon={BookOpen}
           description={coursesError ? t('failedPosts') : t('availableCoursesDesc')}
-        />
-        <StatsCard
+        />}
+        {showEvents && <StatsCard
           title={t('upcomingEventsCard')}
           value={eventsError ? '!' : upcomingEvents.length}
           icon={Calendar}
           description={eventsError ? t('failedEvents') : t('upcomingEventsCardDesc')}
-        />
+        />}
       </div>
     </div>
   );
