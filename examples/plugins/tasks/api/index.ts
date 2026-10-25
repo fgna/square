@@ -3,7 +3,7 @@ import type { ApiPlugin } from '@community/plugin-sdk/api';
 
 const TASKS = [
   { id: 'sample.count', version: 1, responseType: 'number' as const,
-    prompt: 'How many sides does a triangle have?', expected: 3, hintCount: 0 },
+    prompt: 'How many sides does a triangle have?', expected: 3, hints: ['A triangle has three corners.'], hintCount: 1 },
   { id: 'sample.color', version: 1, responseType: 'single_choice' as const,
     prompt: 'Which of these is a primary color of light?',
     options: [{ id: 'red', label: 'Red' }, { id: 'brown', label: 'Brown' }, { id: 'gray', label: 'Gray' }],
@@ -36,6 +36,23 @@ const plugin: ApiPlugin = {
       @Get('tasks/first')
       first() {
         return publicTask(TASKS[0]);
+      }
+
+      @Post('hints/reveal')
+      async reveal(@CurrentUser('id') memberId: string, @Body() body: unknown) {
+        if (!body || typeof body !== 'object' || Array.isArray(body)) throw new BadRequestException();
+        const input = body as Record<string, unknown>;
+        if (Object.keys(input).some(k => !['taskId', 'taskVersion', 'idempotencyKey'].includes(k))
+          || typeof input.idempotencyKey !== 'string' || !/^[a-zA-Z0-9_-]{8,128}$/.test(input.idempotencyKey)) {
+          throw new BadRequestException('Invalid hint request');
+        }
+        const task = TASKS.find(item => item.id === input.taskId && item.version === input.taskVersion);
+        if (!task || !('hints' in task) || !task.hints?.length) {
+          throw new BadRequestException('No hints for this task');
+        }
+        const revealed = await data.tasks.revealHint(memberId, task.id, task.version,
+          input.idempotencyKey, task.hints.length);
+        return { text: task.hints[revealed - 1], hintsUsed: revealed };
       }
 
       @Get('attempts')
@@ -72,9 +89,10 @@ const plugin: ApiPlugin = {
           correct = response.length === task.correctOptionIds.length
             && response.every(value => task.correctOptionIds.includes(value));
         }
+        const hintsUsed = await data.tasks.hintUsage(memberId, task.id, task.version, input.idempotencyKey);
         const record = await data.tasks.record(memberId, {
           taskId: task.id, taskVersion: task.version, idempotencyKey: input.idempotencyKey,
-          response, correct, hintsUsed: 0,
+          response, correct, hintsUsed,
         });
         return { id: record.id, correct: record.correct, hintsUsed: record.hintsUsed };
       }
