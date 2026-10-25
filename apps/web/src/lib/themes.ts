@@ -75,6 +75,33 @@ export function getThemeByName(name: string): Theme {
   return themes.find((t) => t.name === name) || defaultTheme;
 }
 
+export type CommunityThemeColors = Partial<Pick<Theme['colors'], 'primary' | 'secondary' | 'accent'>>;
+
+export function resolveCommunityTheme(theme: Theme, overrides: CommunityThemeColors = {}): Theme {
+  const safe: CommunityThemeColors = {};
+  for (const key of ['primary', 'secondary', 'accent'] as const) {
+    const value = overrides[key];
+    if (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value)) safe[key] = value;
+  }
+  return { ...theme, colors: { ...theme.colors, ...safe } };
+}
+
+function hsl(hex: string): string {
+  const rgb = [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
+  const max = Math.max(...rgb);
+  const min = Math.min(...rgb);
+  const delta = max - min;
+  let hue = 0;
+  if (delta !== 0) {
+    if (max === rgb[0]) hue = ((rgb[1] - rgb[2]) / delta) % 6;
+    else if (max === rgb[1]) hue = (rgb[2] - rgb[0]) / delta + 2;
+    else hue = (rgb[0] - rgb[1]) / delta + 4;
+  }
+  const light = (max + min) / 2;
+  const saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * light - 1));
+  return `${Math.round((hue * 60 + 360) % 360)} ${Math.round(saturation * 100)}% ${Math.round(light * 100)}%`;
+}
+
 export function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
@@ -95,5 +122,10 @@ export function applyTheme(theme: Theme): void {
   root.style.setProperty('--theme-blur', theme.effects.blur || '16px');
   root.style.setProperty('--sidebar-width', theme.sidebarWidth || '280px');
 
+  // Keep Tailwind/shadcn semantic tokens aligned with community colors.
+  for (const key of ['primary', 'secondary', 'accent'] as const) {
+    root.style.setProperty(`--${key}`, hsl(theme.colors[key]));
+  }
+  root.style.setProperty('--ring', hsl(theme.colors.primary));
   root.setAttribute('data-theme', theme.name);
 }
