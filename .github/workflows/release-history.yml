@@ -7,6 +7,7 @@ on:
       - 'packages/**'
       - 'changes/**'
       - 'scripts/release-history.mjs'
+      - 'scripts/release-history.test.mjs'
       - '.github/workflows/release-history.yml'
   workflow_dispatch:
 permissions:
