@@ -4,12 +4,14 @@ import { useTranslations } from 'next-intl';
 import { PlayCircle, X } from 'lucide-react';
 import { useDismissWelcomeVideo, useWelcomeVideo } from '@/hooks/use-welcome-video';
 import { ClickToLoadVideo } from '@/components/common/click-to-load-video';
+import { HostedVideo } from '@/components/common/hosted-video';
 
-export function WelcomeVideoPlayer({ embedUrl }: { embedUrl: string }) {
+export function WelcomeVideoPlayer({ embedUrl, fileUrl }: { embedUrl?: string | null; fileUrl?: string | null }) {
   const t = useTranslations('dashboard');
-  return (
-    <ClickToLoadVideo embedUrl={embedUrl} title={t('welcome.video')} />
-  );
+  // An uploaded video plays directly; external hosts load only after a click.
+  if (fileUrl) return <HostedVideo src={fileUrl} title={t('welcome.video')} />;
+  if (!embedUrl) return null;
+  return <ClickToLoadVideo embedUrl={embedUrl} title={t('welcome.video')} />;
 }
 
 /**
@@ -21,7 +23,7 @@ export function WelcomeVideoCard() {
   const { data } = useWelcomeVideo();
   const dismiss = useDismissWelcomeVideo();
 
-  if (!data?.videoEmbedUrl || data.dismissed) return null;
+  if (!(data?.videoEmbedUrl || data?.videoFileUrl) || data.dismissed) return null;
 
   return (
     <section
@@ -43,7 +45,7 @@ export function WelcomeVideoCard() {
           <X size={13} /> {t('welcome.hide')}
         </button>
       </div>
-      <WelcomeVideoPlayer embedUrl={data.videoEmbedUrl} />
+      <WelcomeVideoPlayer embedUrl={data.videoEmbedUrl} fileUrl={data.videoFileUrl} />
     </section>
   );
 }

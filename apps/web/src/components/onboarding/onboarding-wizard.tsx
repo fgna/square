@@ -146,7 +146,9 @@ export function OnboardingWizard() {
                 {t('welcomeText')}
               </DialogDescription>
             </DialogHeader>
-            {welcome?.videoEmbedUrl && <WelcomeVideoPlayer embedUrl={welcome.videoEmbedUrl} />}
+            {(welcome?.videoEmbedUrl || welcome?.videoFileUrl) && (
+              <WelcomeVideoPlayer embedUrl={welcome.videoEmbedUrl} fileUrl={welcome.videoFileUrl} />
+            )}
             <div
               className="rounded-lg p-4 text-sm space-y-2"
               style={{

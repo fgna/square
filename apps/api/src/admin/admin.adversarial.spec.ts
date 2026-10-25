@@ -48,6 +48,7 @@ function buildMockPrisma() {
     },
     platformSettings: {
       upsert: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue(null),
     },
   };
 }
@@ -238,7 +239,7 @@ describe('AdminService — adversarial', () => {
 
     it('refuses a welcome video link that cannot be embedded', async () => {
       await expect(service.updatePlatformSettings({ welcomeVideoUrl: 'https://example.com/hello.mp4' })).rejects.toThrow(
-        'Welcome video must be a Loom, Vimeo or YouTube link',
+        'Welcome video must be an uploaded video or a Loom, Vimeo or YouTube link',
       );
       expect(prisma.platformSettings.upsert).not.toHaveBeenCalled();
     });

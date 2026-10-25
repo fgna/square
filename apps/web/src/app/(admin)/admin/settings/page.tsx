@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Save } from 'lucide-react';
+import { VideoUploadButton } from '@/components/common/video-upload-button';
 
 function ColorSwatch({ color }: { color: string }) {
   const isValid = /^#[0-9a-fA-F]{6}$/.test(color);
@@ -168,8 +169,10 @@ export default function PlatformSettingsPage() {
             onChange={e => set('welcomeVideoUrl', e.target.value)}
           />
           <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-            Paste a Loom, Vimeo or YouTube share link. Leave empty for no welcome video.
+            Paste a Loom, Vimeo or YouTube share link, or upload a video so it stays on this platform. Leave empty
+            for no welcome video. Save the settings after uploading.
           </p>
+          <VideoUploadButton onUploaded={(url) => set('welcomeVideoUrl', url)} />
         </CardContent>
       </Card>
 
