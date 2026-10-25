@@ -60,6 +60,19 @@ describe('TaskAttemptStore', () => {
     })).resolves.toEqual(existing);
   });
 
+  it('keeps idempotency keys member-scoped even when two members use the same key', async () => {
+    const create = vi.fn().mockImplementation(({ data }) => Promise.resolve({
+      id: data.userId === 'alice' ? 'a1' : 'b1',
+      ...data,
+    }));
+    const store = setup({ create });
+    const alice = await store.record('alice', attempt);
+    const bob = await store.record('bob', attempt);
+    expect(alice.id).not.toBe(bob.id);
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(create.mock.calls.map(([request]) => request.data.userId)).toEqual(['alice', 'bob']);
+  });
+
   it('rejects changed payloads sharing a member idempotency key', async () => {
     const existing = { id: 'a1', userId: 'alice', ...attempt };
     const create = vi.fn().mockRejectedValue({ code: 'P2002' });
