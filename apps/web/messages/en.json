@@ -359,6 +359,11 @@
       "download": "Download .ics"
     },
     "proposals": {
+      "start": "Start",
+      "endTime": "End",
+      "edit": "Edit",
+      "save": "Save",
+      "errorEnd": "The end must be after the start.",
       "title": "Event Proposals",
       "open": "{count} open",
       "new": "New Proposal",
