@@ -40,11 +40,11 @@ export COMMUNITY_REDIS_PORT="${COMMUNITY_REDIS_PORT:-$(free_port)}"
 if [[ "$COMMUNITY_DB_PORT" == "$COMMUNITY_REDIS_PORT" ]]; then
   export COMMUNITY_REDIS_PORT="$(free_port)"
 fi
-for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT"; do
+for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT"; do
   [[ "$port" =~ ^[0-9]+$ ]] && (( 10#$port >= 1024 && 10#$port <= 65535 )) || fail "Invalid development port: $port"
 done
-[[ "$(printf "%s\n" "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT" | sort -u | wc -l)" -eq 5 ]] || fail "Development ports must be distinct"
-for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT"; do
+[[ "$(printf "%s\n" "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" | sort -u | wc -l)" -eq 5 ]] || fail "Development ports must be distinct"
+for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT"; do
   if (echo >/dev/tcp/127.0.0.1/"$port") >/dev/null 2>&1; then
     fail "Port $port is occupied. Will not interfere with other applications."
   fi
@@ -64,8 +64,6 @@ set -a
 # Generated values are hex-only; source exclusively our private generated file.
 source "$ENVFILE"
 set +a
-export DATABASE_URL="postgresql://demo:${DEMO_DB_PASSWORD}@127.0.0.1:${COMMUNITY_DB_PORT}/community_core_demo?schema=local_demo"
-export REDIS_URL="redis://127.0.0.1:${COMMUNITY_REDIS_PORT}"
 LAN_IP="${COMMUNITY_LAN_IP:-192.168.1.121}"
 [[ "$LAN_IP" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] || fail "COMMUNITY_LAN_IP must be an IPv4 address"
 if ! ip -4 -o addr show 2>/dev/null | grep -Fq "inet $LAN_IP/"; then
@@ -92,6 +90,15 @@ echo "Installing workspace dependencies (frozen lockfile)..."
 corepack pnpm install --frozen-lockfile
 echo "Starting or reusing only this demo’s namespaced PostgreSQL + Redis..."
 docker compose --env-file "$ENVFILE" -f "$COMPOSE" up -d --wait postgres redis
+# Let Docker allocate unused loopback ports, instead of colliding with another project.
+DB_BINDING="$(docker compose --env-file "$ENVFILE" -f "$COMPOSE" port postgres 5432)"
+REDIS_BINDING="$(docker compose --env-file "$ENVFILE" -f "$COMPOSE" port redis 6379)"
+COMMUNITY_DB_PORT="${DB_BINDING##*:}"
+COMMUNITY_REDIS_PORT="${REDIS_BINDING##*:}"
+[[ "$COMMUNITY_DB_PORT" =~ ^[0-9]+$ && "$COMMUNITY_REDIS_PORT" =~ ^[0-9]+$ ]] || fail "Could not resolve Docker-assigned database ports"
+export DATABASE_URL="postgresql://demo:${DEMO_DB_PASSWORD}@127.0.0.1:${COMMUNITY_DB_PORT}/community_core_demo?schema=local_demo"
+export REDIS_URL="redis://127.0.0.1:${COMMUNITY_REDIS_PORT}"
+echo "Isolated PostgreSQL: 127.0.0.1:$COMMUNITY_DB_PORT; Redis: 127.0.0.1:$COMMUNITY_REDIS_PORT"
 echo "Generating client and applying schema to dedicated demo database..."
 corepack pnpm --dir apps/api exec prisma generate
 # Development-only isolated schema. Historical migrations currently contain an
