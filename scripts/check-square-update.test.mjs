@@ -33,8 +33,8 @@ test('derives installed version only from a matching pinned release checkout', a
   const sha = 'a'.repeat(40);
   const pair = join(dir, 'pair.json');
   await writeFile(pair, JSON.stringify({ core: { checkout: dir, revision: sha } }));
-  const git = (args) => args.includes('rev-parse') ? sha : 'v1.0.0\\n';
+  const git = (args) => args.includes('rev-parse') ? sha : 'v1.0.0\n';
   assert.equal(await versionFromStagingPair(pair, git), 'v1.0.0');
   await assert.rejects(versionFromStagingPair(pair, (args) => args.includes('rev-parse') ? 'b'.repeat(40) : 'v1.0.0'), /does not match/);
-  await assert.rejects(versionFromStagingPair(pair, (args) => args.includes('rev-parse') ? sha : 'v1.0.0\\nv1.1.0'), /exactly one/);
+  await assert.rejects(versionFromStagingPair(pair, (args) => args.includes('rev-parse') ? sha : 'v1.0.0\nv1.1.0'), /exactly one/);
 });
