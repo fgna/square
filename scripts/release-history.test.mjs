@@ -37,6 +37,14 @@ test('release history is tag-bounded, deterministic, and PR guarded', () => {
     assert.equal(node('generate', 'v1.0.0', 'HEAD'), result);
 
     git('tag', 'v1.1.0');
+    writeFileSync(join(dir, 'apps', 'example.txt'), 'second update\\n');
+    writeFileSync(join(dir, 'changes', 'feature.json'), JSON.stringify({
+      title: 'Edited member experience', category: 'improved', audience: 'members',
+      description: 'Existing entry updated but no new entry was added.', pr: 42
+    }));
+    commit('runtime change with edited old entry');
+    assert.throws(() => node('check-pr', 'v1.1.0'));
+
     assert.doesNotMatch(node('generate', 'v1.1.0', 'HEAD'), /New member experience/);
     writeFileSync(join(dir, 'changes', 'fix.json'), JSON.stringify({
       title: 'Fix event RSVP', category: 'fixed', audience: 'members',
