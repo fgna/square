@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Release-history regression tests
+        run: node --test scripts/release-history.test.mjs
       - name: Validate PR release entry
         if: github.event_name == 'pull_request'
         run: node scripts/release-history.mjs check-pr origin/${{ github.base_ref }}
