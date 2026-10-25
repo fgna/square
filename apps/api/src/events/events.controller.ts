@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { EventsService, recordingRetentionDays } from './events.service';
+import { EventsService, EventListFilter, recordingRetentionDays } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateRecordingDto } from './dto/create-recording.dto';
@@ -16,13 +16,31 @@ export class EventsController {
   constructor(private eventsService: EventsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all events' })
+  @ApiOperation({ summary: 'List events: upcoming by default; when=past|all, from/to (ISO dates), mine=true' })
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @CurrentUser() user: any,
+    @Query('when') when?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('mine') mine?: string,
   ) {
-    return this.eventsService.findAll(Number(page), Number(limit), user?.id);
+    const date = (value?: string) => {
+      if (!value) return undefined;
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) throw new BadRequestException(`Invalid date: ${value}`);
+      return d;
+    };
+    if (when !== undefined && !['upcoming', 'past', 'all'].includes(when)) {
+      throw new BadRequestException('when must be upcoming, past or all');
+    }
+    return this.eventsService.findAll(Number(page), Number(limit), user?.id, {
+      when: when as EventListFilter['when'],
+      from: date(from),
+      to: date(to),
+      mine: mine === 'true',
+    });
   }
 
   @Get(':id')

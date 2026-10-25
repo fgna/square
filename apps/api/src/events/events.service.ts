@@ -3,7 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
-import type { Event } from '@prisma/client';
+import type { Event, Prisma } from '@prisma/client';
+
+export interface EventListFilter {
+  when?: 'upcoming' | 'past' | 'all';
+  from?: Date;
+  to?: Date;
+  mine?: boolean;
+}
 
 /** The fields an invitation or cancellation is built from. */
 type CalendarEvent = Pick<
@@ -191,15 +198,33 @@ export class EventsService {
     private email: EmailService,
   ) {}
 
-  async findAll(page = 1, limit = 20, userId?: string) {
+  /**
+   * Events for lists, the calendar and the dashboard. By default only events
+   * that have not ended yet, soonest first: with a daily series, "all events
+   * from the oldest" filled every page with past dates. `past` lists ended
+   * events, latest first; `from`/`to` select a period (calendar month);
+   * `mine` keeps the events the member said yes to.
+   */
+  async findAll(page = 1, limit = 20, userId?: string, filter: EventListFilter = {}) {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
+    const now = new Date();
+    const when = filter.from || filter.to ? 'all' : (filter.when ?? 'upcoming');
+    const where: Prisma.EventWhereInput = {
+      ...(when === 'upcoming' && { endsAt: { gte: now } }),
+      ...(when === 'past' && { endsAt: { lt: now } }),
+      ...((filter.from || filter.to) && {
+        startsAt: { ...(filter.from && { gte: filter.from }), ...(filter.to && { lt: filter.to }) },
+      }),
+      ...(filter.mine && userId && { rsvps: { some: { userId, status: 'GOING' } } }),
+    };
     const [data, total] = await Promise.all([
       this.prisma.event.findMany({
+        where,
         skip,
         take: limit,
-        orderBy: { startsAt: 'asc' },
+        orderBy: { startsAt: when === 'past' ? 'desc' : 'asc' },
         include: {
           _count: { select: { rsvps: true } },
           categories: { select: { category: { select: { id: true, name: true, slug: true } } } },
@@ -209,14 +234,19 @@ export class EventsService {
           },
         },
       }),
-      this.prisma.event.count(),
+      this.prisma.event.count({ where }),
     ]);
 
+    // The member's own answer, also when they are not among the five shown.
+    const own = userId && data.length
+      ? await this.prisma.eventRsvp.findMany({
+          where: { userId, eventId: { in: data.map((e) => e.id) } },
+          select: { id: true, status: true, userId: true, eventId: true },
+        })
+      : [];
     const events = data.map((event) => ({
       ...event,
-      userRsvp: userId
-        ? ((event.rsvps as any[])?.find((r) => r.userId === userId) ?? null)
-        : null,
+      userRsvp: userId ? (own.find((r) => r.eventId === event.id) ?? null) : null,
     }));
 
     return {

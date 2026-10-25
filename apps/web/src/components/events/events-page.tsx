@@ -32,6 +32,7 @@ import {
   addMonths,
   subMonths,
   isToday,
+  addDays,
 } from "date-fns";
 import type { CommunityEvent } from "@community/shared";
 import { EventProposalsSection } from "@/components/event-proposals/event-proposals-section";
@@ -237,7 +238,7 @@ function EventCard({
   );
 }
 
-function CalendarView({ events }: { events: CommunityEvent[] }) {
+function CalendarView() {
   const t = useTranslations('events');
   const { dateFnsLocale } = useFormatters();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -246,6 +247,12 @@ function CalendarView({ events }: { events: CommunityEvent[] }) {
   const monthEnd = endOfMonth(currentMonth);
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // The weeks shown, past days included, instead of the first page of the list.
+  const { data: monthData } = useEvents(1, 100, {
+    from: calStart.toISOString(),
+    to: addDays(calEnd, 1).toISOString(),
+  });
+  const events: CommunityEvent[] = monthData?.data ?? [];
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
   const eventsByDay = (day: Date) =>
@@ -369,7 +376,7 @@ function CalendarView({ events }: { events: CommunityEvent[] }) {
 
 export function EventsPage() {
   const t = useTranslations('events');
-  const { data, isLoading, error, refetch } = useEvents();
+  const { data, isLoading, error, refetch } = useEvents(1, 50, { when: 'upcoming' });
   const [view, setView] = useState<"list" | "calendar">("list");
 
   const events: CommunityEvent[] = data?.data ?? [];
@@ -477,7 +484,7 @@ export function EventsPage() {
           </CardContent>
         </Card>
       ) : view === "calendar" ? (
-        <CalendarView events={events} />
+        <CalendarView />
       ) : !events.length ? (
         <Card>
           <CardContent className="p-12 text-center">
