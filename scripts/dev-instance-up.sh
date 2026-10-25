@@ -29,13 +29,22 @@ command -v curl >/dev/null || fail "curl is required"
 export COMMUNITY_WEB_PORT="${COMMUNITY_WEB_PORT:-4600}"
 export COMMUNITY_API_PORT="${COMMUNITY_API_PORT:-4601}"
 export COMMUNITY_HTTPS_PORT="${COMMUNITY_HTTPS_PORT:-4543}"
-export COMMUNITY_DB_PORT="${COMMUNITY_DB_PORT:-55439}"
-export COMMUNITY_REDIS_PORT="${COMMUNITY_REDIS_PORT:-56389}"
+# Docker-published database ports must not collide with other local projects.
+# Select ephemeral free ports unless the operator explicitly provided fixed ones.
+free_port() {
+  node -e 'const net=require("net");const s=net.createServer();s.listen(0,"127.0.0.1",()=>{console.log(s.address().port);s.close()})'
+}
+export COMMUNITY_DB_PORT="${COMMUNITY_DB_PORT:-$(free_port)}"
+export COMMUNITY_REDIS_PORT="${COMMUNITY_REDIS_PORT:-$(free_port)}"
+# Extremely rare duplicate ephemeral choices: select another Redis port.
+if [[ "$COMMUNITY_DB_PORT" == "$COMMUNITY_REDIS_PORT" ]]; then
+  export COMMUNITY_REDIS_PORT="$(free_port)"
+fi
 for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT"; do
   [[ "$port" =~ ^[0-9]+$ ]] && (( 10#$port >= 1024 && 10#$port <= 65535 )) || fail "Invalid development port: $port"
 done
 [[ "$(printf "%s\n" "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT" | sort -u | wc -l)" -eq 5 ]] || fail "Development ports must be distinct"
-for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT"; do
+for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT"; do
   if (echo >/dev/tcp/127.0.0.1/"$port") >/dev/null 2>&1; then
     fail "Port $port is occupied. Will not interfere with other applications."
   fi
