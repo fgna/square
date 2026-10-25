@@ -47,7 +47,7 @@ jobs:
           [ -n "$PREVIOUS" ] || { echo "No previous version tag"; exit 1; }
           git merge-base --is-ancestor "$PREVIOUS" HEAD || { echo "Previous tag is not ancestor of HEAD"; exit 1; }
           [ -n "$(git diff --name-only "$PREVIOUS"..HEAD)" ] || { echo "Nothing changed since previous tag"; exit 1; }
-          if [ "$(printf '%s\\n%s\\n' "$PREVIOUS" "$VERSION" | sort -V | tail -n 1)" != "$VERSION" ] || [ "$VERSION" = "$PREVIOUS" ]; then
+          if [ "$(printf '%s\n%s\n' "$PREVIOUS" "$VERSION" | sort -V | tail -n 1)" != "$VERSION" ] || [ "$VERSION" = "$PREVIOUS" ]; then
             echo "Requested version must exceed $PREVIOUS"; exit 1
           fi
           echo "PREVIOUS=$PREVIOUS" >> "$GITHUB_ENV"
