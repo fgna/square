@@ -199,6 +199,18 @@ export class AdminController {
     return new StreamableFile(Buffer.from(csv, 'utf-8'));
   }
 
+  @Get('courses/participation')
+  @ApiOperation({ summary: 'Started and completed members per course' })
+  courseParticipationSummary() {
+    return this.reportsService.participationSummary();
+  }
+
+  @Get('courses/:id/participation')
+  @ApiOperation({ summary: 'Who takes part in a course: progress and last activity' })
+  courseParticipation(@Param('id') id: string) {
+    return this.reportsService.courseParticipation(id);
+  }
+
   @Get('reports/course-progress')
   @ApiOperation({ summary: 'Export course progress as CSV' })
   @Header('Content-Type', 'text/csv')

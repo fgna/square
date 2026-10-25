@@ -29,6 +29,17 @@
     "next": "Next"
   },
   "adminCoursesUI": {
+    "participationShort": "{started} started · {completed} completed",
+    "participation": {
+      "title": "Participation",
+      "summary": "{started} started · {completed} completed · {active} active in the last 30 days",
+      "none": "Nobody has started this course yet.",
+      "member": "Member",
+      "progress": "Progress",
+      "lessons": "Lessons",
+      "started": "Started",
+      "lastActivity": "Last active"
+    },
     "new": "New Course",
     "title": "Title",
     "description": "Description",
