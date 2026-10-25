@@ -31,6 +31,11 @@ services:
     image: caddy:2-alpine
     restart: "no"
     network_mode: host
+    environment:
+      COMMUNITY_LAN_IP: ${COMMUNITY_LAN_IP:-192.168.1.121}
+      COMMUNITY_WEB_PORT: ${COMMUNITY_WEB_PORT:-4600}
+      COMMUNITY_API_PORT: ${COMMUNITY_API_PORT:-4601}
+      COMMUNITY_HTTPS_PORT: ${COMMUNITY_HTTPS_PORT:-4543}
     volumes:
       - ./config/local-Caddyfile:/etc/caddy/Caddyfile:ro
       - local_caddy_data:/data
