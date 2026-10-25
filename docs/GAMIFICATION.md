@@ -33,3 +33,31 @@ Application-specific reward eligibility stays outside Square.
 This first delivery does not include application-scoped service credentials,
 refunds, item quantities, or integration tests against PostgreSQL. It needs
 Prisma migration deployment and focused tests before acceptance.
+
+## Restricted application reward issuers (experimental)
+
+A server-to-server issuer may POST `/api/gamification/issuer/events` with
+`Authorization: Bearer <secret>` and the existing event body
+(`userId`, `rewardCode`, `eventKey`). Configure only on the Square API
+server using `SQUARE_REWARD_ISSUERS`, a JSON array of objects:
+
+```json
+[{"id":"learning","tokenSha256":"<sha256-hex-of-random-secret>","rewardCodes":["completed"]}]
+```
+
+Use a cryptographically random 32+-character token, retain the original token
+only in the trusted application backend, and store only its SHA-256 digest in
+Square's configuration. The issuer identity is prefixed to the event key, so
+independent issuers cannot collide on their own event IDs. Unconfigured,
+invalid, unknown, or out-of-scope issuers fail closed. Tokens are not account
+JWTs and **must never reach browsers/mobile application binaries**.
+
+This only authenticates the calling backend and its allowed reward codes.
+The backend must independently verify that each submitted achievement is real
+before awarding; Square cannot judge application-specific learning completion.
+Issuer secrets must be rotated/revoked via server config and server restart.
+The capability guard still blocks the API when gamification is disabled.
+
+**Before production:** run the focused issuer tests and live issuer HTTP smoke,
+validate configuration lifecycle and revocation, evaluate rate limits and key
+management, and verify that no credentials are logged or exposed by clients.
