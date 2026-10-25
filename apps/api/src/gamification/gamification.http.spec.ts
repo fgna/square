@@ -10,6 +10,7 @@ import request from 'supertest';
 import { GamificationController } from './gamification.controller';
 import { GamificationService } from './gamification.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { CapabilityGuard } from '../config/capabilities.guard';
 
 /** HTTP route/role checks; issues real signed JWTs and checks Passport JwtStrategy and RolesGuard. */
 describe('gamification HTTP access control', () => {
@@ -37,13 +38,13 @@ describe('gamification HTTP access control', () => {
       providers: [
         { provide: GamificationService, useValue: game },
         { provide: PrismaService, useValue: { user: { findUnique: vi.fn(async ({ where }: { where: { id: string } }) => ({ id: where.id, role: where.id.startsWith('admin') ? 'ADMIN' : 'MEMBER', isActive: true })) } } },
-        JwtStrategy, JwtAuthGuard, RolesGuard,
+        JwtStrategy, JwtAuthGuard, RolesGuard, CapabilityGuard,
       ],
     }).compile();
     app = module.createNestApplication();
     app.setGlobalPrefix('api');
     jwt = module.get(JwtService);
-    app.useGlobalGuards(module.get(JwtAuthGuard), module.get(RolesGuard));
+    app.useGlobalGuards(module.get(CapabilityGuard), module.get(JwtAuthGuard), module.get(RolesGuard));
     await app.init();
   });
   afterAll(async () => {
@@ -65,6 +66,35 @@ describe('gamification HTTP access control', () => {
   it('rejects invalid JWT tokens before reaching protected endpoints', async () => {
     await request(app.getHttpServer()).get('/api/gamification/wallet')
       .set('Authorization', 'Bearer invalid').expect(401);
+  });
+
+  it('does not trust a forged admin claim for a member account', async () => {
+    await request(app.getHttpServer()).post('/api/gamification/admin/events')
+      .set('Authorization', 'Bearer ' + token('member-1', 'ADMIN'))
+      .send({ userId: 'member-1', rewardCode: 'welcome', eventKey: 'forged' }).expect(403);
+    expect(game.issueReward).not.toHaveBeenCalled();
+  });
+
+  it('rejects expired JWTs on protected wallet routes', async () => {
+    const expired = jwt.sign(
+      { sub: 'member-1', email: 'member-1@example.test', role: 'MEMBER', exp: Math.floor(Date.now() / 1000) - 30 },
+    );
+    await request(app.getHttpServer()).get('/api/gamification/wallet')
+      .set('Authorization', 'Bearer ' + expired).expect(401);
+  });
+
+  it('keeps another member out of wallet, inventory, history and purchases', async () => {
+    for (const path of ['wallet', 'inventory', 'transactions']) {
+      await request(app.getHttpServer()).get('/api/gamification/' + path)
+        .set('Authorization', 'Bearer ' + token('member-2', 'MEMBER')).expect(200);
+    }
+    await request(app.getHttpServer()).post('/api/gamification/purchase')
+      .set('Authorization', 'Bearer ' + token('member-2', 'MEMBER'))
+      .send({ userId: 'member-1', itemId: 'badge', requestKey: 'member-2-purchase' }).expect(201);
+    expect(game.wallet).toHaveBeenCalledWith('member-2');
+    expect(game.history).toHaveBeenCalledWith('member-2');
+    expect(game.inventory).toHaveBeenCalledWith('member-2');
+    expect(game.purchase).toHaveBeenCalledWith('member-2', 'badge', 'member-2-purchase');
   });
 
   it('allows verified admin JWT identity to issue rewards', async () => {
