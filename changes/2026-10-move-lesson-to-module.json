@@ -1,0 +1,7 @@
+{
+  "title": "Move lessons between modules",
+  "category": "improved",
+  "audience": "admins",
+  "description": "In the lesson editor, admins move a lesson to another module of the same course. Notes, attachments and member progress stay with the lesson.",
+  "pr": 49
+}
