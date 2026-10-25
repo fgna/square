@@ -42,7 +42,7 @@ export async function versionFromStagingPair(file, runGit = (args) => execFileSy
   if (head.toLowerCase() !== pair.core.revision.toLowerCase()) {
     throw new Error('Staging pair Core revision does not match checkout HEAD');
   }
-  const tags = runGit(['-C', checkout, 'tag', '--points-at', 'HEAD']).split(/\\r?\\n/).filter(Boolean);
+  const tags = runGit(['-C', checkout, 'tag', '--points-at', 'HEAD']).split(/\r?\n/).filter(Boolean);
   const versions = [...new Set(tags.filter(parseVersion))];
   if (versions.length !== 1) {
     throw new Error('Pinned Core revision must have exactly one stable Square release tag');
