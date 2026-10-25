@@ -1,0 +1,80 @@
+name: Publish Square source release with history
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New semver tag, e.g. v1.1.0'
+        required: true
+        type: string
+      publish:
+        description: 'Explicitly approve publishing a GitHub Release'
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: write
+concurrency:
+  group: source-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate version, release boundary and branch
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid semver tag"; exit 1; }
+          [ "${GITHUB_REF_NAME}" = main ] || { echo "Run workflow from main"; exit 1; }
+          if git rev-parse --verify "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"; exit 1
+          fi
+          git tag --list 'v[0-9]*' --sort=-version:refname | head -n 1 > /tmp/square-previous-tag
+          PREVIOUS="$(cat /tmp/square-previous-tag)"
+          [ -n "$PREVIOUS" ] || { echo "No previous version tag"; exit 1; }
+          git merge-base --is-ancestor "$PREVIOUS" HEAD || { echo "Previous tag is not ancestor of HEAD"; exit 1; }
+          [ -n "$(git diff --name-only "$PREVIOUS"..HEAD)" ] || { echo "Nothing changed since previous tag"; exit 1; }
+          echo "PREVIOUS=$PREVIOUS" >> "$GITHUB_ENV"
+      - name: Run release history regression tests
+        run: node --test scripts/release-history.test.mjs
+      - name: Generate required release notes
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          node scripts/release-history.mjs generate "$PREVIOUS" HEAD /tmp/square-release-notes.md
+          if grep -q 'No user-facing changes recorded' /tmp/square-release-notes.md; then
+            echo "No recorded changes; release history must be reviewed before publishing"
+            exit 1
+          fi
+          sed -i "1c# Square $VERSION — changes since $PREVIOUS" /tmp/square-release-notes.md
+          cat /tmp/square-release-notes.md
+      - name: Save release notes for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: square-release-notes
+          path: /tmp/square-release-notes.md
+      - name: Require explicit publish selection
+        env:
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          if [ "$PUBLISH" != true ]; then
+            echo "Preview only. No tag or GitHub Release published."
+          fi
+      - name: Publish tag and GitHub Release together
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "$VERSION" --target "$GITHUB_SHA" --title "Square $VERSION" --notes-file /tmp/square-release-notes.md --verify-tag=false
