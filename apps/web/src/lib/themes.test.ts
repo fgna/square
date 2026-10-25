@@ -14,6 +14,10 @@ describe('community theme overrides', () => {
     expect(custom.effects).toEqual(base.effects);
     expect(base.colors.primary).not.toBe('#123456');
   });
+  it('preserves the dedicated high contrast palette', () => {
+    const base = getThemeByName('high-contrast');
+    expect(resolveCommunityTheme(base, { primary: '#aa00aa' })).toBe(base);
+  });
   it('derives readable foregrounds from bright and dark brand colors', () => {
     expect(contrastForeground('#ffffff')).toBe('#000000');
     expect(contrastForeground('#000000')).toBe('#ffffff');
