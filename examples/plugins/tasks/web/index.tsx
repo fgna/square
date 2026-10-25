@@ -60,8 +60,12 @@ function QuizPage({ api }: PluginPageProps) {
       const result = await api.post<Attempt>('attempts', submission);
       setAttempt(result);
       setPending(null);
-      const rows = await api.get<HistoricalAttempt[]>('attempts');
-      setHistory(rows);
+      try {
+        const rows = await api.get<HistoricalAttempt[]>('attempts');
+        setHistory(rows);
+      } catch {
+        setError('Answer saved, but history could not be refreshed.');
+      }
     } catch {
       setError('Could not confirm saving. Try again to resend the same attempt.');
     } finally { setBusy(false); }
@@ -113,9 +117,13 @@ function QuizPage({ api }: PluginPageProps) {
       className="rounded border p-2" onClick={revealHint}>Show hint</button>}
     {hint && <p role="note">{hint}</p>}
     <button type="button" disabled={busy} className="rounded border p-2" onClick={submit}>
-      {busy ? 'Saving…' : 'Check answer'}
+      {busy ? 'Saving…' : pending ? 'Retry saving' : 'Check answer'}
     </button>
     {attempt && <p role="status">{attempt.correct ? 'Correct' : 'Try again'}{attempt.hintsUsed > 0 ? ' (with hint)' : ''}</p>}
+    {attempt && !pending && <button type="button" className="rounded border p-2"
+      onClick={() => { setAttempt(null); setSelected([]); setNumber(''); setHint(null); setError(''); }}>
+      Try another answer
+    </button>}
     {history.length > 0 && <section aria-label="Your previous attempts">
       <h2 className="font-semibold">Your previous attempts</h2>
       <p>{history.filter(item => item.taskId === task.id && item.taskVersion === task.version).length} recorded attempts for this task</p>
