@@ -57,9 +57,19 @@ class MainActivity : Activity() {
         // Old native token storage is no longer compatible with Square's web session.
         prefs.edit().remove("access_token").remove("refresh_token")
             .remove("user_json").remove("user_role").apply()
-        val previous = prefs.getString("server_url", null)
-        if (TrustedOrigin.validBase(previous)) showBrowser(previous!!)
-        else showSetup()
+        val fixedUrl = BuildConfig.COMMUNITY_URL
+        if (fixedUrl.isNotEmpty()) {
+            // A branded app is pinned to its build-time instance; ignore legacy
+            // stored server choices and never expose the generic server picker.
+            if (prefs.getString("server_url", null) != fixedUrl) {
+                prefs.edit().putString("server_url", fixedUrl).remove("last_url").apply()
+            }
+            showBrowser(fixedUrl)
+        } else {
+            val previous = prefs.getString("server_url", null)
+            if (TrustedOrigin.validBase(previous)) showBrowser(previous!!)
+            else showSetup()
+        }
     }
 
     private fun showSetup() {
@@ -159,7 +169,7 @@ class MainActivity : Activity() {
     override fun onBackPressed() {
         val view = browser
         if (view != null && view.canGoBack()) view.goBack()
-        else if (view != null) showSetup()
+        else if (view != null && BuildConfig.COMMUNITY_URL.isEmpty()) showSetup()
         else super.onBackPressed()
     }
 
