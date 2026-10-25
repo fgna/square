@@ -50,6 +50,16 @@ describe('TaskAttemptStore', () => {
     });
   });
 
+  it('replays a choice selection in a different order without double-recording', async () => {
+    const choiceAttempt = { ...attempt, response: ['square', 'rectangle'] };
+    const existing = { id: 'a2', userId: 'alice', ...choiceAttempt };
+    const create = vi.fn().mockRejectedValue({ code: 'P2002' });
+    const findUnique = vi.fn().mockResolvedValue(existing);
+    await expect(setup({ create, findUnique }).record('alice', {
+      ...choiceAttempt, response: ['rectangle', 'square'],
+    })).resolves.toEqual(existing);
+  });
+
   it('rejects changed payloads sharing a member idempotency key', async () => {
     const existing = { id: 'a1', userId: 'alice', ...attempt };
     const create = vi.fn().mockRejectedValue({ code: 'P2002' });
