@@ -2,6 +2,8 @@
 // Read-only operator check. Never changes an instance, checkout, or database.
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
 
 export function parseVersion(input) {
   const match = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(input);
@@ -28,16 +30,37 @@ export function findUpdates(current, releases) {
     .sort((a, b) => compareVersions(a.tag_name, b.tag_name));
 }
 
+export async function versionFromStagingPair(file, runGit = (args) => execFileSync('git', args, { encoding: 'utf8' }).trim()) {
+  const pair = JSON.parse(await readFile(file, 'utf8'));
+  if (!pair || typeof pair.core?.checkout !== 'string' || typeof pair.core?.revision !== 'string' ||
+      !/^[a-f0-9]{40}$/i.test(pair.core.revision)) {
+    throw new Error('Invalid staging pair: expected core.checkout and 40-character core.revision');
+  }
+  const checkout = resolve(pair.core.checkout);
+  // The expected SHA must be the deployed revision. Reject stale or mismatched checkouts.
+  const head = runGit(['-C', checkout, 'rev-parse', 'HEAD']);
+  if (head.toLowerCase() !== pair.core.revision.toLowerCase()) {
+    throw new Error('Staging pair Core revision does not match checkout HEAD');
+  }
+  const tags = runGit(['-C', checkout, 'tag', '--points-at', 'HEAD']).split(/\\r?\\n/).filter(Boolean);
+  const versions = [...new Set(tags.filter(parseVersion))];
+  if (versions.length !== 1) {
+    throw new Error('Pinned Core revision must have exactly one stable Square release tag');
+  }
+  return versions[0];
+}
+
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length < 2 || args[0] !== '--current' ||
-      !parseVersion(args[1]) ||
-      (args.length !== 2 && !(args.length === 4 && args[2] === '--releases-file'))) {
-    console.error('Usage: node scripts/check-square-update.mjs --current 1.0.0 [--releases-file releases.json]');
+  const fromPair = args[0] === '--staging-pair';
+  const valid = (fromPair || args[0] === '--current') && args.length >= 2 &&
+    (args.length === 2 || (args.length === 4 && args[2] === '--releases-file'));
+  if (!valid || (!fromPair && !parseVersion(args[1]))) {
+    console.error('Usage: node scripts/check-square-update.mjs (--current 1.0.0 | --staging-pair pair.json) [--releases-file releases.json]');
     process.exitCode = 2;
     return;
   }
-  const current = args[1];
+  const current = fromPair ? await versionFromStagingPair(args[1]) : args[1];
   let releases;
   if (args.length === 4) {
     releases = JSON.parse(await readFile(args[3], 'utf8'));
