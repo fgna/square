@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getThemeByName, resolveCommunityTheme } from './themes';
+import { getThemeByName, resolveCommunityTheme, contrastForeground } from './themes';
 
 describe('community theme overrides', () => {
   it('preserves built-in theme defaults without overrides', () => {
@@ -13,6 +13,11 @@ describe('community theme overrides', () => {
     expect(custom.colors.secondary).toBe(base.colors.secondary);
     expect(custom.effects).toEqual(base.effects);
     expect(base.colors.primary).not.toBe('#123456');
+  });
+  it('derives readable foregrounds from bright and dark brand colors', () => {
+    expect(contrastForeground('#ffffff')).toBe('#000000');
+    expect(contrastForeground('#000000')).toBe('#ffffff');
+    expect(contrastForeground('#ffff00')).toBe('#000000');
   });
   it('does not accept malformed color strings', () => {
     const base = getThemeByName('high-contrast');
