@@ -92,6 +92,51 @@ describe('TaskAttemptStore', () => {
     expect(() => store.list('alice', '../unsafe')).toThrow();
   });
 
+  it('records trusted hints per member and pending attempt key', async () => {
+    const create = vi.fn().mockResolvedValue({ hintsUsed: 1 });
+    const findUniqueAttempt = vi.fn().mockResolvedValue(null);
+    const store = new TaskAttemptStore({
+      taskAttempt: { findUnique: findUniqueAttempt },
+      taskHintSession: { create },
+    } as unknown as PrismaService);
+    await expect(store.revealHint('alice', 'sample.count', 1, 'request_12345678', 1))
+      .resolves.toBe(1);
+    expect(create).toHaveBeenCalledWith({
+      data: { userId: 'alice', taskId: 'sample.count', taskVersion: 1,
+        idempotencyKey: 'request_12345678', hintsUsed: 1 },
+    });
+    expect(findUniqueAttempt).toHaveBeenCalledWith({
+      where: { userId_idempotencyKey: { userId: 'alice', idempotencyKey: 'request_12345678' } },
+    });
+  });
+
+  it('rejects revealing hints after an attempt has been recorded', async () => {
+    const create = vi.fn();
+    const store = new TaskAttemptStore({
+      taskAttempt: { findUnique: vi.fn().mockResolvedValue({ id: 'submitted' }) },
+      taskHintSession: { create },
+    } as unknown as PrismaService);
+    await expect(store.revealHint('alice', 'sample.count', 1, 'request_12345678', 1))
+      .rejects.toThrow('already been submitted');
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('reads hint counts only when member, task, version and attempt key match', async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      userId: 'alice', taskId: 'sample.count', taskVersion: 1, hintsUsed: 1,
+    });
+    const store = new TaskAttemptStore({
+      taskHintSession: { findUnique },
+    } as unknown as PrismaService);
+    await expect(store.hintUsage('alice', 'sample.count', 1, 'request_12345678'))
+      .resolves.toBe(1);
+    await expect(store.hintUsage('alice', 'other.task', 1, 'request_12345678'))
+      .rejects.toThrow('different task');
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { userId_idempotencyKey: { userId: 'alice', idempotencyKey: 'request_12345678' } },
+    });
+  });
+
   it('propagates unrelated storage failures rather than assuming a duplicate', async () => {
     const error = new Error('database unavailable');
     const create = vi.fn().mockRejectedValue(error);
