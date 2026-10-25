@@ -77,4 +77,4 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          gh release create "$VERSION" --target "$GITHUB_SHA" --title "Square $VERSION" --notes-file /tmp/square-release-notes.md --verify-tag=false
+          gh release create "$VERSION" --target "$GITHUB_SHA" --title "Square $VERSION" --notes-file /tmp/square-release-notes.md
