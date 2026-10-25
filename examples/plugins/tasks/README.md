@@ -19,11 +19,14 @@ same-key conflicting payloads. Do not expose member IDs or answer keys in the cl
 
 - `POST hints/reveal` and server-owned hint state. This sample task deliberately
   has `hintCount: 0`, so the UI does not offer a hint for this task.
-- Account data export, migration execution, API typecheck, tests and browser smoke.
-- Runtime verification of numeric and choice-task API validation and member isolation.
+- Account data export, disposable database migration execution and browser smoke.
+- API and Web typechecks, production builds and focused application tests passed CI run #45; an isolated real-database migration and browser login/logout verification are still required.
 - Resuming/visually listing history in the Web UI after returning, although
   the authenticated `GET attempts` endpoint now exists.
 - Error-handled retry preservation across uncertain network failures.
 
-This example is **not production-ready**. No migrations have been applied,
-and no runtime tests have been executed in this GitHub-editing session.
+This example is **not production-ready**. No database migration or browser end-to-end test has been executed in this GitHub-editing session.
+
+## Disposable migration check
+
+Run `bash scripts/test-task-attempts-postgres.sh` from the repository root on a Docker-equipped development machine. The script starts a **new container with no persistent volume**, assigns a random localhost port, runs Prisma migrations against that container only, checks the TaskAttempt table and constraints, then removes the container even on failure. Do not substitute production credentials or run migrations against a live Square instance. Passing this smoke does not validate the browser workflow.
