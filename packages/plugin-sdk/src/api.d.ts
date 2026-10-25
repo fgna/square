@@ -77,6 +77,26 @@ export interface PluginContentPack {
   journalTexts(locale: 'de' | 'en'): Promise<JournalMethodTexts | null>;
 }
 
+export interface PluginTaskAttemptCreate {
+  taskId: string;
+  taskVersion: number;
+  idempotencyKey: string;
+  response: number | string[];
+  correct: boolean;
+  /** Must be derived from trusted server-side hint state. */
+  hintsUsed: number;
+}
+export interface PluginTaskAttemptRecord extends PluginTaskAttemptCreate {
+  id: string;
+  userId: string;
+  createdAt: Date;
+}
+/** Generic durable storage. Never accept memberId from HTTP request bodies. */
+export interface PluginTaskAttempts {
+  record(userId: string, input: PluginTaskAttemptCreate): Promise<PluginTaskAttemptRecord>;
+  list(userId: string, taskId?: string): Promise<PluginTaskAttemptRecord[]>;
+}
+
 export interface PluginApiContext {
   /** The plugin's id, e.g. for log messages. */
   pluginId: string;
@@ -85,7 +105,7 @@ export interface PluginApiContext {
   /** Parameter decorator for the signed-in member (PluginMember), or one field: CurrentUser('id'). */
   CurrentUser: (field?: keyof PluginMember) => ParameterDecorator;
   /** Data the Core keeps for plugins. Usable in request handlers, not during register(). */
-  data: { journal: PluginJournalEntries };
+  data: { journal: PluginJournalEntries; tasks: PluginTaskAttempts };
   contentPack: PluginContentPack;
 }
 
