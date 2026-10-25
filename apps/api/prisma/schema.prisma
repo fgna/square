@@ -53,6 +53,7 @@ model User {
   challenge        Challenge?
   goals            Goal[]
   journalEntries   JournalEntry[]
+  taskHintSessions TaskHintSession[]
   taskAttempts     TaskAttempt[]
   assessments      Assessment[]
   eventProposals   EventProposal[]
@@ -875,4 +876,19 @@ model TaskAttempt {
 
   @@unique([userId, idempotencyKey])
   @@index([userId, taskId, createdAt])
+}
+
+/** Trusted hint state, keyed to one member's attempt idempotency key. */
+model TaskHintSession {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId         String
+  taskVersion    Int
+  idempotencyKey String
+  hintsUsed      Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, taskId])
 }
