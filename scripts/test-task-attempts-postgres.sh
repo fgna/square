@@ -38,6 +38,9 @@ bash scripts/dev-pnpm.sh --filter @community/core-api exec prisma migrate deploy
 docker exec "$container" psql -U square_test -d square_test -v ON_ERROR_STOP=1 -Atc \
   'SELECT (to_regclass('"'"'public."TaskAttempt"'"'"') IS NOT NULL)
           AND EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '"'"'TaskAttempt_userId_fkey'"'"')
-          AND EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = '"'"'TaskAttempt_userId_idempotencyKey_key'"'"');' \
+          AND EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = '"'"'TaskAttempt_userId_idempotencyKey_key'"'"')
+          AND (to_regclass('"'"'public."TaskHintSession"'"'"') IS NOT NULL)
+          AND EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '"'"'TaskHintSession_userId_fkey'"'"' AND confdeltype = '"'"'c'"'"')
+          AND EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = '"'"'TaskHintSession_userId_idempotencyKey_key'"'"');' \
   | grep -qx t
-echo "PASS: disposable PostgreSQL migration and TaskAttempt constraints"
+echo "PASS: disposable PostgreSQL migration and task attempt/hint constraints"
