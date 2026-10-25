@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const run = (...args) => execFileSync('git', args, {encoding: 'utf8'}).trim();
 const [mode = 'generate', base = 'v1.0.0', head = 'HEAD', output] = process.argv.slice(2);
@@ -17,7 +17,7 @@ if (mode === 'check-pr') {
   const added = run('diff', '--name-only', '--diff-filter=A', `${base}...HEAD`).split('\n').filter(Boolean);
   const relevant = diff.some(f => /^(apps|packages)\//.test(f));
   if (relevant && !added.some(f => /^changes\/[^/]+\.json$/.test(f)) && !added.some(f => /^changes\/no-user-facing-[^/]+\.md$/.test(f))) {
-    throw new Error('User-facing code PR needs a changes/*.json entry or changes/no-user-facing-change.md explaining why none applies.');
+    throw new Error('User-facing code PR needs a changes/*.json entry or changes/no-user-facing-<unique-id>.md explaining why none applies.');
   }
   for (const file of added.filter(f => /^changes\/[^/]+\.json$/.test(f))) if (existsSync(file)) read(file);
   console.log('Release entry PR check passed');
