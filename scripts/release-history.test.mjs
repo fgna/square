@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -57,4 +57,18 @@ test('release history is tag-bounded, deterministic, and PR guarded', () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+
+test('release workflow accepts increasing version and rejects older version', () => {
+  const workflow = readFileSync(resolve('.github/workflows/publish-source-release.yml'), 'utf8');
+  const line = workflow.split('\n').find((entry) => entry.includes('printf') && entry.includes('sort -V'));
+  assert.ok(line, 'expected release version comparator');
+  const command = line.trim().replace(/; then$/, '');
+  const check = (previous, version) => execFileSync('bash', ['-c',
+    'PREVIOUS="$1"; VERSION="$2"; ' + command + '; then echo reject; else echo accept; fi',
+    'bash', previous, version], { encoding: 'utf8' }).trim();
+  assert.equal(check('v1.0.0', 'v1.1.0'), 'accept');
+  assert.equal(check('v1.2.0', 'v1.1.0'), 'reject');
+  assert.equal(check('v1.2.0', 'v1.2.0'), 'reject');
 });
