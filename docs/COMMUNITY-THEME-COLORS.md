@@ -28,6 +28,8 @@ Run `bash scripts/dev-instance-pack-check.sh /absolute/path/to/content`
 before deployment. The web process must use the same
 `COMMUNITY_CONTENT_DIR`. Do not add customer branding to the public Core repo.
 
+The `high-contrast` theme deliberately ignores custom color overrides to preserve its accessible palette. For other themes, Square derives dark or light foreground tokens for colored controls. Administrators must still review text and background contrast across the full experience.
+
 The three optional color overrides are the initial MVP. A visual editor,
 contrast-aware palette generation and additional theme controls are follow-up
 work and need separate acceptance. Administrators must check legibility of
