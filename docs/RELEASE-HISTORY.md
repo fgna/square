@@ -14,7 +14,7 @@ Square's release notes are written in English. For every user-visible change, ad
 
 Choose one category: `new`, `improved`, `fixed`, or `removed`. Use a unique filename and concise language. Include important bug fixes, removed behavior and breaking changes, not only new features. An entry is only a candidate for release publication until the containing commit is included in a published release.
 
-A GitHub Actions gate checks runtime-code pull requests for an entry. For internal-only work without a user-facing impact, add `changes/no-user-facing-change.md` in that PR with a brief explanation. Since this file is intentionally shared, remove it from the branch before subsequent work or use a new explanatory entry; the workflow only checks whether it changed in the current PR. Editors should review claims before a release.
+A GitHub Actions gate checks runtime-code pull requests for an entry. For internal-only work without a user-facing impact, add a **new, uniquely named** `changes/no-user-facing-<issue-or-pr>.md` in that PR with a brief explanation. An edit to an existing entry or exemption does not satisfy the gate; each PR must add a new file. Editors should review claims before a release.
 
 Generate a draft from a prior published tag to the release commit:
 
