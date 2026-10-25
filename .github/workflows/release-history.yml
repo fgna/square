@@ -1,0 +1,33 @@
+name: Release history entry gate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'changes/**'
+      - 'scripts/release-history.mjs'
+      - 'scripts/release-history.test.mjs'
+      - '.github/workflows/release-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Release-history regression tests
+        run: node --test scripts/release-history.test.mjs
+      - name: Validate PR release entry
+        if: github.event_name == 'pull_request'
+        run: node scripts/release-history.mjs check-pr origin/${{ github.base_ref }}
+      - name: Preview since last source release
+        run: node scripts/release-history.mjs generate v1.0.0 HEAD
