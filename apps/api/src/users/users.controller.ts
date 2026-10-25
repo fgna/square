@@ -54,6 +54,12 @@ export class UsersController {
     return this.usersService.getProfile(user.id);
   }
 
+  @Get('me/task-data/export')
+  @ApiOperation({ summary: 'Export own task attempts and revealed hint data' })
+  exportTaskData(@CurrentUser() user: { id: string }) {
+    return this.usersService.exportTaskData(user.id);
+  }
+
   @Patch('me')
   @ApiOperation({ summary: 'Update current user profile' })
   updateProfile(@CurrentUser() user: any, @Body() dto: UpdateProfileDto) {
