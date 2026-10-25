@@ -86,6 +86,20 @@ export function resolveCommunityTheme(theme: Theme, overrides: CommunityThemeCol
   return { ...theme, colors: { ...theme.colors, ...safe } };
 }
 
+
+function relativeLuminance(hex: string): number {
+  const channels = [1, 3, 5].map(offset => {
+    const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+}
+
+export function contrastForeground(background: string): '#000000' | '#ffffff' {
+  // Select the foreground with the greater WCAG contrast against an opaque brand color.
+  return relativeLuminance(background) > 0.179 ? '#000000' : '#ffffff';
+}
+
 function hsl(hex: string): string {
   const rgb = [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
   const max = Math.max(...rgb);
@@ -127,5 +141,8 @@ export function applyTheme(theme: Theme): void {
     root.style.setProperty(`--${key}`, hsl(theme.colors[key]));
   }
   root.style.setProperty('--ring', hsl(theme.colors.primary));
+  for (const key of ['primary', 'secondary', 'accent'] as const) {
+    root.style.setProperty(`--${key}-foreground`, hsl(contrastForeground(theme.colors[key])));
+  }
   root.setAttribute('data-theme', theme.name);
 }
