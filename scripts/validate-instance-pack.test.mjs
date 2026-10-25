@@ -159,3 +159,23 @@ test('instance texts with unknown placeholders, links or protected keys fail', (
   assert.match(result.stderr, /en: nav\.feed: contains a link/);
   assert.match(result.stderr, /auth\.passwordMinLength: protected/);
 });
+
+
+test('optional community theme palette passes preflight', () => {
+  const result = run(pack => edit(pack, 'community.json', value => {
+    value.branding = { theme: 'corporate-light', colors: { primary: '#245A81', secondary: '#745DA8', accent: '#BB7733' } };
+  }));
+  assert.equal(result.status, 0, result.stderr);
+});
+
+for (const branding of [
+  { theme: 'missing-theme', colors: { primary: '#123456' } },
+  { theme: 'corporate-light', colors: { primary: 'red' } },
+  { theme: 'corporate-light', colors: { background: '#ffffff' } },
+]) {
+  test('invalid community branding is rejected by preflight', () => {
+    const result = run(pack => edit(pack, 'community.json', value => { value.branding = branding; }));
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /BRANDING_INVALID/);
+  });
+}
