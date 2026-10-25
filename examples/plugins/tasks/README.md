@@ -11,19 +11,17 @@ Square's shared `data.tasks` attempt store. The example API serves all three res
   A signed-in Square member is derived from `CurrentUser('id')`.
 - `GET /api/p/tasks/attempts` returns at most 100 attempts for that signed-in member.
 
-An SQL migration creates the attempt table with a unique member/idempotency key,
+SQL migrations create the attempt and hint-session tables with a unique member/idempotency key,
 an owner-scoped index and cascading user deletion. The plugin store rejects
 same-key conflicting payloads. Do not expose member IDs or answer keys in the client.
 
 ## Still incomplete
 
-- `POST hints/reveal` and server-owned hint state. This sample task deliberately
-  has `hintCount: 0`, so the UI does not offer a hint for this task.
-- Account data export, disposable database migration execution and browser smoke.
+- The numeric sample includes one server-owned hint. `POST /api/p/tasks/hints/reveal` records it against the authenticated member and pending attempt key. The attempt endpoint reads hint usage from the database; clients cannot submit `hintsUsed`.
+- Account data export, isolated migration verification for the new hint table and browser smoke.
 - API and Web typechecks, production builds and focused application tests passed CI run #45; an isolated real-database migration and browser login/logout verification are still required.
-- Resuming/visually listing history in the Web UI after returning, although
-  the authenticated `GET attempts` endpoint now exists.
-- Error-handled retry preservation across uncertain network failures.
+- Browser confirmation that member-only saved results display after returning.
+- Persisting pending retry keys across full page reload during an uncertain write.
 
 This example is **not production-ready**. No database migration or browser end-to-end test has been executed in this GitHub-editing session.
 
