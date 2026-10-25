@@ -14,11 +14,12 @@ const read = (name) => {
 };
 if (mode === 'check-pr') {
   const diff = run('diff', '--name-only', `${base}...HEAD`).split('\n').filter(Boolean);
+  const added = run('diff', '--name-only', '--diff-filter=A', `${base}...HEAD`).split('\n').filter(Boolean);
   const relevant = diff.some(f => /^(apps|packages)\//.test(f));
-  if (relevant && !diff.some(f => /^changes\/[^/]+\.json$/.test(f)) && !diff.includes('changes/no-user-facing-change.md')) {
+  if (relevant && !added.some(f => /^changes\/[^/]+\.json$/.test(f)) && !added.some(f => /^changes\/no-user-facing-[^/]+\.md$/.test(f))) {
     throw new Error('User-facing code PR needs a changes/*.json entry or changes/no-user-facing-change.md explaining why none applies.');
   }
-  for (const file of diff.filter(f => /^changes\/[^/]+\.json$/.test(f))) if (existsSync(file)) read(file);
+  for (const file of added.filter(f => /^changes\/[^/]+\.json$/.test(f))) if (existsSync(file)) read(file);
   console.log('Release entry PR check passed');
 } else if (mode === 'generate') {
   const changed = run('diff', '--name-only', '--diff-filter=A', `${base}..${head}`).split('\n').filter(f => /^changes\/[^/]+\.json$/.test(f)).sort();
