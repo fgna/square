@@ -38,3 +38,35 @@ No keystores or credentials belong in Git. No public APK distribution is enabled
 - Confirm production APK signing, versioning and release distribution separately.
 
 Tracks [Square #59](https://github.com/fgna/square/issues/59).
+
+## White-label APK for an independent community
+
+Build from the same sources with an independent Android application ID, launcher
+name and pinned HTTPS origin. Example (replace the URL with the actual Turbo Mathe
+HTTPS origin before running):
+
+```sh
+cd apps/mobile-android
+./gradlew testDebugUnitTest
+./gradlew assembleDebug \
+  -PcommunityName="Turbo Mathe" \
+  -PcommunityAppId="de.turbomathe.app" \
+  -PcommunityUrl="https://YOUR-TURBO-MATHE-DOMAIN"
+```
+
+The resulting `app/build/outputs/apk/debug/app-debug.apk` installs as a separate
+Android app, opens the configured instance directly, and does not display the
+generic server URL setup screen. The standard build without properties remains
+the shared Square app. Use a distinct and stable package ID per community;
+changing it creates a new installation. Ensure a trusted HTTPS certificate.
+
+**Brand artwork:** for a community-specific launcher icon, replace
+`app/src/main/res/drawable/ic_launcher_foreground.xml` and the background
+color in `app/src/main/res/values/colors.xml` in the community's build
+checkout (or add a dedicated Android product flavor). The old Community icon
+remains the default until a branded asset is supplied. The build properties
+alone do not customize the icon yet.
+
+**Release:** supply signing credentials via the documented environment variables
+and use `assembleRelease`. Keep the same signing key, application ID and
+incrementing versionCode for updates. No public APK distribution is configured.
