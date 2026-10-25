@@ -29,10 +29,12 @@ command -v curl >/dev/null || fail "curl is required"
 export COMMUNITY_WEB_PORT="${COMMUNITY_WEB_PORT:-4600}"
 export COMMUNITY_API_PORT="${COMMUNITY_API_PORT:-4601}"
 export COMMUNITY_HTTPS_PORT="${COMMUNITY_HTTPS_PORT:-4543}"
-for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT"; do
+export COMMUNITY_DB_PORT="${COMMUNITY_DB_PORT:-55439}"
+export COMMUNITY_REDIS_PORT="${COMMUNITY_REDIS_PORT:-56389}"
+for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT"; do
   [[ "$port" =~ ^[0-9]+$ ]] && (( 10#$port >= 1024 && 10#$port <= 65535 )) || fail "Invalid development port: $port"
 done
-[[ "$COMMUNITY_WEB_PORT" != "$COMMUNITY_API_PORT" && "$COMMUNITY_WEB_PORT" != "$COMMUNITY_HTTPS_PORT" && "$COMMUNITY_API_PORT" != "$COMMUNITY_HTTPS_PORT" ]] || fail "Web, API and HTTPS ports must be distinct"
+[[ "$(printf "%s\n" "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT" "$COMMUNITY_DB_PORT" "$COMMUNITY_REDIS_PORT" | sort -u | wc -l)" -eq 5 ]] || fail "Development ports must be distinct"
 for port in "$COMMUNITY_WEB_PORT" "$COMMUNITY_API_PORT" "$COMMUNITY_HTTPS_PORT"; do
   if (echo >/dev/tcp/127.0.0.1/"$port") >/dev/null 2>&1; then
     fail "Port $port is occupied. Will not interfere with other applications."
@@ -53,8 +55,8 @@ set -a
 # Generated values are hex-only; source exclusively our private generated file.
 source "$ENVFILE"
 set +a
-export DATABASE_URL="postgresql://demo:${DEMO_DB_PASSWORD}@127.0.0.1:5439/community_core_demo?schema=local_demo"
-export REDIS_URL="redis://127.0.0.1:6389"
+export DATABASE_URL="postgresql://demo:${DEMO_DB_PASSWORD}@127.0.0.1:${COMMUNITY_DB_PORT}/community_core_demo?schema=local_demo"
+export REDIS_URL="redis://127.0.0.1:${COMMUNITY_REDIS_PORT}"
 LAN_IP="${COMMUNITY_LAN_IP:-192.168.1.121}"
 [[ "$LAN_IP" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] || fail "COMMUNITY_LAN_IP must be an IPv4 address"
 if ! ip -4 -o addr show 2>/dev/null | grep -Fq "inet $LAN_IP/"; then
