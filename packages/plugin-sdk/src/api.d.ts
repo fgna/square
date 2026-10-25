@@ -95,6 +95,10 @@ export interface PluginTaskAttemptRecord extends PluginTaskAttemptCreate {
 export interface PluginTaskAttempts {
   record(userId: string, input: PluginTaskAttemptCreate): Promise<PluginTaskAttemptRecord>;
   list(userId: string, taskId?: string): Promise<PluginTaskAttemptRecord[]>;
+  /** Increment server-owned hint usage for an authenticated member and pending attempt. */
+  revealHint(userId: string, taskId: string, taskVersion: number, idempotencyKey: string, hintCount: number): Promise<number>;
+  /** Read server-owned hint usage; clients must never supply this as an answer field. */
+  hintUsage(userId: string, taskId: string, taskVersion: number, idempotencyKey: string): Promise<number>;
 }
 
 export interface PluginApiContext {
