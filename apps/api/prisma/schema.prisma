@@ -856,3 +856,22 @@ model LearningGroupInvite {
   @@unique([groupId, userId])
   @@index([userId])
 }
+
+/** Domain-neutral, immutable attempts for installed task/quiz capabilities.
+ *  Never store public answer keys here; task definitions stay in the owning plugin.
+ */
+model TaskAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId         String
+  taskVersion    Int
+  response       Json
+  correct        Boolean
+  hintsUsed      Int      @default(0)
+  idempotencyKey String
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, taskId, createdAt])
+}
