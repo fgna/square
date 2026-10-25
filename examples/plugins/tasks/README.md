@@ -15,10 +15,14 @@ SQL migrations create the attempt and hint-session tables with a unique member/i
 an owner-scoped index and cascading user deletion. The plugin store rejects
 same-key conflicting payloads. Do not expose member IDs or answer keys in the client.
 
+## Personal data export
+
+An authenticated member can request `GET /api/users/me/task-data/export` to obtain all of their own task attempts and server-recorded hint sessions in versioned JSON (no history pagination limit). The user foreign keys use `ON DELETE CASCADE`, so deleting the member removes both tables' records. This endpoint does not replace the platform's broader account-data export if present.
+
 ## Still incomplete
 
 - The numeric sample includes one server-owned hint. `POST /api/p/tasks/hints/reveal` records it against the authenticated member and pending attempt key. The attempt endpoint reads hint usage from the database; clients cannot submit `hintsUsed`.
-- Account data export, isolated migration verification for the new hint table and browser smoke.
+- Isolated browser smoke for hint -> submit -> reload -> logout/login -> restored history.
 - API and Web typechecks, production builds and focused application tests passed CI run #45; an isolated real-database migration and browser login/logout verification are still required.
 - Browser confirmation that member-only saved results display after returning.
 - Persisting pending retry keys across full page reload during an uncertain write.
