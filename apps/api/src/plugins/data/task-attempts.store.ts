@@ -25,7 +25,7 @@ export class TaskAttemptStore implements PluginTaskAttempts {
     // Atomic unique insert: duplicate deliveries do not generate another attempt.
     // If reused with a different payload, fail rather than return misleading success.
     try {
-      return await this.prisma.taskAttempt.create({data});
+      return await this.prisma.taskAttempt.create({data}) as unknown as PluginTaskAttemptRecord;
     } catch (err) {
       if (!err || typeof err !== 'object' || !('code' in err) || err.code !== 'P2002') throw err;
       const existing = await this.prisma.taskAttempt.findUnique({
@@ -36,7 +36,7 @@ export class TaskAttemptStore implements PluginTaskAttempts {
         && JSON.stringify(existing.response) === JSON.stringify(data.response)
         && existing.correct === data.correct && existing.hintsUsed === data.hintsUsed;
       if (!same) throw new ConflictException('Idempotency key already used for a different attempt');
-      return existing;
+      return existing as unknown as PluginTaskAttemptRecord;
     }
   }
 
@@ -47,6 +47,6 @@ export class TaskAttemptStore implements PluginTaskAttempts {
     return this.prisma.taskAttempt.findMany({
       where:{userId,...(taskId ? {taskId}:{})},
       orderBy:[{createdAt:'desc'},{id:'desc'}],take:100,
-    });
+    }) as unknown as Promise<PluginTaskAttemptRecord[]>;
   }
 }
