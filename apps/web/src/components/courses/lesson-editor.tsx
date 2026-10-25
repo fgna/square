@@ -46,6 +46,7 @@ export function LessonEditor({
   // removed here appear once the course query has reloaded.
   const current =
     editor.course.data?.modules.flatMap((m) => m.lessons).find((l) => l.id === lesson.id) ?? lesson;
+  const modules = editor.course.data?.modules ?? [];
 
   const save = () => {
     editor.updateLesson.mutate(
@@ -73,6 +74,27 @@ export function LessonEditor({
             <Label htmlFor="lesson-title">Title</Label>
             <Input id="lesson-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
+
+          {modules.length > 1 && (
+            <div className="space-y-1.5">
+              <Label htmlFor="lesson-module">Module</Label>
+              {/* Moves right away and appends the lesson to the chosen module. */}
+              <select
+                id="lesson-module"
+                className="w-full rounded-md px-3 py-2 text-sm"
+                style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)', color: 'var(--theme-text)' }}
+                value={current.moduleId}
+                disabled={editor.moveLessonToModule.isPending}
+                onChange={(e) => editor.moveLessonToModule.mutate({ id: lesson.id, moduleId: e.target.value })}
+              >
+                {modules.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="lesson-video" className="flex items-center gap-1.5">

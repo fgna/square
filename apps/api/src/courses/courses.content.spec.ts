@@ -144,6 +144,27 @@ describe('CoursesService — course content', () => {
     });
   });
 
+  describe('moving a lesson to another module', () => {
+    beforeEach(() => {
+      prisma.lesson.findUnique.mockResolvedValue({ id: 'l1', moduleId: 'm1', order: 2, content: '', module: { id: 'm1', courseId: 'c1' } });
+      prisma.lesson.findFirst.mockResolvedValue({ order: 5 });
+      prisma.lesson.update.mockImplementation(async ({ data }: any) => ({ id: 'l1', content: '', attachments: [], ...data }));
+    });
+
+    it('appends the lesson to a module of the same course', async () => {
+      prisma.module.findUnique.mockResolvedValue({ id: 'm2', courseId: 'c1' });
+      const moved = await service.moveLessonToModule('l1', 'm2');
+      expect(prisma.lesson.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'l1' }, data: { moduleId: 'm2', order: 6 } }));
+      expect(moved).toMatchObject({ moduleId: 'm2', order: 6 });
+    });
+
+    it('refuses a module of another course', async () => {
+      prisma.module.findUnique.mockResolvedValue({ id: 'x', courseId: 'other' });
+      await expect(service.moveLessonToModule('l1', 'x')).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.lesson.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('creating lessons', () => {
     beforeEach(() => {
       prisma.module.findUnique.mockResolvedValue({ id: 'm1', courseId: 'c1', order: 1 });
