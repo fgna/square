@@ -34,3 +34,23 @@ The three optional color overrides are the initial MVP. A visual editor,
 contrast-aware palette generation and additional theme controls are follow-up
 work and need separate acceptance. Administrators must check legibility of
 their chosen combinations before deployment.
+
+## Isolated browser acceptance
+
+An optional Playwright smoke test is provided at
+`apps/web/e2e/community-branding.spec.ts`. Use only a disposable local instance
+with an external content pack configured with theme `corporate-light` and
+primary color `#245A81`. The existing `scripts/dev-instance-up.sh` demo
+launcher forces the neutral example pack, so it cannot be used unchanged to
+verify these external branding overrides.
+
+Run the smoke from `apps/web` once an isolated instance is running:
+
+```bash
+SQUARE_THEME_TEST_URL=http://127.0.0.1:4300/login pnpm exec playwright test e2e/community-branding.spec.ts
+```
+
+The test checks initial colors, reload persistence, and the high-contrast
+user preference. It is an opt-in browser acceptance test, not part of CI's
+default jsdom/unit suite. Use a fresh browser context with no prior saved
+theme preference and confirm the content pack used by the web process.
