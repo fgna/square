@@ -78,6 +78,8 @@ export function getThemeByName(name: string): Theme {
 export type CommunityThemeColors = Partial<Pick<Theme['colors'], 'primary' | 'secondary' | 'accent'>>;
 
 export function resolveCommunityTheme(theme: Theme, overrides: CommunityThemeColors = {}): Theme {
+  // Keep the accessible high-contrast palette unchanged.
+  if (theme.name === 'high-contrast') return theme;
   const safe: CommunityThemeColors = {};
   for (const key of ['primary', 'secondary', 'accent'] as const) {
     const value = overrides[key];
