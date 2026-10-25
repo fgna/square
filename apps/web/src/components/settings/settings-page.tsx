@@ -391,6 +391,10 @@ export function SettingsPage() {
     if (avatarPreviewRef.current) URL.revokeObjectURL(avatarPreviewRef.current);
   }, []);
 
+  const { data: onboardingMode } = useQuery<{ onboardingMode: 'REQUIRED' | 'OPTIONAL' | 'DISABLED' }>({
+    queryKey: ['onboarding-mode'],
+    queryFn: () => apiClient.get('/platform/branding').then(r => r.data),
+  });
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['me'],
     queryFn: () => apiClient.get('/users/me').then((r) => r.data),
@@ -497,6 +501,9 @@ export function SettingsPage() {
 
         {/* Profile tab */}
         <TabsContent value="profile" className="mt-6 space-y-4">
+          {onboardingMode?.onboardingMode === 'OPTIONAL' && profile && !profile.onboardingCompleted && (
+            <Card><CardContent className="pt-6"><Button variant="outline" onClick={() => window.dispatchEvent(new Event('square:resume-onboarding'))}>Resume onboarding</Button></CardContent></Card>
+          )}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t('profile.title')}</CardTitle>
