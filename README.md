@@ -7,6 +7,8 @@
 
 Square is built with a **Next.js web app**, a **NestJS API**, **Prisma/PostgreSQL** and a plugin interface. Each community can keep its identity, content and operational data separate from the reusable application.
 
+**[What's New in Square 1.0](docs/whats-new/v1.0.0.md)** — a user-focused overview of the first public source release.
+
 ## What Square includes
 
 - Member accounts, profiles, feed posts, comments and reactions
