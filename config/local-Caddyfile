@@ -2,15 +2,15 @@
   admin off
   auto_https disable_redirects
 }
-https://192.168.1.121:4443 {
+https://{$COMMUNITY_LAN_IP}:{$COMMUNITY_HTTPS_PORT} {
   tls internal
 
   handle /health {
-    reverse_proxy 127.0.0.1:4301
+    reverse_proxy 127.0.0.1:{$COMMUNITY_API_PORT}
   }
 
   handle {
-    reverse_proxy 127.0.0.1:4300
+    reverse_proxy 127.0.0.1:{$COMMUNITY_WEB_PORT}
   }
 
   header {
