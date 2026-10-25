@@ -1,0 +1,7 @@
+{
+  "title": "Customize community colors within existing themes",
+  "category": "new",
+  "audience": "community administrators",
+  "description": "Community instances can configure their preferred built-in theme and override its primary, secondary, and accent colors through the external instance manifest.",
+  "pr": 40
+}
