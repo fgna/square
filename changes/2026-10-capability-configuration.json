@@ -1,0 +1,7 @@
+{
+  "title": "Configurable platform capabilities",
+  "category": "new",
+  "audience": "operators",
+  "description": "Instance operators can configure access to feed, messages, events, courses, journal and assessments. Disabled capabilities are restricted in both the web navigation and API.",
+  "pr": 4
+}
