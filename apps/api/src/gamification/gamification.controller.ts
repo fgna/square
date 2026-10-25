@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, SetMetadata } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { GamificationService } from './gamification.service';
+import { authorizeRewardIssuer } from './reward-issuer';
+import { IS_PUBLIC_KEY } from '../auth/guards/jwt-auth.guard';
 import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 class RewardDefinitionDto {
@@ -42,6 +44,15 @@ export class GamificationController {
   @Post('purchase')
   purchase(@CurrentUser('id') userId: string, @Body() dto: PurchaseDto) {
     return this.game.purchase(userId, dto.itemId, dto.requestKey);
+  }
+
+  // Authenticated by a scoped server-side issuer token instead of a user JWT.
+  // The global capability guard still denies the route when gamification is off.
+  @SetMetadata(IS_PUBLIC_KEY, true)
+  @Post('issuer/events')
+  issueExternalReward(@Headers('authorization') bearer: string | undefined, @Body() dto: RewardEventDto) {
+    const issuerId = authorizeRewardIssuer(bearer, dto.rewardCode);
+    return this.game.issueReward(dto.userId, dto.rewardCode, issuerId + ':' + dto.eventKey);
   }
 
   @Roles('ADMIN')
