@@ -16,7 +16,7 @@ export function authorizeRewardIssuer(bearer: string | undefined, code: string, 
     const entry = value as Record<string, unknown> | null;
     if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string'
       || !/^[a-z0-9_-]{1,48}$/.test(entry.id)
-      || !/^[a-f0-9]{64}$/.test(entry.tokenSha256)
+      || !(typeof entry.tokenSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(entry.tokenSha256))
       || !Array.isArray(entry.rewardCodes)
       || entry.rewardCodes.length === 0
       || !entry.rewardCodes.every((s: unknown) => typeof s === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(s))) {
