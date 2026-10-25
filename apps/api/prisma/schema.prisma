@@ -53,6 +53,7 @@ model User {
   challenge        Challenge?
   goals            Goal[]
   journalEntries   JournalEntry[]
+  taskAttempts     TaskAttempt[]
   assessments      Assessment[]
   eventProposals   EventProposal[]
   proposalVotes    ProposalVote[]
