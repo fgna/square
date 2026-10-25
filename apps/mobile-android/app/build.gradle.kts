@@ -3,6 +3,20 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Build-time identity for independent Square communities.
+val whiteLabelName = providers.gradleProperty("communityName").orElse("Square").get()
+val whiteLabelId = providers.gradleProperty("communityAppId").orElse("com.community.app").get()
+val whiteLabelUrl = providers.gradleProperty("communityUrl").orElse("").get().trimEnd('/')
+require(whiteLabelId.matches(Regex("[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+"))) {
+    "communityAppId must be a valid Android application ID."
+}
+require(whiteLabelName.isNotBlank()) { "communityName may not be blank" }
+require(whiteLabelUrl.isEmpty() || (
+    java.net.URI(whiteLabelUrl).let { it.scheme == "https" && !it.host.isNullOrBlank() &&
+        it.rawUserInfo == null && it.rawQuery == null && it.rawFragment == null &&
+        (it.rawPath.isNullOrEmpty() || it.rawPath == "/") }
+)) { "communityUrl must be an HTTPS origin without path, credentials, query or fragment." }
+
 val keystorePath = System.getenv("KEYSTORE_PATH")
 val storePasswordValue = System.getenv("KEYSTORE_PASSWORD")
 val keyAliasValue = System.getenv("KEY_ALIAS")
@@ -10,11 +24,14 @@ val keyPasswordValue = System.getenv("KEY_PASSWORD")
 val releaseConfigured = listOf(keystorePath, storePasswordValue, keyAliasValue, keyPasswordValue).all { !it.isNullOrBlank() }
 
 android {
+    buildFeatures { buildConfig = true }
     // Preserve package identity for existing community-platform installations.
     namespace = "com.community.app"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.community.app"
+        applicationId = whiteLabelId
+        resValue("string", "app_name", whiteLabelName)
+        buildConfigField("String", "COMMUNITY_URL", "\"${whiteLabelUrl}\"")
         minSdk = 26
         targetSdk = 35
         versionCode = 1
