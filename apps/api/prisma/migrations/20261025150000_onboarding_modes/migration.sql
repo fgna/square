@@ -1,0 +1,1 @@
+ALTER TABLE "PlatformSettings" ADD COLUMN "onboardingMode" TEXT NOT NULL DEFAULT 'REQUIRED';
