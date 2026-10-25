@@ -17,6 +17,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.FrameLayout
+import android.graphics.Color
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import java.net.URI
 
 /** HTTPS origin matching deliberately excludes username/password and alternative ports. */
@@ -130,7 +135,22 @@ class MainActivity : Activity() {
                 }
             }
         }
-        setContentView(view)
+        // Android 15 enforces edge-to-edge. Reserve the physical system bar areas
+        // outside WebView so Square navigation does not overlap status/nav controls.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val container = FrameLayout(this).apply {
+            setBackgroundColor(Color.rgb(9, 13, 22))
+            addView(view, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            ))
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(container) { root, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            root.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+        setContentView(container)
+        ViewCompat.requestApplyInsets(container)
         val last = prefs.getString("last_url", null)
         view.loadUrl(if (TrustedOrigin.matches(url, last)) last!! else url)
     }
