@@ -116,6 +116,25 @@ export class UsersService {
     return { ...rest, hasPassword: !!passwordHash };
   }
 
+  /** Member-only portable export of the reusable task plugin's personal records. */
+  async exportTaskData(userId: string) {
+    const [attempts, hintSessions] = await Promise.all([
+      this.prisma.taskAttempt.findMany({
+        where: { userId },
+        select: { taskId: true, taskVersion: true, response: true, correct: true,
+          hintsUsed: true, idempotencyKey: true, createdAt: true },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      }),
+      this.prisma.taskHintSession.findMany({
+        where: { userId },
+        select: { taskId: true, taskVersion: true, idempotencyKey: true,
+          hintsUsed: true, createdAt: true },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      }),
+    ]);
+    return { schemaVersion: 1, attempts, hintSessions };
+  }
+
   async setPassword(userId: string, currentPassword: string | undefined, newPassword: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
