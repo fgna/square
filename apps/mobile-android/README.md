@@ -12,11 +12,9 @@ in the system browser. Switching servers clears WebView cookies and storage glob
 
 ## Debug build
 
-Use JDK 17, Android SDK platform 35, and a Gradle 8.11.1 wrapper. The original
-`community-platform/apps/mobile-android` Gradle wrapper binary is not yet included
-in this migration; copy a trusted matching Gradle wrapper (scripts and jar) from
-that repository or another vetted local Android project before building. Do not
-rely on a globally installed Gradle.
+Use JDK 17 and Android SDK platform 35. The original Gradle 8.11.1 wrapper
+(script, JAR and distribution properties) is included. No global Gradle install
+is required.
 
 ```sh
 cd apps/mobile-android
