@@ -74,9 +74,15 @@ function QuizPage({ api }: PluginPageProps) {
   async function revealHint() {
     if (!task || busy) return;
     setBusy(true);
+    const submission = pending ?? {
+      taskId: task.id, taskVersion: task.version,
+      response: task.responseType === 'number' ? Number(number || 0) : [...selected],
+      idempotencyKey: globalThis.crypto.randomUUID().replaceAll('-', '_')
+    };
+    setPending(submission);
     try {
       const result = await api.post<{ text: string }>('hints/reveal', {
-        taskId: task.id, taskVersion: task.version
+        taskId: task.id, taskVersion: task.version, idempotencyKey: submission.idempotencyKey
       });
       setHint(result.text);
     } catch { setError('Hint unavailable.'); }
@@ -113,7 +119,7 @@ function QuizPage({ api }: PluginPageProps) {
             {option.label}
           </label>)}
         </fieldset>}
-    {task.hintCount > 0 && <button type="button" disabled={busy}
+    {task.hintCount > 0 && <button type="button" disabled={busy || !!attempt || !!hint}
       className="rounded border p-2" onClick={revealHint}>Show hint</button>}
     {hint && <p role="note">{hint}</p>}
     <button type="button" disabled={busy} className="rounded border p-2" onClick={submit}>
