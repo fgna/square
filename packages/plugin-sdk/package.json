@@ -13,6 +13,10 @@
     },
     "./web": {
       "types": "./src/web.d.ts"
+    },
+    "./tasks": {
+      "types": "./src/tasks.d.ts",
+      "default": "./src/tasks.mjs"
     }
   }
 }
