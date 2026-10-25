@@ -56,6 +56,9 @@ export class TaskAttemptStore implements PluginTaskAttempts {
       throw new ConflictException('Invalid hint count');
     }
     const where = { userId_idempotencyKey: { userId, idempotencyKey } };
+    // Once a response is recorded, further hints cannot change its provenance.
+    const submitted = await this.prisma.taskAttempt.findUnique({ where });
+    if (submitted) throw new ConflictException('Attempt has already been submitted');
     // Create the first reveal atomically. Concurrent first reveals compete for the same unique key.
     try {
       await this.prisma.taskHintSession.create({
