@@ -71,6 +71,8 @@
     "coverUnsplashNote": "Unsplash photos load from Unsplash; the photographer is credited.",
     "coverNone": "No photos found.",
     "coverClose": "Close",
+    "featured": "Highlight",
+    "featuredDesc": "Marked in the list, calendar and dashboard; for a series, all upcoming dates.",
     "new": "New Event",
     "title": "Title",
     "description": "Description",
@@ -346,6 +348,9 @@
   },
   "events": {
     "coverCredit": "Photo by <author>{name}</author> on <library>Unsplash</library>",
+    "compressSeries": "Group recurring events",
+    "featured": "Highlighted",
+    "seriesMore": "Recurring – more dates in the calendar",
     "title": "Events",
     "description": "Learn from and inspire each other at our live events.",
     "list": "List",

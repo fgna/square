@@ -74,6 +74,7 @@ function EventDialog({
   const [maxRsvps, setMaxRsvps] = useState(event?.maxRsvps ? String(event.maxRsvps) : '');
   const [coverUrl, setCoverUrl] = useState<string | null>(event?.coverUrl ?? null);
   const [coverCredit, setCoverCredit] = useState<CoverCredit>(event?.coverCredit ?? null);
+  const [featured, setFeatured] = useState(event?.featured ?? false);
   const [categoryIds, setCategoryIds] = useState<string[]>((event?.categories ?? []).map((c) => c.category.id));
   const [recurrence, setRecurrence] = useState<string>('NONE');
   const [recurrenceEndsAt, setRecurrenceEndsAt] = useState('');
@@ -101,6 +102,7 @@ function EventDialog({
         categoryIds,
         coverUrl: coverUrl ?? null,
         coverCredit: coverUrl ? coverCredit : null,
+        featured,
       };
       if (editing) return apiClient.put(`/events/${event!.id}`, common);
       return apiClient.post('/events', {
@@ -212,6 +214,13 @@ function EventDialog({
           <div className="space-y-1.5">
             <Label htmlFor="e-loc">{t('location')}</Label>
             <Input id="e-loc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('sampleLocation')} />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>{t('featured')}</p>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('featuredDesc')}</p>
+            </div>
+            <Switch checked={featured} onCheckedChange={setFeatured} />
           </div>
           <div className="flex items-center justify-between">
             <div>

@@ -85,4 +85,8 @@ export class CreateEventDto {
   @ValidateNested()
   @Type(() => CoverCreditDto)
   coverCredit?: CoverCreditDto | null;
+  @ApiPropertyOptional({ description: 'Highlight the event; on a series it applies to all upcoming dates' })
+  @IsOptional()
+  @IsBoolean()
+  featured?: boolean;
 }

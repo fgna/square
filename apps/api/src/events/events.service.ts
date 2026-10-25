@@ -387,6 +387,13 @@ export class EventsService {
       },
     });
     await this.setCategories([id], categoryIds);
+    // Highlighting a date of a series highlights the series' upcoming dates too.
+    if (dto.featured !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({
+        where: { seriesId: event.seriesId, startsAt: { gte: new Date() } },
+        data: { featured: dto.featured },
+      });
+    }
     return updated;
   }
 

@@ -31,6 +31,8 @@ export interface CommunityEvent {
   /** Photographer credit for a library photo. */
   coverCredit?: { name: string; url: string; source?: string } | null;
   maxRsvps?: number | null;
+  /** Highlighted by an admin. */
+  featured?: boolean;
   /** Shared by every occurrence of a repeating event; null for one-off events. */
   seriesId?: string | null;
   categories?: { category: { id: string; name: string; slug: string } }[];
