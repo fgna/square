@@ -36,4 +36,14 @@ export class UpdatePlatformSettingsDto {
   @IsString()
   @MaxLength(500)
   welcomeVideoUrl?: string | null;
+
+  @ApiPropertyOptional({ description: 'Send members a daily journal reminder (off by default)' })
+  @IsOptional()
+  @IsBoolean()
+  journalReminders?: boolean;
+
+  @ApiPropertyOptional({ description: 'Default reminder time in the platform time zone, "HH:MM"' })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'journalReminderTime must be HH:MM' })
+  journalReminderTime?: string;
 }

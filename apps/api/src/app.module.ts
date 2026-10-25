@@ -31,6 +31,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { LearningGroupsModule } from './learning-groups/learning-groups.module';
 import { TierModule } from './tier/tier.module';
 import { DigestTemplateModule } from './digest/digest-template.module';
+import { JournalReminderModule } from './journal-reminder/journal-reminder.module';
 import { BillingModule } from './billing/billing.module';
 import { AiCoachModule } from './ai-coach/ai-coach.module';
 import { RedisModule } from './redis/redis.module';
@@ -99,6 +100,7 @@ import { PluginsModule } from './plugins/plugins.module';
     LearningGroupsModule,
     TierModule,
     DigestTemplateModule,
+    JournalReminderModule,
     BillingModule,
     AiCoachModule,
     PluginsModule.register(),
