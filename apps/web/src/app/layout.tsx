@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { ThemeProvider } from '@/lib/theme-provider';
+import { loadCommunityTheme } from '@/lib/community-theme.server';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { Toaster } from '@/components/ui/toast';
 import { CookieBanner } from '@/components/gdpr/cookie-banner';
@@ -34,13 +35,14 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const communityTheme = loadCommunityTheme();
 
   return (
     <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <body>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
-            <ThemeProvider>
+            <ThemeProvider communityTheme={communityTheme}>
               {children}
               <Toaster />
               <CookieBanner />
