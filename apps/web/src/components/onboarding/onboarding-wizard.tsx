@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/hooks/use-members';
 import { useCategories } from '@/hooks/use-categories';
@@ -34,6 +35,23 @@ export function OnboardingWizard() {
   const updateInterests = useUpdateInterests();
 
   const [step, setStep] = useState(1);
+  const [dismissed, setDismissed] = useState(false);
+  const { data: modeData, isLoading: modeLoading } = useQuery<{ onboardingMode: 'REQUIRED' | 'OPTIONAL' | 'DISABLED' }>({
+    queryKey: ['onboarding-mode'],
+    queryFn: () => apiClient.get('/platform/branding').then(r => r.data),
+  });
+  const mode = modeData?.onboardingMode ?? 'REQUIRED';
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    setDismissed(window.localStorage.getItem(`square:onboarding-skip:${profile.id}`) === 'true');
+    const resume = () => {
+      window.localStorage.removeItem(`square:onboarding-skip:${profile.id}`);
+      setDismissed(false);
+    };
+    window.addEventListener('square:resume-onboarding', resume);
+    return () => window.removeEventListener('square:resume-onboarding', resume);
+  }, [profile?.id]);
   const { data: welcome } = useWelcomeVideo();
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
@@ -70,8 +88,8 @@ export function OnboardingWizard() {
   });
 
   // Don't render until we know onboarding status
-  if (profileLoading || !profile) return null;
-  if (profile.onboardingCompleted) return null;
+  if (profileLoading || modeLoading || !profile) return null;
+  if (profile.onboardingCompleted || mode === 'DISABLED' || (mode === 'OPTIONAL' && dismissed)) return null;
 
   const handleNext = async () => {
     if (step === 2) {
@@ -98,6 +116,11 @@ export function OnboardingWizard() {
   };
 
   const handleSkip = async () => {
+    if (mode === 'OPTIONAL') {
+      window.localStorage.setItem(`square:onboarding-skip:${profile.id}`, 'true');
+      setDismissed(true);
+      return;
+    }
     await completeOnboardingMutation.mutateAsync();
   };
 
