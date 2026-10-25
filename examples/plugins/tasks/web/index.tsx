@@ -26,6 +26,7 @@ function QuizPage({ api }: PluginPageProps) {
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<HistoricalAttempt[]>([]);
   const [pending, setPending] = useState<PendingSubmission | null>(null);
+  const [submissionStarted, setSubmissionStarted] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,17 +50,19 @@ function QuizPage({ api }: PluginPageProps) {
       setError('Select an answer.');
       return;
     }
-    const submission = pending ?? {
+    const submission = pending && submissionStarted ? pending : {
       taskId: task.id, taskVersion: task.version, response,
-      idempotencyKey: globalThis.crypto.randomUUID().replaceAll('-', '_')
+      idempotencyKey: pending?.idempotencyKey ?? globalThis.crypto.randomUUID().replaceAll('-', '_')
     };
     setPending(submission);
+    setSubmissionStarted(true);
     setBusy(true);
     setError('');
     try {
       const result = await api.post<Attempt>('attempts', submission);
       setAttempt(result);
       setPending(null);
+      setSubmissionStarted(false);
       try {
         const rows = await api.get<HistoricalAttempt[]>('attempts');
         setHistory(rows);
@@ -106,13 +109,13 @@ function QuizPage({ api }: PluginPageProps) {
     {task.responseType === 'number'
       ? <label className="block">Your answer
           <input aria-label="Your answer" type="number" value={number}
-            onChange={e => { if (!pending) setNumber(e.target.value); }} disabled={!!pending} className="block w-full rounded border p-2" />
+            onChange={e => { if (!submissionStarted) setNumber(e.target.value); }} disabled={submissionStarted} className="block w-full rounded border p-2" />
         </label>
       : <fieldset className="space-y-2">
           <legend>{task.responseType === 'multiple_choice' ? 'Select all correct answers' : 'Select one answer'}</legend>
           {(task.options || []).map(option => <label key={option.id} className="flex gap-2">
             <input type={task.responseType === 'multiple_choice' ? 'checkbox' : 'radio'}
-              name="answer" disabled={!!pending} checked={selected.includes(option.id)}
+              name="answer" disabled={submissionStarted} checked={selected.includes(option.id)}
               onChange={e => setSelected(current => task.responseType === 'single_choice'
                 ? [option.id] : e.target.checked
                   ? [...current, option.id] : current.filter(id => id !== option.id))} />
