@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compareVersions, findUpdates } from './check-square-update.mjs';
+import { compareVersions, findUpdates, versionFromStagingPair } from './check-square-update.mjs';
 
 test('compares stable versions numerically', () => {
   assert.equal(compareVersions('v1.10.0', '1.9.9'), 1);
@@ -22,4 +22,19 @@ test('lists only newer published stable releases in ascending order', () => {
   assert.deepEqual(findUpdates('2.0.0', releases), []);
   assert.throws(() => findUpdates('latest', releases));
   assert.throws(() => findUpdates('1.0.0', {}));
+});
+
+test('derives installed version only from a matching pinned release checkout', async (t) => {
+  const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'square-version-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const sha = 'a'.repeat(40);
+  const pair = join(dir, 'pair.json');
+  await writeFile(pair, JSON.stringify({ core: { checkout: dir, revision: sha } }));
+  const git = (args) => args.includes('rev-parse') ? sha : 'v1.0.0\\n';
+  assert.equal(await versionFromStagingPair(pair, git), 'v1.0.0');
+  await assert.rejects(versionFromStagingPair(pair, (args) => args.includes('rev-parse') ? 'b'.repeat(40) : 'v1.0.0'), /does not match/);
+  await assert.rejects(versionFromStagingPair(pair, (args) => args.includes('rev-parse') ? sha : 'v1.0.0\\nv1.1.0'), /exactly one/);
 });
