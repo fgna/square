@@ -124,10 +124,19 @@ function QuizPage({ api }: PluginPageProps) {
       onClick={() => { setAttempt(null); setSelected([]); setNumber(''); setHint(null); setError(''); }}>
       Try another answer
     </button>}
-    {history.length > 0 && <section aria-label="Your previous attempts">
+    <section aria-label="Your previous attempts">
       <h2 className="font-semibold">Your previous attempts</h2>
-      <p>{history.filter(item => item.taskId === task.id && item.taskVersion === task.version).length} recorded attempts for this task</p>
-    </section>}
+      {history.filter(item => item.taskId === task.id && item.taskVersion === task.version).length === 0
+        ? <p>No recorded attempts for this task yet.</p>
+        : <ol className="list-decimal space-y-1 pl-5">
+            {history.filter(item => item.taskId === task.id && item.taskVersion === task.version)
+              .map(item => <li key={item.id}>
+                {item.correct ? 'Correct' : 'Incorrect'}
+                {item.hintsUsed > 0 ? ' (with hint)' : ' (without hint)'}
+                {' · '}{new Date(item.createdAt).toLocaleString()}
+              </li>)}
+          </ol>}
+    </section>
     {error && <p role="alert">{error}</p>}
   </main>;
 }
