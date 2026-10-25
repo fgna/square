@@ -66,6 +66,11 @@
     "coverImage": "Cover image (optional)"
   },
   "adminEventsUI": {
+    "cover": "Cover picture",
+    "coverSearch": "Search photos on Unsplash…",
+    "coverUnsplashNote": "Unsplash photos load from Unsplash; the photographer is credited.",
+    "coverNone": "No photos found.",
+    "coverClose": "Close",
     "new": "New Event",
     "title": "Title",
     "description": "Description",
@@ -340,6 +345,7 @@
     }
   },
   "events": {
+    "coverCredit": "Photo by <author>{name}</author> on <library>Unsplash</library>",
     "title": "Events",
     "description": "Learn from and inspire each other at our live events.",
     "list": "List",

@@ -7,6 +7,7 @@ import { RsvpButton } from './rsvp-button';
 import { AddToCalendar } from './add-to-calendar';
 import { formatEventDuration, isUpcoming } from '@community/shared';
 import type { CommunityEvent } from '@community/shared';
+import { EventCover } from './event-cover';
 
 interface EventCardProps {
   event: CommunityEvent;
@@ -20,6 +21,7 @@ export function EventCard({ event }: EventCardProps) {
   return (
     // No overflow-hidden: it clipped the "Add to calendar" popover.
     <Card>
+      <EventCover url={event.coverUrl} credit={event.coverCredit} title={event.title} />
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">

@@ -258,6 +258,10 @@ model Event {
   location        String?
   isVirtual       Boolean         @default(false)
   meetingUrl      String?
+  /// An uploaded picture (/uploads/…) or a photo from an image library.
+  coverUrl        String?
+  /// Credit required by the image library: { name, url, source }.
+  coverCredit     Json?
   maxRsvps        Int?
   reminder24hSent Boolean         @default(false)
   reminder1hSent  Boolean         @default(false)
