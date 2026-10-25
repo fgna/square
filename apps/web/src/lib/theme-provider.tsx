@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useThemeStore } from '@/store/theme.store';
-import { applyTheme, getThemeByName } from '@/lib/themes';
+import { applyTheme, getThemeByName, resolveCommunityTheme, type CommunityThemeColors } from '@/lib/themes';
 import type { Theme } from '@community/shared';
 
 interface ThemeContextValue {
@@ -13,19 +13,19 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children, communityTheme }: { children: ReactNode; communityTheme?: { baseTheme: string; colors: CommunityThemeColors } }) {
   const { themeName, setThemeName, availableThemes } = useThemeStore();
 
-  useEffect(() => {
-    const theme = getThemeByName(themeName);
-    applyTheme(theme);
-  }, [themeName]);
+  const effectiveName = themeName ?? communityTheme?.baseTheme ?? 'executive-glass';
+  const theme = resolveCommunityTheme(getThemeByName(effectiveName), communityTheme?.colors);
 
-  const theme = getThemeByName(themeName);
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   const setTheme = (name: string) => {
     setThemeName(name);
-    applyTheme(getThemeByName(name));
+    applyTheme(resolveCommunityTheme(getThemeByName(name), communityTheme?.colors));
   };
 
   return (
