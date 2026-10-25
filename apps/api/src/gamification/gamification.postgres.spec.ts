@@ -67,6 +67,44 @@ describe.skipIf(!enabled)('gamification PostgreSQL transaction guarantees', () =
       .reduce((sum, row) => sum + row.delta, 0)).toBe(13);
   });
 
+  it('rejects insufficient funds without creating purchase or negative balance', async () => {
+    const user = await prisma.user.create({ data: { email: token + '-poor@example.test', name: 'No funds' } });
+    try {
+      await expect(game.purchase(user.id, itemId, token + ':insufficient')).rejects.toThrow('Insufficient funds');
+      expect((await game.wallet(user.id)).balance).toBe(0);
+      expect(await prisma.gamePurchase.count({ where: { userId: user.id } })).toBe(0);
+      expect(await prisma.gameTransaction.count({ where: { userId: user.id } })).toBe(0);
+      expect(await prisma.gameInventory.count({ where: { userId: user.id } })).toBe(0);
+    } finally {
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  });
+
+  it('isolates wallet, inventory and transaction history across members', async () => {
+    const other = await prisma.user.create({ data: { email: token + '-other@example.test', name: 'Another member' } });
+    try {
+      expect((await game.wallet(other.id)).balance).toBe(0);
+      expect(await game.history(other.id)).toEqual([]);
+      expect(await game.inventory(other.id)).toEqual([]);
+      expect((await game.wallet(userId)).balance).toBe(13);
+      expect((await game.inventory(userId)).length).toBe(1);
+      expect((await game.history(userId)).length).toBeGreaterThan(0);
+    } finally {
+      await prisma.user.delete({ where: { id: other.id } });
+    }
+  });
+
+  it('rejects conflicting idempotency keys without changing the ledger', async () => {
+    await game.defineReward(token + '-alternative', 5);
+    try {
+      await expect(game.issueReward(userId, token + '-alternative', token + ':event')).rejects.toThrow();
+      expect((await game.wallet(userId)).balance).toBe(13);
+      expect(await prisma.gameRewardEvent.count({ where: { userId, eventKey: token + ':event' } })).toBe(1);
+    } finally {
+      await prisma.gameRewardDefinition.delete({ where: { code: token + '-alternative' } });
+    }
+  });
+
   it('rejects the same purchase request without charging again', async () => {
     const winner = await prisma.gamePurchase.findFirstOrThrow({ where: { userId, itemId } });
     expect((await game.purchase(userId, itemId, winner.requestKey)).duplicate).toBe(true);
