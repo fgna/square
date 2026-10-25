@@ -65,6 +65,9 @@ jobs:
           fi
           sed -i "1c# Square $VERSION — changes since $PREVIOUS" /tmp/square-release-notes.md
           cat /tmp/square-release-notes.md
+          echo "Preview commit SHA for later approval: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Baseline: $PREVIOUS" >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/square-release-notes.md >> "$GITHUB_STEP_SUMMARY"
       - name: Save release notes for review
         uses: actions/upload-artifact@v4
         with:
