@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, ReactNode } from 'react';
 import { useThemeStore } from '@/store/theme.store';
 import { applyTheme, getThemeByName, resolveCommunityTheme, type CommunityThemeColors } from '@/lib/themes';
 import type { Theme } from '@community/shared';
@@ -17,7 +17,7 @@ export function ThemeProvider({ children, communityTheme }: { children: ReactNod
   const { themeName, setThemeName, availableThemes } = useThemeStore();
 
   const effectiveName = themeName ?? communityTheme?.baseTheme ?? 'executive-glass';
-  const theme = resolveCommunityTheme(getThemeByName(effectiveName), communityTheme?.colors);
+  const theme = useMemo(() => resolveCommunityTheme(getThemeByName(effectiveName), communityTheme?.colors), [effectiveName, communityTheme]);
 
   useEffect(() => {
     applyTheme(theme);
