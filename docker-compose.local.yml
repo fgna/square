@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: ${DEMO_DB_PASSWORD:?Generate demo secrets using scripts/dev-instance-up.sh}
     ports:
-      - "127.0.0.1:${COMMUNITY_DB_PORT:-55439}:5432"
+      - "127.0.0.1::5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,7 +21,7 @@ services:
     restart: "no"
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:
-      - "127.0.0.1:${COMMUNITY_REDIS_PORT:-56389}:6379"
+      - "127.0.0.1::6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s
