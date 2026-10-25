@@ -2,9 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import type { PaginatedEvents, CommunityEvent } from '@community/shared';
 
-export function useEvents(page = 1, limit = 20) {
+export function useEvents(page = 1, limit = 20, enabled = true) {
   return useQuery({
     queryKey: ['events', page, limit],
+    enabled,
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedEvents>('/events', {
         params: { page, limit },
