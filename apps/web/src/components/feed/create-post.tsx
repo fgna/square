@@ -9,11 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useCreatePost } from '@/hooks/use-feed';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { getInitials } from '@community/shared';
 import { RichTextEditor } from './rich-text-editor';
 import { chipStyle } from '@/lib/chip-style';
+import { PostAttachmentsPicker, type PendingAttachment } from './post-attachments-picker';
 
 type PostType = 'DISCUSSION' | 'QUESTION' | 'ANNOUNCEMENT' | 'INTRODUCTION' | 'SUCCESS_STORY' | 'TOPIC_SUGGESTION';
 
@@ -61,6 +62,9 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
   }, []);
   const t = useTranslations('feed');
   const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const queryClient = useQueryClient();
   const createPost = useCreatePost();
 
   const { data: categories } = useQuery({
@@ -87,6 +91,7 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
     setShowPoll(false);
     setShowMobileMore(false);
     setMobileFormat(false);
+    setAttachments([]);
     setEditorMode(window.matchMedia('(max-width: 767px)').matches ? 'plain' : 'rich');
     setPoll({ question: '', options: ['', ''] });
   };
@@ -132,12 +137,17 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
         : undefined;
 
     try {
-      await createPost.mutateAsync({
+      const created = await createPost.mutateAsync({
         content: submitContent,
         type: postType,
         categoryIds: selectedCategories.length ? selectedCategories : undefined,
         poll: pollPayload,
       });
+      // Attachments (admins only) are linked once the post exists.
+      for (const a of attachments) {
+        await apiClient.post(`/posts/${created.id}/attachments`, { uploadId: a.uploadId, videoUrl: a.videoUrl });
+      }
+      if (attachments.length) queryClient.invalidateQueries({ queryKey: ['feed'] });
       resetForm();
     } catch (err: any) {
       const serverMessage = err?.response?.data?.message;
@@ -239,6 +249,7 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
             />
           )}
 
+          {focused && isAdmin && <PostAttachmentsPicker value={attachments} onChange={setAttachments} />}
           {focused && showPoll && (
             <div
               className="rounded-lg p-3 space-y-2"

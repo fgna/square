@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ReactionBar } from './reaction-bar';
 import { CommentList } from './comment-list';
 import { PollCard } from './poll-card';
+import { HostedVideo } from '@/components/common/hosted-video';
 import { EditPost } from './edit-post';
 import { ReportPostDialog } from './report-post-dialog';
 import { useDeletePost, useTogglePin } from '@/hooks/use-feed';
@@ -187,6 +188,18 @@ export function PostCard({ post }: PostCardProps) {
       </Link>
       )}
 
+      {(post.attachments?.length ?? 0) > 0 && (
+        <div className="space-y-2">
+          {post.attachments!.map((a) =>
+            a.mimeType.startsWith('video/') ? (
+              <HostedVideo key={a.id} src={a.url} title={a.filename} />
+            ) : (
+              // Audio plays here; no download button, the link expires.
+              <audio key={a.id} src={a.url} controls preload="none" controlsList="nodownload" className="w-full" title={a.filename} />
+            ),
+          )}
+        </div>
+      )}
       {post.poll && (
         <PollCard poll={post.poll} postId={post.id} />
       )}

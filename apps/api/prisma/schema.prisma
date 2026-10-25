@@ -113,6 +113,7 @@ model Post {
   categories PostCategory[]
   bookmarks  Bookmark[]
   reports    PostReport[]
+  attachments PostAttachment[]
   isPinned   Boolean    @default(false)
   isHidden   Boolean    @default(false)
   createdAt  DateTime   @default(now())
@@ -299,6 +300,21 @@ model Recording {
 }
 
 /// Slides, handouts and other files that belong to a recording.
+/// Audio or a video hosted by the platform, attached to a post by an admin.
+model PostAttachment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
 model RecordingAttachment {
   id          String    @id @default(cuid())
   recordingId String

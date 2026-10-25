@@ -6,6 +6,8 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ReportPostDto } from './dto/report-post.dto';
+import { AddPostAttachmentDto } from './dto/add-post-attachment.dto';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('posts')
@@ -65,6 +67,20 @@ export class PostsController {
     @CurrentUser() user: any,
   ) {
     return this.postsService.update(id, dto.content, user.id, user.role);
+  }
+
+  @Post(':id/attachments')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Attach audio or an uploaded video to a post (Admin only)' })
+  addAttachment(@Param('id') id: string, @Body() dto: AddPostAttachmentDto) {
+    return this.postsService.addAttachment(id, dto);
+  }
+
+  @Delete('attachments/:attachmentId')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Remove an attachment from a post (Admin only)' })
+  deleteAttachment(@Param('attachmentId') attachmentId: string) {
+    return this.postsService.deleteAttachment(attachmentId);
   }
 
   @Delete(':id')

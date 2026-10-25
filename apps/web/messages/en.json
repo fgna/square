@@ -500,6 +500,12 @@
       "errorGeneric": "Could not post. Please try again.",
       "shareSuccess": "Share a success"
     },
+    "attachments": {
+      "title": "Attachments (admins only)",
+      "audio": "Attach audio",
+      "remove": "Remove attachment",
+      "failed": "Upload failed. Please try again."
+    },
     "card": {
       "pin": "Pin to top",
       "unpin": "Unpin",
