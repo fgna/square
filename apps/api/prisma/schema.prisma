@@ -446,6 +446,7 @@ model PlatformSettings {
   primaryColor String   @default("#c5a880")
   accentColor  String   @default("#6366f1")
   allowSignups Boolean  @default(true)
+  onboardingMode String @default("REQUIRED")
   /// Loom/Vimeo/YouTube link shown to new members in onboarding and on the dashboard.
   welcomeVideoUrl String?
   updatedAt    DateTime @updatedAt
