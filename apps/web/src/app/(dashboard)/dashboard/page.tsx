@@ -16,6 +16,7 @@ import { MyChallenge } from '@/components/dashboard/my-challenge';
 import { MyGoals } from '@/components/dashboard/my-goals';
 import { EventProposalsSection } from '@/components/event-proposals/event-proposals-section';
 import { WelcomeVideoCard } from '@/components/onboarding/welcome-video';
+import { MonthOverview } from '@/components/dashboard/month-overview';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -37,6 +38,8 @@ export default function DashboardPage() {
       />
 
       <WelcomeVideoCard />
+
+      <MonthOverview />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MyChallenge />
@@ -110,7 +113,7 @@ export default function DashboardPage() {
         />
         <StatsCard
           title={t('upcomingEventsCard')}
-          value={eventsError ? '!' : upcomingEvents.length}
+          value={eventsError ? '!' : (eventsData?.total ?? '—')}
           icon={Calendar}
           description={eventsError ? t('failedEvents') : t('upcomingEventsCardDesc')}
         />
