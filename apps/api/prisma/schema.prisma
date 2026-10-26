@@ -71,6 +71,11 @@ model User {
   postReports          PostReport[]
   interests            UserInterest[]
   oauthAccounts        OAuthAccount[]
+  gameWallet           GameWallet?
+  gameTransactions     GameTransaction[]
+  gameInventory        GameInventory[]
+  gameRewardEvents     GameRewardEvent[]
+  gamePurchases        GamePurchase[]
 }
 
 enum Role {
@@ -891,4 +896,73 @@ model TaskHintSession {
 
   @@unique([userId, idempotencyKey])
   @@index([userId, taskId])
+}
+
+model GameWallet {
+  userId    String @id
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Int    @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model GameRewardDefinition {
+  code      String @id
+  amount    Int
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GameRewardEvent {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventKey  String
+  rewardCode String
+  amount    Int
+  createdAt DateTime @default(now())
+  @@unique([userId, eventKey])
+}
+
+model GameTransaction {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int
+  kind      String
+  reference String
+  createdAt DateTime @default(now())
+  @@unique([kind, reference])
+  @@index([userId, createdAt])
+}
+
+model GameItem {
+  id        String @id @default(cuid())
+  name      String
+  price     Int
+  cosmetic  Boolean @default(false)
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+  inventory GameInventory[]
+  purchases GamePurchase[]
+}
+
+model GameInventory {
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId String
+  item   GameItem @relation(fields: [itemId], references: [id])
+  acquiredAt DateTime @default(now())
+  @@id([userId, itemId])
+}
+
+model GamePurchase {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId String
+  item GameItem @relation(fields: [itemId], references: [id])
+  requestKey String
+  price Int
+  createdAt DateTime @default(now())
+  @@unique([userId, requestKey])
 }
