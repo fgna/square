@@ -16,3 +16,26 @@ describe('capability routing', () => {
     expect(isPathEnabled('/feed', parseCapabilities('courses'))).toBe(false);
   });
 });
+
+describe('learning group web capability', () => {
+  it('accepts the learning-groups capability shared with the API', () => {
+    expect(parseCapabilities('courses,learning-groups').has('learning-groups')).toBe(true);
+  });
+
+  it('blocks the plugin groups route when disabled, without blocking math tasks', () => {
+    const enabled = parseCapabilities('courses');
+    expect(isPathEnabled('/p/turbo-mathe/groups', enabled)).toBe(false);
+    expect(isPathEnabled('/p/turbo-mathe/groups/invites', enabled)).toBe(false);
+    expect(isPathEnabled('/p/turbo-mathe', enabled)).toBe(true);
+  });
+
+  it('allows group routes only when the group capability is enabled', () => {
+    const enabled = parseCapabilities('courses,learning-groups');
+    expect(isPathEnabled('/p/turbo-mathe/groups', enabled)).toBe(true);
+    expect(isPathEnabled('/p/turbo-mathe/groups/invites', enabled)).toBe(true);
+  });
+
+  it('rejects misspelled capability flags', () => {
+    expect(() => parseCapabilities('courses,learning-group')).toThrow(/learning-group/);
+  });
+});
