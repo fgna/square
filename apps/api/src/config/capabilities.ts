@@ -2,7 +2,7 @@
  * Instance-wide capability switch. Omitting SQUARE_CAPABILITIES preserves the
  * complete legacy product. Explicit lists are allowlists, including an empty list.
  */
-export const CAPABILITIES = ['feed', 'messages', 'events', 'courses', 'journal', 'assessments'] as const;
+export const CAPABILITIES = ['feed', 'messages', 'events', 'courses', 'journal', 'assessments', 'learning-groups'] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
 const DEPENDENCIES: Partial<Record<Capability, Capability[]>> = {};
