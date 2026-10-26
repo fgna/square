@@ -61,3 +61,44 @@ The capability guard still blocks the API when gamification is disabled.
 **Before production:** run the focused issuer tests and live issuer HTTP smoke,
 validate configuration lifecycle and revocation, evaluate rate limits and key
 management, and verify that no credentials are logged or exposed by clients.
+
+## External issuer integration contract (#69)
+
+The game/backend owns the decision whether an action is eligible for a reward.
+Use an internal authenticated participant identity from the application server,
+mapped to the correct Square `userId`. Never accept an arbitrary target user ID,
+reward code or reward-event key solely from a browser request. The trusted
+application server calls:
+
+```http
+POST /api/gamification/issuer/events
+Authorization: Bearer <server-only-issuer-token>
+Content-Type: application/json
+
+{"userId":"<square-user-id>","rewardCode":"completed","eventKey":"task:stable-attempt-id"}
+```
+
+Use the same deterministic event key for all retries of the *same* completed
+action. Issuer IDs are prefixed by Square, and `(userId,eventKey)` is unique.
+A retry of the same event returns `duplicate:true`; reuse with another reward
+code is rejected. Issuers must not repurpose a completed event key. An
+application should reconcile interrupted delivery by safely retrying the same
+event after validating its durable source record. The event key is limited to
+128 characters at the HTTP boundary, including no issuer prefix; the issuer
+prefix is added internally.
+
+For credential rotation, provision a replacement token using a **new issuer ID**
+and change the backend configuration atomically before revoking the previous
+entry. Preserve the old issuer ID when possible by replacing its digest after
+cutover; otherwise retries after switching issuer identity can create duplicate
+events because idempotency is scoped to issuer ID. Choose a maintenance window
+or explicit deduplication policy when changing issuer IDs. Revocation removes
+the entry from the Square API server configuration and restarts the affected
+processes. Issuer IDs and token digests must be unique within the configuration;
+shared credentials or duplicate IDs are rejected.
+
+Before adoption, verify `prisma migrate deploy` and a rollback/backup rehearsal
+in an isolated disposable PostgreSQL instance. Re-run the focused issuer HTTP,
+authentication, capability-disabled, reward concurrency and purchase integrity
+tests at the exact current commit. A successful unit test alone does not prove
+a live migration or user-facing end-to-end readiness.
