@@ -9,6 +9,7 @@ const DEPENDENCIES: Partial<Record<Capability, Capability[]>> = {};
 const ROUTES: Record<Capability, RegExp[]> = {
   feed: [/^\/api\/posts(?:\/|$)/, /^\/api\/admin\/(?:posts|reports)(?:\/|$)/],
   messages: [/^\/api\/messages(?:\/|$)/],
+  'learning-groups': [/^\/api\/learning-groups(?:\/|$)/],
   events: [/^\/api\/(?:events|event-proposals|calendar)(?:\/|$)/, /^\/api\/admin\/(?:events|event-proposals)(?:\/|$)/],
   courses: [/^\/api\/courses(?:\/|$)/, /^\/api\/admin\/courses(?:\/|$)/],
   journal: [/^\/api\/p\/journal(?:\/|$)/, /^\/api\/admin\/journal(?:\/|$)/],
