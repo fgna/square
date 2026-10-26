@@ -14,7 +14,7 @@ describe('journal reminders', () => {
       platformSettings: { findUnique: vi.fn().mockResolvedValue({ journalReminders: true, journalReminderTime: '16:30', platformName: 'Community', primaryColor: '#c5a880' }) },
       user: {
         findMany: vi.fn().mockResolvedValue([
-          { id: 'a', email: 'a@example.test', name: 'A', journalReminder: null },
+          { id: 'a', email: 'a@example.test', name: 'Anna Beispiel', journalReminder: null },
           { id: 'b', email: 'b@example.test', name: 'B', journalReminder: '18:00' },
           { id: 'c', email: 'c@example.test', name: 'C', journalReminder: '16:30' },
         ]),
@@ -35,6 +35,7 @@ describe('journal reminders', () => {
     expect(await service.sendDue(at1630)).toBe(2);
     expect(email.send.mock.calls.map((c: any[]) => c[0].to)).toEqual(['a@example.test', 'c@example.test']);
     expect(email.send.mock.calls[0][0].html).toContain('/journal');
+    expect(email.send.mock.calls[0][0].html).toContain('Hallo Anna,');
     expect(prisma.user.updateMany).toHaveBeenCalledWith({ where: { id: { in: ['a', 'c'] } }, data: { lastJournalReminderAt: at1630 } });
     // Off and recently reminded members are excluded in the query.
     const where = prisma.user.findMany.mock.calls[0][0].where;
