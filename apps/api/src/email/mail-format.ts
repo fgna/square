@@ -34,3 +34,14 @@ export function mailTime(date: Date): string {
 export function countLabel(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
+
+/**
+ * The first name for greetings ("Hallo Anna,"). Members are addressed by
+ * their first name everywhere; titles such as "Dr." are skipped. Falls back to
+ * the full name when there is nothing else.
+ */
+export function firstName(name: string | null | undefined): string {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+  const first = parts.find((p) => !/^(dr|prof|mag|dipl)\.?$/i.test(p) && !p.endsWith('.'));
+  return first ?? parts[0] ?? '';
+}
