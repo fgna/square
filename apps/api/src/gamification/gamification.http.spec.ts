@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
@@ -17,6 +18,8 @@ describe('gamification HTTP access control', () => {
   let app: INestApplication;
   let jwt: JwtService;
   const previousSecret = process.env.JWT_SECRET;
+  const previousIssuers = process.env.SQUARE_REWARD_ISSUERS;
+  const issuerSecret = 'learning_test_issuer_secret_123456789012345';
   const secret = 'gamification-http-test-secret-123456789';
   const token = (id: string, role: string) => jwt.sign({ sub: id, email: id + '@example.test', role });
   const game = {
@@ -32,6 +35,7 @@ describe('gamification HTTP access control', () => {
 
   beforeAll(async () => {
     process.env.JWT_SECRET = secret;
+    process.env.SQUARE_REWARD_ISSUERS = JSON.stringify([{ id: 'learning', tokenSha256: createHash('sha256').update(issuerSecret).digest('hex'), rewardCodes: ['completed'] }]);
     const module = await Test.createTestingModule({
       imports: [PassportModule, JwtModule.register({ secret })],
       controllers: [GamificationController],
@@ -49,6 +53,8 @@ describe('gamification HTTP access control', () => {
   });
   afterAll(async () => {
     await app?.close();
+    if (previousIssuers === undefined) delete process.env.SQUARE_REWARD_ISSUERS;
+    else process.env.SQUARE_REWARD_ISSUERS = previousIssuers;
     if (previousSecret === undefined) delete process.env.JWT_SECRET;
     else process.env.JWT_SECRET = previousSecret;
   });
@@ -101,6 +107,40 @@ describe('gamification HTTP access control', () => {
     await request(app.getHttpServer()).post('/api/gamification/admin/events')
       .set('Authorization', 'Bearer ' + token('admin-1', 'ADMIN')).send({ userId: 'member-1', rewardCode: 'welcome', eventKey: 'e1' }).expect(201);
     expect(game.issueReward).toHaveBeenCalledWith('member-1', 'welcome', 'e1');
+  });
+
+  it('authorizes scoped server-to-server issuer events and namespaces idempotency keys', async () => {
+    game.issueReward.mockClear();
+    await request(app.getHttpServer()).post('/api/gamification/issuer/events')
+      .set('Authorization', 'Bearer ' + issuerSecret)
+      .send({ userId: 'member-1', rewardCode: 'completed', eventKey: 'attempt-123' }).expect(201);
+    expect(game.issueReward).toHaveBeenCalledWith('member-1', 'completed', 'learning:attempt-123');
+  });
+
+  it('rejects missing, forged and out-of-scope issuer credentials over HTTP', async () => {
+    game.issueReward.mockClear();
+    const body = { userId: 'member-1', rewardCode: 'completed', eventKey: 'attempt-456' };
+    await request(app.getHttpServer()).post('/api/gamification/issuer/events').send(body).expect(401);
+    await request(app.getHttpServer()).post('/api/gamification/issuer/events')
+      .set('Authorization', 'Bearer ' + 'x'.repeat(40)).send(body).expect(401);
+    await request(app.getHttpServer()).post('/api/gamification/issuer/events')
+      .set('Authorization', 'Bearer ' + issuerSecret)
+      .send({ ...body, rewardCode: 'admin-bonus' }).expect(401);
+    expect(game.issueReward).not.toHaveBeenCalled();
+  });
+
+  it('rejects revoked issuer tokens after configuration removal', async () => {
+    game.issueReward.mockClear();
+    const current = process.env.SQUARE_REWARD_ISSUERS;
+    try {
+      delete process.env.SQUARE_REWARD_ISSUERS;
+      await request(app.getHttpServer()).post('/api/gamification/issuer/events')
+        .set('Authorization', 'Bearer ' + issuerSecret)
+        .send({ userId: 'member-1', rewardCode: 'completed', eventKey: 'revoked' }).expect(401);
+      expect(game.issueReward).not.toHaveBeenCalled();
+    } finally {
+      process.env.SQUARE_REWARD_ISSUERS = current;
+    }
   });
 
   it('derives the wallet and purchase owner from identity rather than the request body', async () => {
