@@ -1,4 +1,4 @@
-import { countLabel, mailDate } from './mail-format';
+import { countLabel, firstName, mailDate } from './mail-format';
 
 /** The parts of the admin's digest template that shape the e-mail (Admin → Digest). */
 export interface DigestLook {
@@ -130,7 +130,7 @@ export function renderDigest(look: DigestLook | null, c: DigestContent): { subje
         </td></tr>
 
         <tr><td style="padding: 24px 32px 16px; background: rgba(17,24,39,0.7);">
-          <div style="font-size: 16px; color: #f3f4f6;">Hallo ${escapeHtml(c.userName)},</div>
+          <div style="font-size: 16px; color: #f3f4f6;">Hallo ${escapeHtml(firstName(c.userName))},</div>
           ${intro ? paragraphs(intro, 'font-size: 14px; line-height: 1.6; color: #e5e7eb; margin: 12px 0 0;') : ''}
         </td></tr>
 
