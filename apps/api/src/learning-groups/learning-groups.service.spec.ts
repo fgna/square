@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { LearningGroupsService } from './learning-groups.service';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { NotificationsService } from '../notifications/notifications.service';
@@ -7,7 +7,7 @@ import type { NotificationsService } from '../notifications/notifications.servic
 function harness() {
   const invite = { id: 'invite-1', userId: 'recipient', groupId: 'group-1', group: { createdById: 'owner' } };
   const tx = {
-    learningGroupInvite: { findUnique: vi.fn().mockResolvedValue(invite), delete: vi.fn() },
+    learningGroupInvite: { findUnique: vi.fn().mockResolvedValue(invite), delete: vi.fn(), create: vi.fn() },
     learningGroupMember: { count: vi.fn(), create: vi.fn() },
     $queryRaw: vi.fn(),
     learningGroup: { findUnique: vi.fn().mockResolvedValue({
@@ -51,6 +51,33 @@ describe('learning group invitation authorization', () => {
     const { service, tx } = harness();
     tx.learningGroupInvite.findUnique.mockResolvedValueOnce(null);
     await expect(service.acceptInvite('missing', 'recipient')).rejects.toBeInstanceOf(NotFoundException);
+    expect(tx.learningGroupMember.create).not.toHaveBeenCalled();
+  });
+  it('rejects a duplicate pending invitation without writing or notifying', async () => {
+    const { service, tx, notify } = harness();
+    tx.learningGroup.findUnique.mockResolvedValueOnce({
+      id: 'group-1', createdById: 'owner',
+      members: [{ userId: 'owner' }],
+      invites: [{ userId: 'recipient' }],
+    });
+    tx.user.findUnique.mockResolvedValueOnce({ id: 'recipient' });
+    await expect(service.addMember('group-1', 'recipient', 'owner')).rejects.toBeInstanceOf(BadRequestException);
+    expect(tx.learningGroupInvite.create).not.toHaveBeenCalled();
+    expect(notify.create).not.toHaveBeenCalled();
+  });
+
+  it('cannot accept an invitation that has been declined or removed', async () => {
+    const { service, tx } = harness();
+    tx.learningGroupInvite.findUnique.mockResolvedValueOnce(null);
+    await expect(service.acceptInvite('removed-invite', 'recipient')).rejects.toBeInstanceOf(NotFoundException);
+    expect(tx.learningGroupMember.create).not.toHaveBeenCalled();
+    expect(tx.learningGroupInvite.delete).not.toHaveBeenCalled();
+  });
+
+  it('allows recipient to decline without creating group membership', async () => {
+    const { service, prisma, tx } = harness();
+    await expect(service.removeInvite('invite-1', 'recipient')).resolves.toEqual({ message: 'Invitation removed' });
+    expect(prisma.learningGroupInvite.delete).toHaveBeenCalledWith({ where: { id: 'invite-1' } });
     expect(tx.learningGroupMember.create).not.toHaveBeenCalled();
   });
 });
