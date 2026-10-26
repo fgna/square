@@ -1,12 +1,14 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
-import type { PluginApiContext, PluginContentPack, PluginJournalEntries, PluginTaskAttempts } from '@community/plugin-sdk/api';
+import type { PluginApiContext, PluginContentPack, PluginJournalEntries, PluginTaskAttempts, PluginLearningGroups } from '@community/plugin-sdk/api';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { apiPlugins } from './registry.generated';
 import { JournalEntryStore } from './data/journal-entries.store';
 import { TaskAttemptStore } from './data/task-attempts.store';
 import { ContentPackService } from './data/content-pack.service';
+import { LearningGroupsModule } from '../learning-groups/learning-groups.module';
+import { LearningGroupsService } from '../learning-groups/learning-groups.service';
 
 /** The Core services behind the SDK's data and contentPack, available app-wide. */
 @Global()
@@ -37,8 +39,8 @@ function late<T extends object>(name: string, get: () => T | undefined): T {
 @Module({})
 export class PluginsModule {
   static register(plugins = apiPlugins): DynamicModule {
-    const services: { journal?: PluginJournalEntries; tasks?: PluginTaskAttempts; contentPack?: PluginContentPack } = {};
-    const data = { journal: late('data.journal', () => services.journal), tasks: late('data.tasks', () => services.tasks) };
+    const services: { journal?: PluginJournalEntries; tasks?: PluginTaskAttempts; contentPack?: PluginContentPack; groups?: PluginLearningGroups } = {};
+    const data = { journal: late('data.journal', () => services.journal), tasks: late('data.tasks', () => services.tasks), groups: late('data.groups', () => services.groups) };
     const contentPack = late('contentPack', () => services.contentPack);
 
     const mounted = plugins.map(({ id, plugin }) => {
@@ -52,13 +54,13 @@ export class PluginsModule {
     });
     return {
       module: PluginsModule,
-      imports: [PluginDataModule, ...mounted.map((m) => m.module), RouterModule.register(mounted)],
+      imports: [PluginDataModule, LearningGroupsModule, ...mounted.map((m) => m.module), RouterModule.register(mounted)],
       providers: [
         {
           // Created at start-up; binds the real services behind the context.
           provide: SERVICES,
-          inject: [JournalEntryStore, TaskAttemptStore, ContentPackService],
-          useFactory: (journal: JournalEntryStore, tasks: TaskAttemptStore, pack: ContentPackService) => Object.assign(services, { journal, tasks, contentPack: pack }),
+          inject: [JournalEntryStore, TaskAttemptStore, ContentPackService, LearningGroupsService],
+          useFactory: (journal: JournalEntryStore, tasks: TaskAttemptStore, pack: ContentPackService, groups: LearningGroupsService) => Object.assign(services, { journal, tasks, contentPack: pack, groups: { list: (userId: string) => groups.findAllForUser(userId), pendingInvites: (userId: string) => groups.myInvites(userId), create: (userId: string, details: { name: string; description?: string }) => groups.create(userId, details), invite: (groupId: string, invitedUserId: string, actorId: string) => groups.addMember(groupId, invitedUserId, actorId), accept: (inviteId: string, actorId: string) => groups.acceptInvite(inviteId, actorId), decline: (inviteId: string, actorId: string) => groups.removeInvite(inviteId, actorId) } }),
         },
       ],
     };
