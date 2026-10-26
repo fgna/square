@@ -913,10 +913,7 @@
       "title": "Die nächsten 30 Tage",
       "allEvents": "Alle Veranstaltungen",
       "empty": "In den nächsten 30 Tagen ist nichts geplant.",
-      "recurring": "regelmäßig",
-      "recordings": "Neue Aufzeichnungen",
-      "allRecordings": "Alle Aufzeichnungen",
-      "noRecordings": "Keine neuen Aufzeichnungen in den letzten zwei Wochen."
+      "recurring": "regelmäßig"
     },
     "welcome": {
       "video": "Willkommensvideo",

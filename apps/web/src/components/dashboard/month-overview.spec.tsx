@@ -9,7 +9,7 @@ vi.mock('@/lib/api-client', () => ({ default: api }));
 vi.mock('next/link', () => ({ default: ({ children, href, ...rest }: any) => <a href={href} {...rest}>{children}</a> }));
 
 describe('MonthOverview', () => {
-  it('lists the next 30 days with each series once, and recent recordings', async () => {
+  it('lists the next 30 days with each series once', async () => {
     api.get.mockImplementation(async (url: string, opts: any) => {
       if (url === '/events') {
         expect(opts.params.from).toBeTruthy();
@@ -44,8 +44,6 @@ describe('MonthOverview', () => {
     expect(screen.getAllByText('Workshop').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Daily start')).toHaveLength(1);
     expect(screen.getByText('recurring')).toBeInTheDocument();
-    const recordings = screen.getByText('New recordings').closest('div')!.parentElement!;
-    expect(await within(recordings).findByText('Workshop replay')).toBeInTheDocument();
-    expect(within(recordings).queryByText('Old replay')).toBeNull();
+    expect(screen.queryByText('New recordings')).toBeNull();
   });
 });

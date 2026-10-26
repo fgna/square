@@ -2,9 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useQuery } from '@tanstack/react-query';
-import { CalendarDays, Play, Repeat } from 'lucide-react';
-import apiClient from '@/lib/api-client';
+import { CalendarDays, Repeat } from 'lucide-react';
 import { useEvents } from '@/hooks/use-events';
 import { useFormatters } from '@/lib/use-formatters';
 import type { CommunityEvent } from '@community/shared';
@@ -12,9 +10,8 @@ import type { CommunityEvent } from '@community/shared';
 const DAY = 24 * 60 * 60 * 1000;
 
 /**
- * The next 30 days at a glance, and recordings of the last two weeks. A
- * recurring series appears once, with its next date, so a daily series does
- * not hide the one-off events.
+ * The next 30 days at a glance. A recurring series appears once, with its
+ * next date, so a daily series does not hide the one-off events.
  */
 export function MonthOverview() {
   const t = useTranslations('dashboard.month');
@@ -25,10 +22,6 @@ export function MonthOverview() {
     from: new Date(now).toISOString(),
     to: new Date(now + 30 * DAY).toISOString(),
   });
-  const { data: recordings } = useQuery({
-    queryKey: ['recordings', 'recent'],
-    queryFn: () => apiClient.get('/events/recordings/all', { params: { page: 1, limit: 5 } }).then((r) => r.data),
-  });
 
   const seen = new Set<string>();
   const upcoming = ((events?.data ?? []) as CommunityEvent[]).filter((e) => {
@@ -37,13 +30,10 @@ export function MonthOverview() {
     seen.add(key);
     return true;
   });
-  const recent = ((recordings?.data ?? []) as { id: string; title: string; createdAt: string; event?: { title: string } }[])
-    .filter((r) => now - new Date(r.createdAt).getTime() < 14 * DAY)
-    .slice(0, 3);
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" aria-label={t('title')}>
-      <div className="lg:col-span-2 rounded-xl p-5 space-y-3" style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}>
+    <section aria-label={t('title')}>
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--theme-text)' }}>
             <CalendarDays size={18} /> {t('title')}
@@ -73,28 +63,6 @@ export function MonthOverview() {
         )}
       </div>
 
-      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--theme-text)' }}>
-            <Play size={18} /> {t('recordings')}
-          </h3>
-          <Link href="/recordings" className="text-xs underline" style={{ color: 'var(--theme-text-muted)' }}>{t('allRecordings')}</Link>
-        </div>
-        {recent.length === 0 ? (
-          <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{t('noRecordings')}</p>
-        ) : (
-          <ul className="space-y-2">
-            {recent.map((r) => (
-              <li key={r.id}>
-                <Link href="/recordings" className="block text-sm hover:underline" style={{ color: 'var(--theme-text)' }}>
-                  {r.title}
-                  {r.event?.title && <span className="block text-xs" style={{ color: 'var(--theme-text-muted)' }}>{r.event.title}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </section>
   );
 }
