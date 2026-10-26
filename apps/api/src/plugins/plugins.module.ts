@@ -9,6 +9,8 @@ import { TaskAttemptStore } from './data/task-attempts.store';
 import { ContentPackService } from './data/content-pack.service';
 import { LearningGroupsModule } from '../learning-groups/learning-groups.module';
 import { LearningGroupsService } from '../learning-groups/learning-groups.service';
+import { instanceCapabilities } from '../config/capabilities';
+import { NotFoundException } from '@nestjs/common';
 
 /** The Core services behind the SDK's data and contentPack, available app-wide. */
 @Global()
@@ -43,8 +45,21 @@ export class PluginsModule {
     const data = { journal: late('data.journal', () => services.journal), tasks: late('data.tasks', () => services.tasks), groups: late('data.groups', () => services.groups) };
     const contentPack = late('contentPack', () => services.contentPack);
 
+    // Plugin calls bypass HTTP routing, so enforce the same Core capability gate
+    // when forwarding to the group service. No unrestricted service access.
+    const allowedGroups = () => {
+      if (!instanceCapabilities.has('learning-groups')) throw new NotFoundException('Capability unavailable');
+    };
+    const guardedGroups: PluginLearningGroups = {
+      list: (userId) => { allowedGroups(); return data.groups.list(userId); },
+      pendingInvites: (userId) => { allowedGroups(); return data.groups.pendingInvites(userId); },
+      create: (userId, details) => { allowedGroups(); return data.groups.create(userId, details); },
+      invite: (groupId, targetId, userId) => { allowedGroups(); return data.groups.invite(groupId, targetId, userId); },
+      accept: (inviteId, userId) => { allowedGroups(); return data.groups.accept(inviteId, userId); },
+      decline: (inviteId, userId) => { allowedGroups(); return data.groups.decline(inviteId, userId); },
+    };
     const mounted = plugins.map(({ id, plugin }) => {
-      const ctx: PluginApiContext = { pluginId: id, Roles, CurrentUser, data, contentPack };
+      const ctx: PluginApiContext = { pluginId: id, Roles, CurrentUser, data: { ...data, groups: guardedGroups }, contentPack };
       const { controllers = [], providers = [] } = plugin.register(ctx);
       // One module class per plugin, so the router can give each its prefix.
       const module = class {};
