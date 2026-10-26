@@ -101,6 +101,15 @@ export interface PluginTaskAttempts {
   hintUsage(userId: string, taskId: string, taskVersion: number, idempotencyKey: string): Promise<number>;
 }
 
+/** Authenticated Core group operations. Acting identity always comes from CurrentUser, never request bodies. */
+export interface PluginLearningGroups {
+  list(userId: string): Promise<unknown>;
+  pendingInvites(userId: string): Promise<unknown>;
+  create(userId: string, details: { name: string; description?: string }): Promise<unknown>;
+  invite(groupId: string, invitedUserId: string, actorId: string): Promise<unknown>;
+  accept(inviteId: string, actorId: string): Promise<unknown>;
+  decline(inviteId: string, actorId: string): Promise<unknown>;
+}
 export interface PluginApiContext {
   /** The plugin's id, e.g. for log messages. */
   pluginId: string;
@@ -109,7 +118,7 @@ export interface PluginApiContext {
   /** Parameter decorator for the signed-in member (PluginMember), or one field: CurrentUser('id'). */
   CurrentUser: (field?: keyof PluginMember) => ParameterDecorator;
   /** Data the Core keeps for plugins. Usable in request handlers, not during register(). */
-  data: { journal: PluginJournalEntries; tasks: PluginTaskAttempts };
+  data: { journal: PluginJournalEntries; tasks: PluginTaskAttempts; groups: PluginLearningGroups };
   contentPack: PluginContentPack;
 }
 
