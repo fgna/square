@@ -18,6 +18,7 @@ model User {
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  gameEquipment GameEquipment[]
   posts         Post[]
   comments      Comment[]
   reactions     Reaction[]
@@ -942,6 +943,7 @@ model GameItem {
   cosmetic  Boolean @default(false)
   active    Boolean @default(true)
   createdAt DateTime @default(now())
+  equipment GameEquipment[]
   inventory GameInventory[]
   purchases GamePurchase[]
 }
@@ -965,4 +967,16 @@ model GamePurchase {
   price Int
   createdAt DateTime @default(now())
   @@unique([userId, requestKey])
+}
+
+// One chosen cosmetic per named application slot; null itemId denotes a free default.
+model GameEquipment {
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slot String
+  itemId String?
+  item GameItem? @relation(fields: [itemId], references: [id])
+  variant String @default("red")
+  updatedAt DateTime @updatedAt
+  @@id([userId, slot])
 }

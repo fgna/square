@@ -20,6 +20,11 @@ class ItemDto {
   @IsInt() @Min(0) @Max(1000000) price!: number;
   @IsOptional() @IsBoolean() cosmetic?: boolean;
 }
+class EquipmentDto {
+  @IsString() @MinLength(1) @MaxLength(48) slot!: string;
+  @IsOptional() @IsString() @MaxLength(128) itemId?: string | null;
+  @IsString() @MinLength(1) @MaxLength(40) variant!: string;
+}
 class PurchaseDto {
   @IsString() @MinLength(1) @MaxLength(128) itemId!: string;
   @IsString() @MinLength(1) @MaxLength(128) requestKey!: string;
@@ -37,6 +42,14 @@ export class GamificationController {
 
   @Get('inventory')
   inventory(@CurrentUser('id') userId: string) { return this.game.inventory(userId); }
+
+  @Get('equipment')
+  equipment(@CurrentUser('id') userId: string) { return this.game.equipment(userId); }
+
+  @Post('equipment')
+  equip(@CurrentUser('id') userId: string, @Body() dto: EquipmentDto) {
+    return this.game.equip(userId, dto.slot, dto.itemId ?? null, dto.variant);
+  }
 
   @Get('items')
   items() { return this.game.items(); }
