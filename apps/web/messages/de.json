@@ -370,6 +370,11 @@
       "download": ".ics herunterladen"
     },
     "proposals": {
+      "start": "Beginn",
+      "endTime": "Ende",
+      "edit": "Bearbeiten",
+      "save": "Speichern",
+      "errorEnd": "Das Ende muss nach dem Beginn liegen.",
       "title": "Terminvorschläge",
       "open": "{count} offen",
       "new": "Neuer Vorschlag",
