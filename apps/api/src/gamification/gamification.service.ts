@@ -18,6 +18,27 @@ export class GamificationService {
     return this.prisma.gameInventory.findMany({ where: { userId }, include: { item: true }, orderBy: { acquiredAt: 'desc' } });
   }
 
+  equipment(userId: string) {
+    return this.prisma.gameEquipment.findMany({ where: { userId } });
+  }
+
+  async equip(userId: string, slot: string, itemId: string | null, variant: string) {
+    if (!/^[a-z][a-z0-9-]{0,47}$/.test(slot) || !/^[a-z][a-z0-9-]{0,39}$/.test(variant)) {
+      throw new BadRequestException('Invalid equipment slot or variant');
+    }
+    return this.prisma.$transaction(async tx => {
+      if (itemId !== null) {
+        const owned = await tx.gameInventory.findUnique({ where: { userId_itemId: { userId, itemId } }, include: { item: true } });
+        if (!owned || !owned.item.active || !owned.item.cosmetic) throw new BadRequestException('Item not owned or unavailable');
+      }
+      return tx.gameEquipment.upsert({
+        where: { userId_slot: { userId, slot } },
+        create: { userId, slot, itemId, variant },
+        update: { itemId, variant },
+      });
+    });
+  }
+
   items() { return this.prisma.gameItem.findMany({ where: { active: true }, orderBy: { createdAt: 'desc' } }); }
 
   defineReward(code: string, amount: number) {
