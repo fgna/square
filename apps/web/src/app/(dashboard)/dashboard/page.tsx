@@ -23,12 +23,11 @@ export default function DashboardPage() {
   const tc = useTranslations('common');
   const { data: feedData, isLoading: feedLoading, isError: feedError } = useFeed(1, 3);
   const { data: coursesData, isError: coursesError } = useCourses(1, 1);
-  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useEvents(1, 3);
+  // The API returns only events that have not ended, soonest first.
+  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useEvents(1, 2, { when: 'upcoming' });
   const { data: membersData, isError: membersError } = useMembers(1, 1);
 
-  const upcomingEvents = eventsData?.data?.filter(
-    (e) => new Date(e.startsAt) > new Date()
-  ).slice(0, 2) ?? [];
+  const upcomingEvents = eventsData?.data ?? [];
 
   return (
     <div className="space-y-8">
