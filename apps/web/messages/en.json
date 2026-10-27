@@ -501,6 +501,8 @@
       "shareSuccess": "Share a success"
     },
     "card": {
+      "pin": "Pin to top",
+      "unpin": "Unpin",
       "edit": "Edit",
       "report": "Report",
       "delete": "Delete",

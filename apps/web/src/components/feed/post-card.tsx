@@ -11,7 +11,7 @@ import { CommentList } from './comment-list';
 import { PollCard } from './poll-card';
 import { EditPost } from './edit-post';
 import { ReportPostDialog } from './report-post-dialog';
-import { useDeletePost } from '@/hooks/use-feed';
+import { useDeletePost, useTogglePin } from '@/hooks/use-feed';
 import { useToggleBookmark, useIsBookmarked } from '@/hooks/use-bookmarks';
 import { useAuth } from '@/hooks/use-auth';
 import { getInitials } from '@community/shared';
@@ -37,6 +37,7 @@ export function PostCard({ post }: PostCardProps) {
   const { timeAgo } = useFormatters();
   const [showComments, setShowComments] = useState(false);
   const deletePost = useDeletePost();
+  const togglePin = useTogglePin();
   const toggleBookmark = useToggleBookmark();
   const { data: bookmarkStatus } = useIsBookmarked(post.id);
   const isBookmarked = bookmarkStatus?.bookmarked ?? false;
@@ -46,6 +47,8 @@ export function PostCard({ post }: PostCardProps) {
   const canEdit = canDelete;
   // Anyone signed in may report someone else's post.
   const canReport = !!user && user.id !== post.authorId;
+  // Admins choose which posts stay at the top of the feed.
+  const canPin = user?.role === 'ADMIN';
   const [editing, setEditing] = useState(false);
   const [reporting, setReporting] = useState(false);
 
@@ -126,7 +129,7 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        {(canDelete || canReport) && (
+        {(canDelete || canReport || canPin) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="p-1 rounded-md hover:bg-white/5 flex-shrink-0">
@@ -138,6 +141,12 @@ export function PostCard({ post }: PostCardProps) {
                 <DropdownMenuItem onClick={() => setEditing(true)} className="gap-2 cursor-pointer">
                   <Pencil size={14} />
                   <span>{t('card.edit')}</span>
+                </DropdownMenuItem>
+              )}
+              {canPin && (
+                <DropdownMenuItem onClick={() => togglePin.mutate(post.id)} className="gap-2 cursor-pointer">
+                  <Pin size={14} />
+                  <span>{post.isPinned ? t('card.unpin') : t('card.pin')}</span>
                 </DropdownMenuItem>
               )}
               {canReport && (
