@@ -29,6 +29,17 @@
     "next": "Weiter"
   },
   "adminCoursesUI": {
+    "participationShort": "{started} gestartet · {completed} abgeschlossen",
+    "participation": {
+      "title": "Teilnahme",
+      "summary": "{started} gestartet · {completed} abgeschlossen · {active} in den letzten 30 Tagen aktiv",
+      "none": "Noch hat niemand diesen Kurs begonnen.",
+      "member": "Mitglied",
+      "progress": "Fortschritt",
+      "lessons": "Lektionen",
+      "started": "Begonnen",
+      "lastActivity": "Zuletzt aktiv"
+    },
     "new": "Neuer Kurs",
     "title": "Titel",
     "description": "Beschreibung",

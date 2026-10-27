@@ -112,6 +112,11 @@ function CreateCourseDialog({ open, onClose }: { open: boolean; onClose: () => v
 
 export default function AdminCoursesPage() {
   const t = useTranslations('adminCoursesUI');
+  // Started and completed members per course (Admin -> course -> participation for details).
+  const { data: participation } = useQuery<Record<string, { started: number; completed: number }>>({
+    queryKey: ['admin', 'courses', 'participation'],
+    queryFn: () => apiClient.get('/admin/courses/participation').then((r) => r.data),
+  });
   const queryClient = useQueryClient();
   const { data, isLoading } = useAdminCourses();
   const [createOpen, setCreateOpen] = useState(false);
@@ -178,6 +183,11 @@ export default function AdminCoursesPage() {
                     <td className="px-4 py-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                       {/* The list endpoint returns _count, not the modules themselves, so this always said 0. */}
                       {t('modulesCount', { count: course._count?.modules ?? course.modules?.length ?? 0 })}
+                      {participation?.[course.id] && (
+                        <span className="block">
+                          {t('participationShort', { started: participation[course.id].started, completed: participation[course.id].completed })}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
