@@ -252,8 +252,8 @@ export class UsersService {
       this.prisma.user.findUnique({ where: { id: userId }, select: { welcomeVideoDismissedAt: true } }),
     ]);
     const videoUrl = settings?.welcomeVideoUrl ?? null;
+    // Only the player link: the share link would play outside the platform.
     return {
-      videoUrl,
       videoEmbedUrl: videoUrl ? toVideoEmbed(videoUrl)?.embedUrl ?? null : null,
       dismissed: !!user?.welcomeVideoDismissedAt,
     };

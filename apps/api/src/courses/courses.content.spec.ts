@@ -59,6 +59,8 @@ describe('CoursesService — course content', () => {
 
       expect(open).toMatchObject({ locked: false, content: '<p>day0 text</p>' });
       expect(open.videoEmbedUrl).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+      // Members get the player, not the share link they could pass on.
+      expect(open.videoUrl).toBeNull();
 
       expect(locked).toMatchObject({ locked: true, content: '', videoUrl: null, videoEmbedUrl: null, attachments: [] });
       expect(locked.availableAt).toBeInstanceOf(Date);
@@ -67,6 +69,7 @@ describe('CoursesService — course content', () => {
     it('shows admins every lesson as stored', async () => {
       const course = await service.findOne('c1', 'admin-1', 'ADMIN');
       expect(course.modules[0].lessons.every((l) => !l.locked)).toBe(true);
+      expect(course.modules[0].lessons[0].videoUrl).toBe('https://youtu.be/dQw4w9WgXcQ');
       expect(prisma.progress.upsert).not.toHaveBeenCalled();
     });
 
