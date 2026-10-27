@@ -14,7 +14,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateRecordingDto } from './dto/create-recording.dto';
 import { randomUUID } from 'crypto';
-import { mailDate, mailTime } from '../email/mail-format';
+import { mailDate, mailTime, firstName } from '../email/mail-format';
 import { htmlToText } from '../email/html-to-text';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
@@ -564,7 +564,7 @@ export class EventsService {
     await this.email.send({
       to: user.email,
       subject: `Aus deinem Kalender entfernt: ${event.title}`,
-      html: `<p>Hallo ${escapeHtml(user.name)},</p><p><strong>${escapeHtml(event.title)}</strong> wurde aus deinem Kalender entfernt, weil du nicht mehr zugesagt hast oder die Veranstaltung nicht stattfindet.</p>`,
+      html: `<p>Hallo ${escapeHtml(firstName(user.name))},</p><p><strong>${escapeHtml(event.title)}</strong> wurde aus deinem Kalender entfernt, weil du nicht mehr zugesagt hast oder die Veranstaltung nicht stattfindet.</p>`,
       icalEvent: icsContent,
       icalMethod: 'CANCEL',
     });

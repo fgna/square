@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from './email.service';
-import { countLabel } from './mail-format';
+import { countLabel, firstName } from './mail-format';
 
 @Injectable()
 export class DigestService {
@@ -154,7 +154,7 @@ export class DigestService {
 
         <!-- Greeting -->
         <tr><td style="padding: 24px 32px; background: rgba(17,24,39,0.7);">
-          <div style="font-size: 16px; color: #f3f4f6;">Hallo ${this.escapeHtml(data.userName)},</div>
+          <div style="font-size: 16px; color: #f3f4f6;">Hallo ${this.escapeHtml(firstName(data.userName))},</div>
           <div style="font-size: 14px; color: #9ca3af; margin-top: 8px;">Das ist ${period} passiert:</div>
         </td></tr>
 

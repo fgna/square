@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { mailDate, mailTime } from '../email/mail-format';
+import { mailDate, mailTime, firstName } from '../email/mail-format';
 
 @Injectable()
 export class EventRemindersService {
@@ -183,7 +183,7 @@ export class EventRemindersService {
 
         <!-- Body -->
         <tr><td style="padding: 32px; background: rgba(17,24,39,0.7);">
-          <div style="font-size: 16px; color: #f3f4f6; margin-bottom: 16px;">Hallo ${this.escapeHtml(data.userName)},</div>
+          <div style="font-size: 16px; color: #f3f4f6; margin-bottom: 16px;">Hallo ${this.escapeHtml(firstName(data.userName))},</div>
           <div style="font-size: 14px; color: #9ca3af; margin-bottom: 24px;">
             kurze Erinnerung: Diese Veranstaltung beginnt <strong style="color: #c5a880;">${data.timeLabel}</strong>:
           </div>
