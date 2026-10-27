@@ -173,6 +173,25 @@ export default function PlatformSettingsPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('journalReminderTitle')}</CardTitle>
+          <CardDescription>{t('journalReminderDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>{t('journalReminderToggle')}</p>
+            <Switch checked={form.journalReminders ?? false} onCheckedChange={v => set('journalReminders', v)} />
+          </div>
+          {form.journalReminders && (
+            <div className="flex items-center gap-3">
+              <label htmlFor="journal-reminder-time" className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{t('journalReminderTime')}</label>
+              <Input id="journal-reminder-time" type="time" className="w-32" value={form.journalReminderTime ?? '16:30'} onChange={e => set('journalReminderTime', e.target.value)} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="flex justify-end">
         <Button onClick={() => save.mutate()} disabled={save.isPending} className="flex items-center gap-2">
           {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}

@@ -816,6 +816,11 @@
       "subtitle": "Wähle deine bevorzugte Sprache."
     },
     "notifications": {
+      "journalTitle": "Journal-Erinnerung",
+      "journalDesc": "Eine kurze E-Mail, damit du deinen Tag im Journal abschließt.",
+      "journalDefault": "Täglich um {time} (Standard)",
+      "journalOwn": "Eigene Uhrzeit",
+      "journalOff": "Keine Erinnerung",
       "digestTitle": "E-Mail-Zusammenfassung",
       "digestSubtitle": "Erhalte eine Zusammenfassung neuer Beiträge, Veranstaltungen und Benachrichtigungen per E-Mail.",
       "daily": "Täglich",
@@ -1180,6 +1185,10 @@
     "testimonials": "Erfahrungsberichte"
   },
   "adminSettingsUI": {
+    "journalReminderTitle": "Journal-Erinnerung",
+    "journalReminderDescription": "Mitglieder bekommen täglich eine E-Mail, ihr Journal abzuschließen. Jedes Mitglied kann die Uhrzeit ändern oder die Erinnerung abschalten.",
+    "journalReminderToggle": "Erinnerung senden",
+    "journalReminderTime": "Standard-Uhrzeit",
     "title": "Plattformeinstellungen",
     "description": "Markenauftritt und plattformweite Optionen konfigurieren.",
     "branding": "Markenauftritt",

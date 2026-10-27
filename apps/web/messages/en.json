@@ -816,6 +816,11 @@
       "subtitle": "Choose your preferred language."
     },
     "notifications": {
+      "journalTitle": "Journal reminder",
+      "journalDesc": "A short e-mail so you complete your day in the journal.",
+      "journalDefault": "Daily at {time} (default)",
+      "journalOwn": "My own time",
+      "journalOff": "No reminder",
       "digestTitle": "Email Digest",
       "digestSubtitle": "Get a summary of new posts, events, and notifications delivered to your inbox.",
       "daily": "Daily",
@@ -1180,6 +1185,10 @@
     "testimonials": "Testimonials"
   },
   "adminSettingsUI": {
+    "journalReminderTitle": "Journal reminder",
+    "journalReminderDescription": "Members get a daily e-mail to complete their journal. Each member can change the time or turn it off.",
+    "journalReminderToggle": "Send reminders",
+    "journalReminderTime": "Default time",
     "title": "Platform Settings",
     "description": "Configure branding and platform-wide options.",
     "branding": "Branding",
