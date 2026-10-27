@@ -401,6 +401,28 @@ export class CoursesService {
     return { ...lesson, order: neighbour.order };
   }
 
+  /**
+   * Moves a lesson into another module of the same course, at its end. Notes,
+   * attachments and members' progress stay with the lesson (they refer to it,
+   * not to the module).
+   */
+  async moveLessonToModule(lessonId: string, moduleId: string) {
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: true } });
+    if (!lesson) throw new NotFoundException('Lesson not found');
+    const target = await this.findModule(moduleId);
+    if (target.courseId !== lesson.module.courseId) {
+      throw new BadRequestException('Lessons can only move between modules of the same course');
+    }
+    if (target.id === lesson.moduleId) return this.present(lesson);
+    const last = await this.prisma.lesson.findFirst({ where: { moduleId }, orderBy: { order: 'desc' } });
+    const moved = await this.prisma.lesson.update({
+      where: { id: lessonId },
+      data: { moduleId, order: (last?.order ?? 0) + 1 },
+      include: lessonInclude,
+    });
+    return this.present(moved);
+  }
+
   /** Attaches a file already stored through POST /uploads/file. */
   async addAttachment(lessonId: string, uploadId: string) {
     await this.findLesson(lessonId);
