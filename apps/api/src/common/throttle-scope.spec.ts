@@ -5,6 +5,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { Throttle, ThrottlerModule } from '@nestjs/throttler';
 import request from 'supertest';
+import cookieParser from 'cookie-parser';
+import { JwtService } from '@nestjs/jwt';
 import { UserThrottlerGuard } from './guards/user-throttler.guard';
 import { onlyWhereDeclared } from './throttle-scope';
 
@@ -38,6 +40,7 @@ describe('auth throttler scope', () => {
       providers: [{ provide: APP_GUARD, useClass: UserThrottlerGuard }],
     }).compile();
     app = moduleRef.createNestApplication();
+    app.use(cookieParser());
     await app.init();
     return request(app.getHttpServer());
   }
@@ -52,5 +55,26 @@ describe('auth throttler scope', () => {
     const http = await start();
     for (let i = 0; i < 3; i++) await http.get('/login').expect(200);
     await http.get('/login').expect(429);
+  });
+
+  it('counts token refreshes per signed-in user, not per proxy address', async () => {
+    process.env.JWT_REFRESH_SECRET = 'spec-refresh-secret';
+    const jwt = new JwtService({ secret: 'spec-refresh-secret' });
+    const cookie = (sub: string) => `refresh_token=${jwt.sign({ sub, jti: Math.random().toString(36) })}`;
+    const http = await start();
+    // Everyone arrives from the same proxy address in this test.
+    for (let i = 0; i < 3; i++) await http.get('/login').set('Cookie', cookie('user-a')).expect(200);
+    await http.get('/login').set('Cookie', cookie('user-a')).expect(429);
+    await http.get('/login').set('Cookie', cookie('user-b')).expect(200);
+  });
+
+  it('a forged refresh cookie does not escape the address limit', async () => {
+    process.env.JWT_REFRESH_SECRET = 'spec-refresh-secret';
+    const forged = new JwtService({ secret: 'wrong-secret' });
+    const http = await start();
+    for (let i = 0; i < 3; i++) {
+      await http.get('/login').set('Cookie', `refresh_token=${forged.sign({ sub: 'u' + i })}`).expect(200);
+    }
+    await http.get('/login').set('Cookie', `refresh_token=${forged.sign({ sub: 'u9' })}`).expect(429);
   });
 });
