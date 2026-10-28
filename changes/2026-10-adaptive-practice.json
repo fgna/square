@@ -1,7 +1,7 @@
 {
-  "title": "Adaptive practice helpers for plugins",
+  "title": "Adaptive practice support for plugins",
   "category": "new",
   "audience": "developers",
-  "description": "Plugins can keep learners at a suitable level: move up after steady success, step back after repeated mistakes, bring missed items back later and compare response times only with the learner's own pace.",
+  "description": "Plugins can keep learners at a suitable level: move up after steady success, step back after repeated mistakes, bring missed items back later and compare response times only with the learner's own pace. They can also read a whole family of a member's task attempts at once.",
   "pr": 74
 }
