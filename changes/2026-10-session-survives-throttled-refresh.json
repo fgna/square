@@ -3,5 +3,5 @@
   "category": "fix",
   "audience": "members",
   "description": "Members are no longer sent to the login page when a session refresh is rate limited or the connection drops, and refresh limits now count per member instead of per proxy address.",
-  "pr": 0
+  "pr": 76
 }
