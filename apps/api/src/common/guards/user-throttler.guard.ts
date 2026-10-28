@@ -7,10 +7,10 @@ const jwt = new JwtService({});
 /**
  * Uses authenticated userId as the throttle key so rate limits apply
  * per user rather than per IP (important behind reverse proxies).
- * Token refresh runs before any user is known; a validly signed refresh
- * cookie still names its user, so members behind one proxy address (or
- * reloading pages often) do not share one refresh budget. Anything else
- * falls back to IP (login, register, forged cookies).
+ * Token refresh runs before any user is known; there a validly signed
+ * refresh cookie names its user, so members behind one proxy address (or
+ * reloading pages often) do not share one refresh budget. Everything else
+ * without a user (login, register, forged cookies) is tracked by IP.
  *
  * Set THROTTLE_DISABLE=true to bypass all throttling (integration tests).
  */
@@ -27,6 +27,10 @@ export class UserThrottlerGuard extends ThrottlerGuard {
 }
 
 function refreshTokenUser(req: Record<string, any>): string | undefined {
+  // Only the refresh endpoint: a cookie must never move login or registration
+  // to another budget (a new sign-up's cookie would reset the limit each time).
+  const path = String(req.originalUrl ?? req.url ?? '').split('?')[0];
+  if (!/\/auth\/refresh\/?$/.test(path)) return undefined;
   const token = req.cookies?.refresh_token;
   if (typeof token !== 'string' || token === '') return undefined;
   try {

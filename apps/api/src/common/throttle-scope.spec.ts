@@ -22,6 +22,12 @@ class TestController {
   login() {
     return 'ok';
   }
+
+  @Get('auth/refresh')
+  @Throttle({ auth: { limit: 3, ttl: 900_000 } })
+  refresh() {
+    return 'ok';
+  }
 }
 
 describe('auth throttler scope', () => {
@@ -63,9 +69,18 @@ describe('auth throttler scope', () => {
     const cookie = (sub: string) => `refresh_token=${jwt.sign({ sub, jti: Math.random().toString(36) })}`;
     const http = await start();
     // Everyone arrives from the same proxy address in this test.
-    for (let i = 0; i < 3; i++) await http.get('/login').set('Cookie', cookie('user-a')).expect(200);
-    await http.get('/login').set('Cookie', cookie('user-a')).expect(429);
-    await http.get('/login').set('Cookie', cookie('user-b')).expect(200);
+    for (let i = 0; i < 3; i++) await http.get('/auth/refresh').set('Cookie', cookie('user-a')).expect(200);
+    await http.get('/auth/refresh').set('Cookie', cookie('user-a')).expect(429);
+    await http.get('/auth/refresh').set('Cookie', cookie('user-b')).expect(200);
+  });
+
+  it('a refresh cookie never moves login or registration off the address limit', async () => {
+    process.env.JWT_REFRESH_SECRET = 'spec-refresh-secret';
+    const jwt = new JwtService({ secret: 'spec-refresh-secret' });
+    const http = await start();
+    // Like chaining sign-ups: every request carries a different, validly signed cookie.
+    for (let i = 0; i < 3; i++) await http.get('/login').set('Cookie', `refresh_token=${jwt.sign({ sub: 'new-' + i })}`).expect(200);
+    await http.get('/login').set('Cookie', `refresh_token=${jwt.sign({ sub: 'new-9' })}`).expect(429);
   });
 
   it('a forged refresh cookie does not escape the address limit', async () => {
@@ -73,8 +88,8 @@ describe('auth throttler scope', () => {
     const forged = new JwtService({ secret: 'wrong-secret' });
     const http = await start();
     for (let i = 0; i < 3; i++) {
-      await http.get('/login').set('Cookie', `refresh_token=${forged.sign({ sub: 'u' + i })}`).expect(200);
+      await http.get('/auth/refresh').set('Cookie', `refresh_token=${forged.sign({ sub: 'u' + i })}`).expect(200);
     }
-    await http.get('/login').set('Cookie', `refresh_token=${forged.sign({ sub: 'u9' })}`).expect(429);
+    await http.get('/auth/refresh').set('Cookie', `refresh_token=${forged.sign({ sub: 'u9' })}`).expect(429);
   });
 });
