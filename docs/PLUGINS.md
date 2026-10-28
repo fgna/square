@@ -138,6 +138,23 @@ from `@nestjs/common` themselves.
 The built-in journal uses the same services, so the Core's own journal and a
 replacement see the same data.
 
+**Runtime-neutral helpers**: besides the types, the SDK ships small pure
+modules that any plugin may use. They know nothing about a plugin's subject.
+
+- `@community/plugin-sdk/tasks`: validation and grading of numeric and choice
+  tasks; answer keys stay on the server.
+- `@community/plugin-sdk/adaptive`: adaptive practice. `replayLadder` replays
+  judged trials over a plugin's ordered levels (move up after stable
+  independent success, step back one level after repeated failure),
+  `reviewQueue` brings failed items back with growing spacing,
+  `planNextTrial` mixes practice, review and an easier "confidence" trial after
+  a failure streak, and `personalPace`/`isBrisk` compare a learner only with
+  their own typical response time (never show it as a countdown).
+
+The Core does not hand these modules to plugins at runtime yet, so a plugin
+that needs one copies the file unchanged (with its `.d.ts`) and checks it
+against the SDK version it targets. `pnpm test:sdk` runs their tests.
+
 ## Not part of the first step
 
 Dashboard tiles, admin pages, a generic data store for plugins (`PluginRecord`),
