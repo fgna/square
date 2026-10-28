@@ -102,4 +102,15 @@ export class TaskAttemptStore implements PluginTaskAttempts {
       orderBy:[{createdAt:'desc'},{id:'desc'}],take:100,
     }) as unknown as Promise<PluginTaskAttemptRecord[]>;
   }
+
+  listByPrefix(userId: string, taskIdPrefix: string, limit = 500): Promise<PluginTaskAttemptRecord[]> {
+    if (!userId || !/^[a-z0-9][a-z0-9._-]{0,127}$/.test(taskIdPrefix)
+      || !Number.isSafeInteger(limit) || limit < 1 || limit > 1000) {
+      throw new ConflictException('Invalid member, task prefix or limit');
+    }
+    return this.prisma.taskAttempt.findMany({
+      where:{userId,taskId:{startsWith:taskIdPrefix}},
+      orderBy:[{createdAt:'desc'},{id:'desc'}],take:limit,
+    }) as unknown as Promise<PluginTaskAttemptRecord[]>;
+  }
 }
