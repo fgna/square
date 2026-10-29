@@ -34,6 +34,30 @@ time, not loaded at runtime. There is no marketplace and no sandbox.
 Removing a plugin from the config and syncing again uninstalls it: no navigation
 entry, its pages answer 404, and its API routes are not registered.
 
+### A plugin as the start page
+
+An instance whose main experience is a plugin (a learning game, for example) can
+make it the start page:
+
+```json
+{ "plugins": [{ "path": "../my-instance/plugins/game" }], "home": "game" }
+```
+
+`home` must name an active plugin with a web part; the sync writes
+`apps/web/src/plugins/home.generated.ts`. Then:
+
+- after signing in or registering, members go back to the page that asked for the
+  sign-in (`/login?from=…`), otherwise to `/p/<home>` instead of the dashboard;
+- signed-in members opening `/`, `/login` or `/register` land on `/p/<home>`;
+  visitors opening `/` see the sign-in instead of the Core's landing page;
+- if the start page plugin exports `AuthFrame`, it frames the sign-in and
+  registration pages. It renders `children` (the Core's forms and legal links)
+  once and can restyle them through the `--theme-*` CSS variables; sign-in
+  itself stays the Core's.
+
+Without `home` everything stays as before. If an operator switches the plugin's
+path off (capabilities), the dashboard is the start page again.
+
 ## Built-in plugins
 
 The Core ships some modules as plugins of its own, in
