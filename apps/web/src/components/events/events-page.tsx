@@ -176,7 +176,8 @@ function EventCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          {/* Wraps on phones: the series link takes its own line instead of pushing the card wider than the screen. */}
+          <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1">
             <div className="flex -space-x-2">
               {event.rsvps?.slice(0, 5).map((attendee) => (
                 <div
@@ -194,7 +195,7 @@ function EventCard({
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
                 variant={userRsvp ? "outline" : "default"}
@@ -225,7 +226,7 @@ function EventCard({
                 type="button"
                 onClick={handleSeries}
                 disabled={isPending}
-                className="text-xs underline self-start"
+                className="basis-full text-left text-xs underline"
                 style={{ color: "var(--theme-text-muted)" }}
               >
                 {userRsvp ? t("seriesCancel") : t("seriesRsvp")}
