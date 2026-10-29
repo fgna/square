@@ -1,0 +1,7 @@
+{
+  "title": "A plugin can be the community's start page",
+  "category": "new",
+  "audience": "operators",
+  "description": "Operators can name a plugin as the start page: members land there after signing in, and the plugin can give the sign-in pages its own look.",
+  "pr": 0
+}
