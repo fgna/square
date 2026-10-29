@@ -72,7 +72,7 @@ Those synthetic tags are not published Square releases.
 
 The second command accepts no target URL. It creates a uniquely named PostgreSQL 16 container with an ephemeral loopback
 port, no host mounts or existing data volume, and synthetic member data. It applies the actual Prisma migration history
-from reviewed main commit `03848a5acadcad931a12daa1765fbb6f9e287511`, then the candidate checkout's migrations.
+from reviewed main commit `d493469abf751bd0b7a951cd2428252d22a78351`, then the candidate checkout's migrations.
 It compares credentials/accounts, posts, course progress, task attempts, settings and a separate extension schema.
 It then injects a partially applied failing migration and requires a failed exit before restoring a real `pg_dump`
 archive to a second empty database. Recovered data, migration history and baseline schema must match.

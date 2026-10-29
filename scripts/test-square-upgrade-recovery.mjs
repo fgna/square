@@ -10,7 +10,7 @@ import { randomUUID } from 'node:crypto';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // Reviewed main revision before the Android download migration. Not a published release.
-const baseline = '03848a5acadcad931a12daa1765fbb6f9e287511';
+const baseline = 'd493469abf751bd0b7a951cd2428252d22a78351';
 const container = `square-upgrade-${randomUUID()}`;
 const work = mkdtempSync(join(tmpdir(), 'square-upgrade-recovery-'));
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, {
@@ -91,7 +91,7 @@ try {
   // Simulate a later migration that leaves a partial side effect before failing.
   const broken = join(candidate, 'prisma/migrations/20990101000000_recovery_fixture');
   mkdirSync(broken);
-  writeFileSync(join(broken, 'migration.sql'), 'CREATE TABLE recovery_partial (id integer);\nSELECT square_deliberate_missing_function();\n');
+  writeFileSync(join(broken, 'migration.sql'), 'BEGIN;\nCREATE TABLE recovery_partial (id integer);\nCOMMIT;\nSELECT square_deliberate_missing_function();\n');
   const failure = spawnSync(prisma, ['migrate', 'deploy', '--schema', candidateSchema], {
     cwd: root, env, encoding: 'utf8', timeout: 120000,
   });
