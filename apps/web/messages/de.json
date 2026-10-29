@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"Meine Gedanken","placeholder":"Was beschäftigt dich heute?"},
+  "journalSimpleUI": {
+    "thoughts": "Meine Gedanken",
+    "placeholder": "Was beschäftigt dich heute?"
+  },
   "journalMoodUI": {
     "grateful": "Dankbar",
     "happy": "Glücklich",
@@ -1137,11 +1140,14 @@
     "steps": "Installation",
     "stepDownload": "APK herunterladen",
     "stepOpen": "Datei öffnen",
-    "stepAllow": "Installation zulassen",
+    "stepAllow": "Erlaube die Installation aus diesem Browser oder Dateimanager, wenn Android danach fragt. Diese Berechtigung kannst du anschließend wieder ausschalten.",
     "stepInstall": "App installieren",
     "stepSignIn": "Anmelden",
     "offline": "Manche Funktionen benötigen eine Verbindung.",
-    "unavailable": "Für diese Community ist aktuell keine Android-APK veröffentlicht. Du kannst die Website weiterhin im Browser benutzen."
+    "unavailable": "Für diese Community ist aktuell keine Android-APK veröffentlicht. Du kannst die Website weiterhin im Browser benutzen.",
+    "loading": "App-Download wird geladen…",
+    "back": "Zurück zur Community",
+    "stepServer": "Falls die App nach einer Serveradresse fragt, trage {url} ein."
   },
   "adminCategoriesUI": {
     "title": "Kategorien",
@@ -1490,5 +1496,14 @@
     "added": "Aufzeichnung hinzugefügt",
     "failed": "Die Aufzeichnung konnte nicht gespeichert werden",
     "uploadFailed": "Die Datei konnte nicht hochgeladen werden"
+  },
+  "androidAppAdminUI": {
+    "title": "Android-App herunterladen",
+    "description": "Biete die Android-App deiner Community auf der Website an.",
+    "enable": "Android-App-Download anzeigen",
+    "url": "APK-Download-URL (HTTPS)",
+    "hint": "Verwende eine öffentliche URL zu einer signierten Release-APK. Mitglieder müssen sie ohne Repository-Zugriff herunterladen können. Behalte Signierschlüssel und eine fortlaufende APK-Versionierung für Updates bei.",
+    "invalidUrl": "Trage vor der Freigabe eine gültige HTTPS-Download-URL ohne Zugangsdaten oder Fragment ein.",
+    "saveError": "Die Einstellungen konnten nicht gespeichert werden."
   }
 }

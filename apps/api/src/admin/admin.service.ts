@@ -3,6 +3,7 @@ import { UpdatePlatformSettingsDto } from './dto/update-platform-settings.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { toVideoEmbed } from '../courses/video-url';
 import { GdprService } from '../gdpr/gdpr.service';
+import { normalizeAndroidAppDownloadSettings } from '@community/shared';
 
 /** Accounts deleted by their owner keep a placeholder row (see GdprService.deleteAccount). */
 export function isDeletedAccount(email: string | null | undefined): boolean {
@@ -341,6 +342,19 @@ export class AdminService {
 
   async updatePlatformSettings(dto: UpdatePlatformSettingsDto) {
     const data = { ...dto };
+    if (dto.androidAppDownloadEnabled !== undefined || dto.androidAppDownloadUrl !== undefined) {
+      const current = await this.prisma.platformSettings.findUnique({
+        where: { id: 'default' },
+        select: { androidAppDownloadEnabled: true, androidAppDownloadUrl: true },
+      });
+      try {
+        // Write the complete valid pair so concurrent partial writes cannot leave
+        // an enabled download with an empty URL.
+        Object.assign(data, normalizeAndroidAppDownloadSettings(current, dto));
+      } catch (error) {
+        throw new BadRequestException((error as Error).message);
+      }
+    }
     if (data.welcomeVideoUrl !== undefined) {
       const url = data.welcomeVideoUrl?.trim() || null;
       // Same hosts as course videos: each is embedded, and allowed by frame-src.

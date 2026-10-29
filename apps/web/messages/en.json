@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"My thoughts","placeholder":"What's on your mind today?"},
+  "journalSimpleUI": {
+    "thoughts": "My thoughts",
+    "placeholder": "What's on your mind today?"
+  },
   "journalMoodUI": {
     "grateful": "Grateful",
     "happy": "Happy",
@@ -1137,11 +1140,14 @@
     "steps": "Installation",
     "stepDownload": "Download the APK",
     "stepOpen": "Open the file",
-    "stepAllow": "Allow installation",
+    "stepAllow": "Allow installation from this browser or file manager when Android asks. You can turn this permission off again afterwards.",
     "stepInstall": "Install the app",
     "stepSignIn": "Sign in",
     "offline": "Some features need an internet connection.",
-    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser."
+    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser.",
+    "loading": "Loading app download…",
+    "back": "Back to the community",
+    "stepServer": "If the app asks for a server address, enter {url}."
   },
   "adminCategoriesUI": {
     "title": "Categories",
@@ -1490,5 +1496,14 @@
     "added": "Recording added",
     "failed": "The recording could not be saved",
     "uploadFailed": "The file could not be uploaded"
+  },
+  "androidAppAdminUI": {
+    "title": "Android app download",
+    "description": "Offer your community's Android app on the website.",
+    "enable": "Show Android app download",
+    "url": "APK download URL (HTTPS)",
+    "hint": "Use a public URL for a signed release APK. Members must be able to download it without repository access. Keep signing keys and APK versioning consistent for updates.",
+    "invalidUrl": "Enter a valid HTTPS download URL without credentials or a fragment before enabling the download.",
+    "saveError": "Settings could not be saved."
   }
 }

@@ -451,6 +451,9 @@ model PlatformSettings {
   primaryColor String   @default("#c5a880")
   accentColor  String   @default("#6366f1")
   allowSignups Boolean  @default(true)
+  /// Public Android APK download, controlled by this instance's administrators.
+  androidAppDownloadEnabled Boolean @default(false)
+  androidAppDownloadUrl     String?
   /// Loom/Vimeo/YouTube link shown to new members in onboarding and on the dashboard.
   welcomeVideoUrl String?
   /// Daily e-mail reminding members to complete their journal (off by default).

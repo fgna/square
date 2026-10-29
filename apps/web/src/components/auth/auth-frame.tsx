@@ -2,6 +2,7 @@
 
 import type { ComponentType, ReactNode } from 'react';
 import { LegalLinks } from '@/components/common/legal-links';
+import { AndroidAppLink } from '@/components/common/android-app-link';
 import { findWebPlugin } from '@/plugins';
 import { HOME_PLUGIN } from '@/plugins/home.generated';
 
@@ -17,6 +18,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
     return (
       <Frame>
         {children}
+        <AndroidAppLink className="mt-6" />
         <LegalLinks className="mt-6" />
       </Frame>
     );
@@ -56,6 +58,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
           </p>
         </div>
         {children}
+        <AndroidAppLink className="mt-6" />
         <LegalLinks className="mt-6" />
       </div>
     </div>

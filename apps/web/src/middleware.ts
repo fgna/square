@@ -105,7 +105,7 @@ export function middleware(request: NextRequest) {
   const authToken = request.cookies.get('auth-session')?.value;
   const userRole = request.cookies.get('user-role')?.value;
 
-  const isPublicPath = PUBLIC_PATHS.some((p) =>
+  const isPublicPath = pathname === '/get-app' || PUBLIC_PATHS.some((p) =>
     p === '/' ? pathname === '/' : pathname.startsWith(p),
   );
   const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));

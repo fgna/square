@@ -44,6 +44,12 @@ describe('buildCspHeader', () => {
 
 
 describe('auth redirects behind a TLS reverse proxy', () => {
+  it('allows anonymous access to the Android app installation page', () => {
+    const response = middleware(new NextRequest('https://community.example.com/get-app'));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+  });
+
   const originalPublicUrl = process.env.NEXT_PUBLIC_APP_URL;
   afterEach(() => {
     if (originalPublicUrl === undefined) delete process.env.NEXT_PUBLIC_APP_URL;
