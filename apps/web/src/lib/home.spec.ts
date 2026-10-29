@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { afterSignIn, rememberReturn, takeReturn } from './home';
+import { afterSignIn, authLink, rememberReturn, takeReturn } from './home';
 
 describe('afterSignIn', () => {
   it('returns to the page that asked for the sign-in', () => {
@@ -46,5 +46,18 @@ describe('return across the OAuth round trip', () => {
     window.history.replaceState(null, '', '/login');
     rememberReturn();
     expect(takeReturn()).toBeNull();
+  });
+});
+
+describe('switching between sign-in and registration', () => {
+  it('keeps a valid page to return to', () => {
+    expect(authLink('/register', '/p/game/garage')).toBe('/register?from=%2Fp%2Fgame%2Fgarage');
+    expect(authLink('/login', '/courses/3?tab=2')).toBe('/login?from=%2Fcourses%2F3%3Ftab%3D2');
+  });
+
+  it('drops a missing or unsafe one', () => {
+    expect(authLink('/register', null)).toBe('/register');
+    expect(authLink('/login', '//evil.example')).toBe('/login');
+    expect(authLink('/login', '/.//evil.example')).toBe('/login');
   });
 });

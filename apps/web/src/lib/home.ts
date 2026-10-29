@@ -34,6 +34,11 @@ export function currentFrom(): string | null {
   return new URLSearchParams(window.location.search).get('from');
 }
 
+/** A link to the other sign-in form that keeps the page to return to (only a valid one). */
+export function authLink(path: '/login' | '/register', from: string | null): string {
+  return from && afterSignIn(from, '') ? `${path}?from=${encodeURIComponent(from)}` : path;
+}
+
 /** OAuth leaves the app: keep the page to return to for the callback. */
 export function rememberReturn(): void {
   const from = currentFrom();
