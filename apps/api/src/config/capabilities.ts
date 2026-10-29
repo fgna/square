@@ -33,6 +33,10 @@ export function parseCapabilities(value: string | undefined): ReadonlySet<Capabi
 
 export function disabledApiCapability(path: string, enabled: ReadonlySet<Capability>): Capability | undefined {
   const pathname = path.split('?')[0];
+  // Recording endpoints share the events controller, but have their own switch.
+  if (ROUTES.recordings.some((pattern) => pattern.test(pathname))) {
+    return enabled.has('recordings') ? undefined : 'recordings';
+  }
   return CAPABILITIES.find((name) => !enabled.has(name) && ROUTES[name].some((pattern) => pattern.test(pathname)));
 }
 export const instanceCapabilities = parseCapabilities(process.env.SQUARE_CAPABILITIES);
