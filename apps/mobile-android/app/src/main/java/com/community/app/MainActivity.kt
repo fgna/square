@@ -8,6 +8,9 @@ import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
 import android.net.http.SslError
+import android.view.Gravity
+import android.view.View
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebStorage
@@ -47,10 +50,52 @@ internal object TrustedOrigin {
     } catch (_: Exception) { false }
 }
 
+/**
+ * What the app shows instead of a blank WebView when the instance cannot be
+ * loaded. Kept free of Android types so the JVM unit tests can cover it.
+ */
+internal object LoadProblem {
+    // android.net.http.SslError primary error codes.
+    private const val SSL_NOTYETVALID = 0
+    private const val SSL_EXPIRED = 1
+    private const val SSL_IDMISMATCH = 2
+    private const val SSL_UNTRUSTED = 3
+    private const val SSL_DATE_INVALID = 4
+
+    fun certificate(origin: String, primaryError: Int, debugBuild: Boolean): String {
+        val reason = when (primaryError) {
+            SSL_UNTRUSTED -> "is issued by a certificate authority this device does not trust"
+            SSL_IDMISMATCH -> "does not belong to this address"
+            SSL_EXPIRED -> "has expired"
+            SSL_NOTYETVALID, SSL_DATE_INVALID -> "is not valid at the device's current date and time"
+            else -> "was rejected"
+        }
+        val fix = when {
+            primaryError == SSL_NOTYETVALID || primaryError == SSL_DATE_INVALID || primaryError == SSL_EXPIRED ->
+                "Check the date and time on this device and on the server."
+            primaryError != SSL_UNTRUSTED -> "Ask the operator of the server to fix its certificate."
+            debugBuild -> "For a server with its own CA (for example Caddy's \"tls internal\"), install that " +
+                "CA's root certificate on this device: Settings → Security → Encryption & credentials → " +
+                "Install a certificate → CA certificate. Then tap Try again."
+            else -> "This app only trusts publicly trusted certificates. Use a server with such a " +
+                "certificate, or a debug build together with an installed CA certificate."
+        }
+        return "The certificate of $origin $reason. The connection was stopped for your safety.\n\n$fix"
+    }
+
+    fun network(origin: String, description: String?): String {
+        val detail = description?.takeIf { it.isNotBlank() }?.let { " ($it)" } ?: ""
+        return "$origin could not be reached$detail.\n\nCheck that the server is running, that the " +
+            "address and port are right, that it speaks HTTPS, and that this device is in the same network."
+    }
+}
+
 class MainActivity : Activity() {
     private val prefs by lazy { getSharedPreferences("community_prefs", MODE_PRIVATE) }
     private var allowedOrigin: String? = null
     private var browser: WebView? = null
+    private var loading: TextView? = null
+    private var problem: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +120,8 @@ class MainActivity : Activity() {
     private fun showSetup() {
         browser?.destroy()
         browser = null
+        loading = null
+        problem = null
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(32, 64, 32, 32)
@@ -119,6 +166,9 @@ class MainActivity : Activity() {
         allowedOrigin = url
         val view = WebView(this)
         browser = view
+        problem = null
+        // A dark page instead of a white flash while the first page loads.
+        view.setBackgroundColor(Color.rgb(9, 13, 22))
         view.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -138,8 +188,16 @@ class MainActivity : Activity() {
             }
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()
+                showProblem(LoadProblem.certificate(url, error.primaryError, BuildConfig.DEBUG))
+            }
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (request.isForMainFrame) showProblem(LoadProblem.network(url, error.description?.toString()))
+            }
+            override fun onPageCommitVisible(view: WebView, pageUrl: String) {
+                loading?.visibility = View.GONE
             }
             override fun onPageFinished(view: WebView, pageUrl: String) {
+                loading?.visibility = View.GONE
                 if (TrustedOrigin.matches(allowedOrigin, pageUrl)) {
                     prefs.edit().putString("last_url", pageUrl).apply()
                 }
@@ -154,6 +212,16 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             ))
         }
+        loading = TextView(this).apply {
+            text = "Connecting to $url …"
+            setTextColor(Color.rgb(197, 168, 128))
+            gravity = Gravity.CENTER
+            setPadding(48, 48, 48, 48)
+        }.also {
+            container.addView(it, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            ))
+        }
         ViewCompat.setOnApplyWindowInsetsListener(container) { root, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             root.setPadding(bars.left, bars.top, bars.right, bars.bottom)
@@ -163,6 +231,52 @@ class MainActivity : Activity() {
         ViewCompat.requestApplyInsets(container)
         val last = prefs.getString("last_url", null)
         view.loadUrl(if (TrustedOrigin.matches(url, last)) last!! else url)
+    }
+
+    /** Replaces the blank WebView with the reason and a way out. The first problem of a load wins. */
+    private fun showProblem(message: String) {
+        val view = browser ?: return
+        if (problem != null) return
+        val container = view.parent as? FrameLayout ?: return
+        loading?.visibility = View.GONE
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(48, 48, 48, 48)
+            setBackgroundColor(Color.rgb(9, 13, 22))
+            isClickable = true
+        }
+        panel.addView(TextView(this).apply {
+            text = "Square could not be opened"
+            textSize = 20f
+            setTextColor(Color.WHITE)
+        })
+        panel.addView(TextView(this).apply {
+            text = message
+            setTextColor(Color.rgb(220, 220, 220))
+            setPadding(0, 24, 0, 24)
+        })
+        panel.addView(Button(this).apply {
+            text = "Try again"
+            setOnClickListener {
+                container.removeView(panel)
+                problem = null
+                loading?.visibility = View.VISIBLE
+                // WebView remembers a cancelled certificate for the session.
+                view.clearSslPreferences()
+                view.loadUrl(allowedOrigin ?: return@setOnClickListener)
+            }
+        })
+        if (BuildConfig.COMMUNITY_URL.isEmpty()) {
+            panel.addView(Button(this).apply {
+                text = "Change server"
+                setOnClickListener { showSetup() }
+            })
+        }
+        container.addView(panel, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+        problem = panel
     }
 
     @Deprecated("Deprecated in Android")
