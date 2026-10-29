@@ -1,0 +1,7 @@
+{
+  "title": "Personalized community Android apps",
+  "category": "improved",
+  "audience": "community operators",
+  "description": "Communities can supply their own app name, launcher artwork, HTTPS address and version through a separate repository, and build an APK with a matching checksum.",
+  "pr": 80
+}
