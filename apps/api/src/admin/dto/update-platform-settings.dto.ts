@@ -30,6 +30,17 @@ export class UpdatePlatformSettingsDto {
   @IsBoolean()
   allowSignups?: boolean;
 
+  @ApiPropertyOptional({ description: 'Show the public Android app download entry (off by default)' })
+  @IsOptional()
+  @IsBoolean()
+  androidAppDownloadEnabled?: boolean;
+
+  @ApiPropertyOptional({ description: 'Public HTTPS APK download URL; empty or null removes it when disabled' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  androidAppDownloadUrl?: string | null;
+
   @ApiPropertyOptional({ description: 'Loom, Vimeo or YouTube link for new members; empty or null removes it' })
   @IsOptional()
   @ValidateIf((_o, v) => v !== null)
