@@ -24,6 +24,8 @@ describe('instance capabilities', () => {
     const independent = parseCapabilities('testimonials,recordings');
     expect(disabledApiCapability('/api/testimonials', independent)).toBeUndefined();
     expect(disabledApiCapability('/api/events/recordings/all', independent)).toBeUndefined();
+    expect(disabledApiCapability('/api/events/e/recordings', independent)).toBeUndefined();
+    expect(disabledApiCapability('/api/events/recordings/r/attachments', independent)).toBeUndefined();
     expect(disabledApiCapability('/api/events', independent)).toBe('events');
   });
   it('rejects typos before startup', () => {
