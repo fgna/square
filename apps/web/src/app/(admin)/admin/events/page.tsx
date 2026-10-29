@@ -26,7 +26,8 @@ import type { CommunityEvent } from '@community/shared';
 function useAdminEvents() {
   return useQuery({
     queryKey: ['admin', 'events'],
-    queryFn: () => apiClient.get('/events', { params: { limit: 100 } }).then((r) => r.data),
+    // Admins manage past events too (recordings are added afterwards).
+    queryFn: () => apiClient.get('/events', { params: { limit: 100, when: 'all' } }).then((r) => r.data),
   });
 }
 

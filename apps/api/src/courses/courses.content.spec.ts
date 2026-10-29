@@ -59,6 +59,8 @@ describe('CoursesService — course content', () => {
 
       expect(open).toMatchObject({ locked: false, content: '<p>day0 text</p>' });
       expect(open.videoEmbedUrl).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+      // Members get the player, not the share link they could pass on.
+      expect(open.videoUrl).toBeNull();
 
       expect(locked).toMatchObject({ locked: true, content: '', videoUrl: null, videoEmbedUrl: null, attachments: [] });
       expect(locked.availableAt).toBeInstanceOf(Date);
@@ -67,6 +69,7 @@ describe('CoursesService — course content', () => {
     it('shows admins every lesson as stored', async () => {
       const course = await service.findOne('c1', 'admin-1', 'ADMIN');
       expect(course.modules[0].lessons.every((l) => !l.locked)).toBe(true);
+      expect(course.modules[0].lessons[0].videoUrl).toBe('https://youtu.be/dQw4w9WgXcQ');
       expect(prisma.progress.upsert).not.toHaveBeenCalled();
     });
 
@@ -141,6 +144,27 @@ describe('CoursesService — course content', () => {
       expect((await service.findOne('c1', 'u1', 'MEMBER')).modules[0].lessons[0].videoDownloadUrl).toBe(
         'https://vimeo.com/76979871',
       );
+    });
+  });
+
+  describe('moving a lesson to another module', () => {
+    beforeEach(() => {
+      prisma.lesson.findUnique.mockResolvedValue({ id: 'l1', moduleId: 'm1', order: 2, content: '', module: { id: 'm1', courseId: 'c1' } });
+      prisma.lesson.findFirst.mockResolvedValue({ order: 5 });
+      prisma.lesson.update.mockImplementation(async ({ data }: any) => ({ id: 'l1', content: '', attachments: [], ...data }));
+    });
+
+    it('appends the lesson to a module of the same course', async () => {
+      prisma.module.findUnique.mockResolvedValue({ id: 'm2', courseId: 'c1' });
+      const moved = await service.moveLessonToModule('l1', 'm2');
+      expect(prisma.lesson.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'l1' }, data: { moduleId: 'm2', order: 6 } }));
+      expect(moved).toMatchObject({ moduleId: 'm2', order: 6 });
+    });
+
+    it('refuses a module of another course', async () => {
+      prisma.module.findUnique.mockResolvedValue({ id: 'x', courseId: 'other' });
+      await expect(service.moveLessonToModule('l1', 'x')).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.lesson.update).not.toHaveBeenCalled();
     });
   });
 

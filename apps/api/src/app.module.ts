@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { CapabilityGuard } from './config/capabilities.guard';
 import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
+import { onlyWhereDeclared } from './common/throttle-scope';
 import { normalizeRequestId } from './common/request-id';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -31,6 +32,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { LearningGroupsModule } from './learning-groups/learning-groups.module';
 import { TierModule } from './tier/tier.module';
 import { DigestTemplateModule } from './digest/digest-template.module';
+import { JournalReminderModule } from './journal-reminder/journal-reminder.module';
 import { BillingModule } from './billing/billing.module';
 import { AiCoachModule } from './ai-coach/ai-coach.module';
 import { RedisModule } from './redis/redis.module';
@@ -72,6 +74,8 @@ import { PluginsModule } from './plugins/plugins.module';
         name: 'auth',
         ttl: 900_000,  // 15 minutes
         limit: 60,
+        // Only on the routes that ask for it (sign-in, registration, password).
+        skipIf: onlyWhereDeclared('auth'),
       },
     ]),
     RedisModule,
@@ -99,6 +103,7 @@ import { PluginsModule } from './plugins/plugins.module';
     LearningGroupsModule,
     TierModule,
     DigestTemplateModule,
+    JournalReminderModule,
     BillingModule,
     AiCoachModule,
     PluginsModule.register(),

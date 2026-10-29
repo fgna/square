@@ -30,10 +30,31 @@ export class UpdatePlatformSettingsDto {
   @IsBoolean()
   allowSignups?: boolean;
 
+  @ApiPropertyOptional({ description: 'Show the public Android app download entry (off by default)' })
+  @IsOptional()
+  @IsBoolean()
+  androidAppDownloadEnabled?: boolean;
+
+  @ApiPropertyOptional({ description: 'Public HTTPS APK download URL; empty or null removes it when disabled' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  androidAppDownloadUrl?: string | null;
+
   @ApiPropertyOptional({ description: 'Loom, Vimeo or YouTube link for new members; empty or null removes it' })
   @IsOptional()
   @ValidateIf((_o, v) => v !== null)
   @IsString()
   @MaxLength(500)
   welcomeVideoUrl?: string | null;
+
+  @ApiPropertyOptional({ description: 'Send members a daily journal reminder (off by default)' })
+  @IsOptional()
+  @IsBoolean()
+  journalReminders?: boolean;
+
+  @ApiPropertyOptional({ description: 'Default reminder time in the platform time zone, "HH:MM"' })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'journalReminderTime must be HH:MM' })
+  journalReminderTime?: string;
 }

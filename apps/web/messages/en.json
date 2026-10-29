@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"My thoughts","placeholder":"What's on your mind today?"},
+  "journalSimpleUI": {
+    "thoughts": "My thoughts",
+    "placeholder": "What's on your mind today?"
+  },
   "journalMoodUI": {
     "grateful": "Grateful",
     "happy": "Happy",
@@ -29,6 +32,17 @@
     "next": "Next"
   },
   "adminCoursesUI": {
+    "participationShort": "{started} started · {completed} completed",
+    "participation": {
+      "title": "Participation",
+      "summary": "{started} started · {completed} completed · {active} active in the last 30 days",
+      "none": "Nobody has started this course yet.",
+      "member": "Member",
+      "progress": "Progress",
+      "lessons": "Lessons",
+      "started": "Started",
+      "lastActivity": "Last active"
+    },
     "new": "New Course",
     "title": "Title",
     "description": "Description",
@@ -359,6 +373,11 @@
       "download": "Download .ics"
     },
     "proposals": {
+      "start": "Start",
+      "endTime": "End",
+      "edit": "Edit",
+      "save": "Save",
+      "errorEnd": "The end must be after the start.",
       "title": "Event Proposals",
       "open": "{count} open",
       "new": "New Proposal",
@@ -485,6 +504,8 @@
       "shareSuccess": "Share a success"
     },
     "card": {
+      "pin": "Pin to top",
+      "unpin": "Unpin",
       "edit": "Edit",
       "report": "Report",
       "delete": "Delete",
@@ -798,6 +819,11 @@
       "subtitle": "Choose your preferred language."
     },
     "notifications": {
+      "journalTitle": "Journal reminder",
+      "journalDesc": "A short e-mail so you complete your day in the journal.",
+      "journalDefault": "Daily at {time} (default)",
+      "journalOwn": "My own time",
+      "journalOff": "No reminder",
       "digestTitle": "Email Digest",
       "digestSubtitle": "Get a summary of new posts, events, and notifications delivered to your inbox.",
       "daily": "Daily",
@@ -1114,11 +1140,14 @@
     "steps": "Installation",
     "stepDownload": "Download the APK",
     "stepOpen": "Open the file",
-    "stepAllow": "Allow installation",
+    "stepAllow": "Allow installation from this browser or file manager when Android asks. You can turn this permission off again afterwards.",
     "stepInstall": "Install the app",
     "stepSignIn": "Sign in",
     "offline": "Some features need an internet connection.",
-    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser."
+    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser.",
+    "loading": "Loading app download…",
+    "back": "Back to the community",
+    "stepServer": "If the app asks for a server address, enter {url}."
   },
   "adminCategoriesUI": {
     "title": "Categories",
@@ -1162,6 +1191,10 @@
     "testimonials": "Testimonials"
   },
   "adminSettingsUI": {
+    "journalReminderTitle": "Journal reminder",
+    "journalReminderDescription": "Members get a daily e-mail to complete their journal. Each member can change the time or turn it off.",
+    "journalReminderToggle": "Send reminders",
+    "journalReminderTime": "Default time",
     "title": "Platform Settings",
     "description": "Configure branding and platform-wide options.",
     "branding": "Branding",
@@ -1463,5 +1496,14 @@
     "added": "Recording added",
     "failed": "The recording could not be saved",
     "uploadFailed": "The file could not be uploaded"
+  },
+  "androidAppAdminUI": {
+    "title": "Android app download",
+    "description": "Offer your community's Android app on the website.",
+    "enable": "Show Android app download",
+    "url": "APK download URL (HTTPS)",
+    "hint": "Use a public URL for a signed release APK. Members must be able to download it without repository access. Keep signing keys and APK versioning consistent for updates.",
+    "invalidUrl": "Enter a valid HTTPS download URL without credentials or a fragment before enabling the download.",
+    "saveError": "Settings could not be saved."
   }
 }

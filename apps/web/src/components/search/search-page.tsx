@@ -315,11 +315,12 @@ export function SearchPage() {
           {showRecordings && (
             <Section title={t('recordings')} icon={Play} count={recordings.length}>
               {recordings.map((r: any) => (
+                // Embedded recordings play on the recordings page; only links that
+                // cannot be embedded open elsewhere.
                 <a
                   key={r.id}
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={r.url ?? '/recordings'}
+                  {...(r.url ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className="flex items-center gap-3 p-3 rounded-lg transition-colors hover:bg-white/5"
                 >
                   <div
@@ -336,7 +337,7 @@ export function SearchPage() {
                       {r.event?.title} · {formatDate(r.event?.startsAt, locale)}
                     </p>
                   </div>
-                  <ExternalLink size={13} style={{ color: 'var(--theme-text-muted)', flexShrink: 0 }} />
+                  {r.url && <ExternalLink size={13} style={{ color: 'var(--theme-text-muted)', flexShrink: 0 }} />}
                 </a>
               ))}
             </Section>

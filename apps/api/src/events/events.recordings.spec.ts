@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { EventsService, recordingCutoff } from './events.service';
+import { EventsService, recordingCutoff, recordingVideo } from './events.service';
 
 describe('recordings: attachments and one-year retention', () => {
   let prisma: any;
@@ -14,7 +14,7 @@ describe('recordings: attachments and one-year retention', () => {
     prisma = {
       recording: {
         findMany: vi.fn().mockResolvedValue([
-          { id: 'r1', createdAt: now, attachments: [{ id: 'a1', url: '/uploads/uploads/x/slides.pdf' }] },
+          { id: 'r1', url: 'https://example.com/r1', createdAt: now, attachments: [{ id: 'a1', url: '/uploads/uploads/x/slides.pdf' }] },
         ]),
         count: vi.fn().mockResolvedValue(1),
         findUnique: vi.fn(),
@@ -39,6 +39,34 @@ describe('recordings: attachments and one-year retention', () => {
     const rec = result.data[0];
     expect(rec.attachments[0].url).toMatch(/\/uploads\/uploads\/x\/slides\.pdf\?exp=\d+&sig=[0-9a-f]+$/);
     expect(rec.availableUntil?.toISOString()).toBe('2027-10-14T12:00:00.000Z');
+  });
+
+  it('gives members the player for a Vimeo recording, never its share link', async () => {
+    const share = 'https://vimeo.com/123456789/abcdef1234?share=copy';
+    prisma.recording.findMany.mockResolvedValue([{ id: 'r1', url: share, createdAt: now, attachments: [] }]);
+
+    const [member] = (await service.findAllRecordings()).data;
+    expect(member.url).toBeNull();
+    expect(member.embedUrl).toBe('https://player.vimeo.com/video/123456789?h=abcdef1234');
+    expect(JSON.stringify(member)).not.toContain('vimeo.com/123456789/abcdef1234');
+
+    const [byEvent] = await service.findRecordingsByEvent('e1');
+    expect(byEvent.url).toBeNull();
+
+    // Admins manage the recording and keep the link they entered.
+    const [admin] = await service.findRecordingsByEvent('e1', true);
+    expect(admin.url).toBe(share);
+  });
+
+  it('keeps a plain link for recordings that cannot be embedded', () => {
+    expect(recordingVideo('https://drive.example.com/folder/1', false)).toEqual({
+      url: 'https://drive.example.com/folder/1',
+      embedUrl: null,
+    });
+    expect(recordingVideo('https://youtu.be/dQw4w9WgXcQ', false)).toEqual({
+      url: null,
+      embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+    });
   });
 
   it('deletes recordings older than a year', async () => {

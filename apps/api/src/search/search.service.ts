@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { recordingVideo } from '../events/events.service';
 
 @Injectable()
 export class SearchService {
@@ -79,6 +80,13 @@ export class SearchService {
       }),
     ]);
 
-    return { posts, users, courses, events, recordings };
+    // Recordings play on the recordings page; members never get the share link.
+    return {
+      posts,
+      users,
+      courses,
+      events,
+      recordings: recordings.map((r) => ({ ...r, ...recordingVideo(r.url, false) })),
+    };
   }
 }

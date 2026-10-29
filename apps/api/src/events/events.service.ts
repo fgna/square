@@ -3,7 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
-import type { Event } from '@prisma/client';
+import type { Event, Prisma } from '@prisma/client';
+
+export interface EventListFilter {
+  when?: 'upcoming' | 'past' | 'all';
+  from?: Date;
+  to?: Date;
+  mine?: boolean;
+}
 
 /** The fields an invitation or cancellation is built from. */
 type CalendarEvent = Pick<
@@ -14,10 +21,11 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateRecordingDto } from './dto/create-recording.dto';
 import { randomUUID } from 'crypto';
-import { mailDate, mailTime } from '../email/mail-format';
+import { mailDate, mailTime, firstName } from '../email/mail-format';
 import { htmlToText } from '../email/html-to-text';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
+import { toVideoEmbed } from '../courses/video-url';
 import { unlink } from 'fs/promises';
 import { resolve, sep } from 'path';
 
@@ -172,11 +180,27 @@ function unexpiredRecordings() {
   return cutoff ? { createdAt: { gte: cutoff } } : {};
 }
 
-/** Signed links for the attachments, and the date the recording disappears (null if never). */
-function withRecordingLinks<T extends { createdAt: Date; attachments?: { url: string }[] }>(recording: T) {
+/**
+ * How a recording's video reaches the browser. A YouTube, Vimeo or Loom video
+ * is played inside the platform, and members get only the player link (embedUrl):
+ * the share link itself would play anywhere once copied, and recordings show
+ * members. Admins keep the share link to manage the recording. Other links
+ * (e.g. a cloud folder) cannot be embedded and stay a plain link.
+ */
+export function recordingVideo(url: string, forAdmin: boolean) {
+  const embedUrl = toVideoEmbed(url)?.embedUrl ?? null;
+  return { url: forAdmin || !embedUrl ? url : null, embedUrl };
+}
+
+/** Player link, signed links for the attachments, and the date the recording disappears (null if never). */
+function withRecordingLinks<T extends { url: string; createdAt: Date; attachments?: { url: string }[] }>(
+  recording: T,
+  forAdmin: boolean,
+) {
   const days = recordingRetentionDays();
   return {
     ...recording,
+    ...recordingVideo(recording.url, forAdmin),
     availableUntil: days ? new Date(recording.createdAt.getTime() + days * 86_400_000) : null,
     attachments: (recording.attachments ?? []).map((a) => ({ ...a, url: absoluteUploadUrl(signUploadPath(a.url)) })),
   };
@@ -191,15 +215,33 @@ export class EventsService {
     private email: EmailService,
   ) {}
 
-  async findAll(page = 1, limit = 20, userId?: string) {
+  /**
+   * Events for lists, the calendar and the dashboard. By default only events
+   * that have not ended yet, soonest first: with a daily series, "all events
+   * from the oldest" filled every page with past dates. `past` lists ended
+   * events, latest first; `from`/`to` select a period (calendar month);
+   * `mine` keeps the events the member said yes to.
+   */
+  async findAll(page = 1, limit = 20, userId?: string, filter: EventListFilter = {}) {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
+    const now = new Date();
+    const when = filter.from || filter.to ? 'all' : (filter.when ?? 'upcoming');
+    const where: Prisma.EventWhereInput = {
+      ...(when === 'upcoming' && { endsAt: { gte: now } }),
+      ...(when === 'past' && { endsAt: { lt: now } }),
+      ...((filter.from || filter.to) && {
+        startsAt: { ...(filter.from && { gte: filter.from }), ...(filter.to && { lt: filter.to }) },
+      }),
+      ...(filter.mine && userId && { rsvps: { some: { userId, status: 'GOING' } } }),
+    };
     const [data, total] = await Promise.all([
       this.prisma.event.findMany({
+        where,
         skip,
         take: limit,
-        orderBy: { startsAt: 'asc' },
+        orderBy: { startsAt: when === 'past' ? 'desc' : 'asc' },
         include: {
           _count: { select: { rsvps: true } },
           categories: { select: { category: { select: { id: true, name: true, slug: true } } } },
@@ -209,14 +251,19 @@ export class EventsService {
           },
         },
       }),
-      this.prisma.event.count(),
+      this.prisma.event.count({ where }),
     ]);
 
+    // The member's own answer, also when they are not among the five shown.
+    const own = userId && data.length
+      ? await this.prisma.eventRsvp.findMany({
+          where: { userId, eventId: { in: data.map((e) => e.id) } },
+          select: { id: true, status: true, userId: true, eventId: true },
+        })
+      : [];
     const events = data.map((event) => ({
       ...event,
-      userRsvp: userId
-        ? ((event.rsvps as any[])?.find((r) => r.userId === userId) ?? null)
-        : null,
+      userRsvp: userId ? (own.find((r) => r.eventId === event.id) ?? null) : null,
     }));
 
     return {
@@ -417,7 +464,7 @@ export class EventsService {
 
   // ── Recordings ─────────────────────────────────────────────────────────
 
-  async findAllRecordings(page = 1, limit = 20) {
+  async findAllRecordings(page = 1, limit = 20, forAdmin = false) {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
@@ -437,16 +484,16 @@ export class EventsService {
       this.prisma.recording.count({ where }),
     ]);
 
-    return { data: data.map(withRecordingLinks), total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data: data.map((r) => withRecordingLinks(r, forAdmin)), total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findRecordingsByEvent(eventId: string) {
+  async findRecordingsByEvent(eventId: string, forAdmin = false) {
     const recordings = await this.prisma.recording.findMany({
       where: { eventId, ...unexpiredRecordings() },
       orderBy: { createdAt: 'desc' },
       include: { attachments: { orderBy: { order: 'asc' } } },
     });
-    return recordings.map(withRecordingLinks);
+    return recordings.map((r) => withRecordingLinks(r, forAdmin));
   }
 
   /** Attaches a file already stored through POST /uploads/file (slides, handouts). */
@@ -564,7 +611,7 @@ export class EventsService {
     await this.email.send({
       to: user.email,
       subject: `Aus deinem Kalender entfernt: ${event.title}`,
-      html: `<p>Hallo ${escapeHtml(user.name)},</p><p><strong>${escapeHtml(event.title)}</strong> wurde aus deinem Kalender entfernt, weil du nicht mehr zugesagt hast oder die Veranstaltung nicht stattfindet.</p>`,
+      html: `<p>Hallo ${escapeHtml(firstName(user.name))},</p><p><strong>${escapeHtml(event.title)}</strong> wurde aus deinem Kalender entfernt, weil du nicht mehr zugesagt hast oder die Veranstaltung nicht stattfindet.</p>`,
       icalEvent: icsContent,
       icalMethod: 'CANCEL',
     });

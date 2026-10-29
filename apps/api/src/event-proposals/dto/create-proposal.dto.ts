@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsArray, ArrayMinSize, ArrayMaxSize, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsArray, ArrayMinSize, ArrayMaxSize, MaxLength, MinLength, Matches } from 'class-validator';
+import { PROPOSED_DATE } from '../proposal-dates';
 
 export class CreateProposalDto {
   @IsString()
@@ -14,6 +15,8 @@ export class CreateProposalDto {
   @IsArray()
   @ArrayMinSize(2)
   @ArrayMaxSize(20)
+  /** "start" or "start/end" (ISO 8601 interval). */
   @IsString({ each: true })
+  @Matches(PROPOSED_DATE, { each: true, message: 'Each date must be "start" or "start/end"' })
   proposedDates: string[];
 }

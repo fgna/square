@@ -1,0 +1,7 @@
+{
+  "title": "Pin posts to the top of the feed",
+  "category": "new",
+  "audience": "admins",
+  "description": "Admins pin or unpin a post from its menu; pinned posts stay at the top of the feed.",
+  "pr": 48
+}

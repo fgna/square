@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Save } from 'lucide-react';
+import { isAndroidAppDownloadUrl } from '@community/shared';
 
 function ColorSwatch({ color }: { color: string }) {
   const isValid = /^#[0-9a-fA-F]{6}$/.test(color);
@@ -30,6 +31,7 @@ function ColorSwatch({ color }: { color: string }) {
 
 export default function PlatformSettingsPage() {
   const t = useTranslations('adminSettingsUI');
+  const ta = useTranslations('androidAppAdminUI');
   const qc = useQueryClient();
   const { data, isLoading } = useQuery<PlatformSettings>({
     queryKey: ['admin', 'platform-settings'],
@@ -49,10 +51,15 @@ export default function PlatformSettingsPage() {
       qc.invalidateQueries({ queryKey: ['admin', 'platform-settings'] });
       qc.invalidateQueries({ queryKey: ['branding'] });
     },
+    onError: () => toast.error(ta('saveError')),
   });
 
   const set = (key: keyof PlatformSettings, value: string | boolean) =>
     setForm(f => ({ ...f, [key]: value }));
+
+  const apkUrl = form.androidAppDownloadUrl?.trim() || '';
+  const invalidApkUrl = !!apkUrl && !isAndroidAppDownloadUrl(apkUrl);
+  const invalidAppDownload = invalidApkUrl || (!!form.androidAppDownloadEnabled && !apkUrl);
 
   if (isLoading) {
     return (
@@ -173,8 +180,52 @@ export default function PlatformSettingsPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('journalReminderTitle')}</CardTitle>
+          <CardDescription>{t('journalReminderDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>{t('journalReminderToggle')}</p>
+            <Switch checked={form.journalReminders ?? false} onCheckedChange={v => set('journalReminders', v)} />
+          </div>
+          {form.journalReminders && (
+            <div className="flex items-center gap-3">
+              <label htmlFor="journal-reminder-time" className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{t('journalReminderTime')}</label>
+              <Input id="journal-reminder-time" type="time" className="w-32" value={form.journalReminderTime ?? '16:30'} onChange={e => set('journalReminderTime', e.target.value)} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{ta('title')}</CardTitle>
+          <CardDescription>{ta('description')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="android-app-enabled">{ta('enable')}</Label>
+            <Switch id="android-app-enabled" checked={form.androidAppDownloadEnabled ?? false}
+              onCheckedChange={value => set('androidAppDownloadEnabled', value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="android-app-url">{ta('url')}</Label>
+            <Input id="android-app-url" type="url" maxLength={2048}
+              placeholder="https://downloads.example.com/community.apk"
+              value={form.androidAppDownloadUrl ?? ''}
+              onChange={event => set('androidAppDownloadUrl', event.target.value)}
+              aria-invalid={invalidAppDownload} aria-describedby="android-app-url-help" />
+            <p id="android-app-url-help" className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+              {invalidAppDownload ? ta('invalidUrl') : ta('hint')}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-end">
-        <Button onClick={() => save.mutate()} disabled={save.isPending} className="flex items-center gap-2">
+        <Button onClick={() => save.mutate()} disabled={save.isPending || invalidAppDownload} className="flex items-center gap-2">
           {save.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           {t('save')}
         </Button>

@@ -55,6 +55,9 @@ export function useCourseEditor(courseId: string) {
     moveLesson: useCourseMutation(courseId, ({ id, direction }: { id: string; direction: 'up' | 'down' }) =>
       apiClient.post(`/courses/lessons/${id}/move`, { direction }),
     ),
+    moveLessonToModule: useCourseMutation(courseId, ({ id, moduleId }: { id: string; moduleId: string }) =>
+      apiClient.post(`/courses/lessons/${id}/module`, { moduleId }),
+    ),
     addAttachment: useCourseMutation(courseId, async ({ lessonId, file }: { lessonId: string; file: File }) => {
       const form = new FormData();
       form.append('file', await readableOrExplain(file));

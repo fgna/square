@@ -38,6 +38,9 @@ model User {
   lastDigestAt     DateTime?
   calendarInvites  Boolean              @default(true)
   eventReminders   Boolean              @default(true)
+  /// Journal reminder: null = the instance's default time, "off", or the member's own "HH:MM".
+  journalReminder       String?
+  lastJournalReminderAt DateTime?
   hasIntroduced         Boolean              @default(false)
   onboardingCompleted   Boolean              @default(false)
   /// Set when the member hides the welcome video on the dashboard.
@@ -448,8 +451,15 @@ model PlatformSettings {
   primaryColor String   @default("#c5a880")
   accentColor  String   @default("#6366f1")
   allowSignups Boolean  @default(true)
+  /// Public Android APK download, controlled by this instance's administrators.
+  androidAppDownloadEnabled Boolean @default(false)
+  androidAppDownloadUrl     String?
   /// Loom/Vimeo/YouTube link shown to new members in onboarding and on the dashboard.
   welcomeVideoUrl String?
+  /// Daily e-mail reminding members to complete their journal (off by default).
+  journalReminders    Boolean @default(false)
+  /// Default time of that reminder in PLATFORM_TIME_ZONE ("HH:MM").
+  journalReminderTime String  @default("16:30")
   updatedAt    DateTime @updatedAt
 }
 

@@ -90,7 +90,8 @@ export class CoursesService {
     // Admins edit the course and see everything as stored; courses without
     // drip have nothing to hold back.
     if (userRole === 'ADMIN' || !userId || course.releaseMode !== 'DRIP') {
-      return { ...course, modules: course.modules.map((m) => ({ ...m, lessons: m.lessons.map((l) => this.present(l)) })) };
+      const forAdmin = userRole === 'ADMIN';
+      return { ...course, modules: course.modules.map((m) => ({ ...m, lessons: m.lessons.map((l) => this.present(l, null, forAdmin)) })) };
     }
 
     const startedAt = await this.startedAt(course.id, userId);
@@ -120,10 +121,14 @@ export class CoursesService {
    * Adds the embeddable video link and absolute attachment links. A lesson
    * that has not opened yet is sent without its content, video or files —
    * hiding them in the browser alone would leave them one request away.
+   * Members get only the player link, not the video's own page: an unlisted
+   * share link copied from a response would play anywhere. Admins keep it to
+   * edit the lesson.
    */
   private present<L extends { content: string; videoUrl?: string | null; attachments?: { url: string }[] }>(
     lesson: L,
     availableAt: Date | null = null,
+    forAdmin = false,
   ) {
     if (availableAt) {
       return {
@@ -139,6 +144,7 @@ export class CoursesService {
     }
     return {
       ...lesson,
+      videoUrl: forAdmin ? lesson.videoUrl ?? null : null,
       videoEmbedUrl: lesson.videoUrl ? toVideoEmbed(lesson.videoUrl)?.embedUrl ?? null : null,
       // Only when the admin allows it, and only for hosts that offer downloads.
       videoDownloadUrl:
@@ -288,7 +294,7 @@ export class CoursesService {
       throw new NotFoundException('Lesson not found');
     }
     const course = lesson.module.course;
-    if (userRole === 'ADMIN' || !userId || course.releaseMode !== 'DRIP') return this.present(lesson);
+    if (userRole === 'ADMIN' || !userId || course.releaseMode !== 'DRIP') return this.present(lesson, null, userRole === 'ADMIN');
 
     return this.present(
       lesson,
@@ -349,7 +355,7 @@ export class CoursesService {
       },
       include: lessonInclude,
     });
-    return this.present(lesson);
+    return this.present(lesson, null, true);
   }
 
   async updateLesson(lessonId: string, dto: UpdateLessonDto) {
@@ -365,7 +371,7 @@ export class CoursesService {
       },
       include: lessonInclude,
     });
-    return this.present(lesson);
+    return this.present(lesson, null, true);
   }
 
   /** Viewable types (PDF, audio) may be view-only; Office files cannot be shown in a browser. */
@@ -399,6 +405,28 @@ export class CoursesService {
       this.prisma.lesson.update({ where: { id: neighbour.id }, data: { order: lesson.order } }),
     ]);
     return { ...lesson, order: neighbour.order };
+  }
+
+  /**
+   * Moves a lesson into another module of the same course, at its end. Notes,
+   * attachments and members' progress stay with the lesson (they refer to it,
+   * not to the module).
+   */
+  async moveLessonToModule(lessonId: string, moduleId: string) {
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: true } });
+    if (!lesson) throw new NotFoundException('Lesson not found');
+    const target = await this.findModule(moduleId);
+    if (target.courseId !== lesson.module.courseId) {
+      throw new BadRequestException('Lessons can only move between modules of the same course');
+    }
+    if (target.id === lesson.moduleId) return this.present(lesson);
+    const last = await this.prisma.lesson.findFirst({ where: { moduleId }, orderBy: { order: 'desc' } });
+    const moved = await this.prisma.lesson.update({
+      where: { id: lessonId },
+      data: { moduleId, order: (last?.order ?? 0) + 1 },
+      include: lessonInclude,
+    });
+    return this.present(moved);
   }
 
   /** Attaches a file already stored through POST /uploads/file. */

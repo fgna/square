@@ -1,0 +1,7 @@
+{
+  "title": "Event proposals with end times, editable by admins",
+  "category": "improved",
+  "audience": "admins",
+  "description": "Proposed dates can have an end time, and admins can correct a proposal after publishing it; votes for removed dates are dropped.",
+  "pr": 61
+}

@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"Meine Gedanken","placeholder":"Was beschäftigt dich heute?"},
+  "journalSimpleUI": {
+    "thoughts": "Meine Gedanken",
+    "placeholder": "Was beschäftigt dich heute?"
+  },
   "journalMoodUI": {
     "grateful": "Dankbar",
     "happy": "Glücklich",
@@ -29,6 +32,17 @@
     "next": "Weiter"
   },
   "adminCoursesUI": {
+    "participationShort": "{started} gestartet · {completed} abgeschlossen",
+    "participation": {
+      "title": "Teilnahme",
+      "summary": "{started} gestartet · {completed} abgeschlossen · {active} in den letzten 30 Tagen aktiv",
+      "none": "Noch hat niemand diesen Kurs begonnen.",
+      "member": "Mitglied",
+      "progress": "Fortschritt",
+      "lessons": "Lektionen",
+      "started": "Begonnen",
+      "lastActivity": "Zuletzt aktiv"
+    },
     "new": "Neuer Kurs",
     "title": "Titel",
     "description": "Beschreibung",
@@ -359,6 +373,11 @@
       "download": ".ics herunterladen"
     },
     "proposals": {
+      "start": "Beginn",
+      "endTime": "Ende",
+      "edit": "Bearbeiten",
+      "save": "Speichern",
+      "errorEnd": "Das Ende muss nach dem Beginn liegen.",
       "title": "Terminvorschläge",
       "open": "{count} offen",
       "new": "Neuer Vorschlag",
@@ -485,6 +504,8 @@
       "shareSuccess": "Erfolg teilen"
     },
     "card": {
+      "pin": "Oben anpinnen",
+      "unpin": "Nicht mehr anpinnen",
       "edit": "Bearbeiten",
       "report": "Melden",
       "delete": "Löschen",
@@ -798,6 +819,11 @@
       "subtitle": "Wähle deine bevorzugte Sprache."
     },
     "notifications": {
+      "journalTitle": "Journal-Erinnerung",
+      "journalDesc": "Eine kurze E-Mail, damit du deinen Tag im Journal abschließt.",
+      "journalDefault": "Täglich um {time} (Standard)",
+      "journalOwn": "Eigene Uhrzeit",
+      "journalOff": "Keine Erinnerung",
       "digestTitle": "E-Mail-Zusammenfassung",
       "digestSubtitle": "Erhalte eine Zusammenfassung neuer Beiträge, Veranstaltungen und Benachrichtigungen per E-Mail.",
       "daily": "Täglich",
@@ -1114,11 +1140,14 @@
     "steps": "Installation",
     "stepDownload": "APK herunterladen",
     "stepOpen": "Datei öffnen",
-    "stepAllow": "Installation zulassen",
+    "stepAllow": "Erlaube die Installation aus diesem Browser oder Dateimanager, wenn Android danach fragt. Diese Berechtigung kannst du anschließend wieder ausschalten.",
     "stepInstall": "App installieren",
     "stepSignIn": "Anmelden",
     "offline": "Manche Funktionen benötigen eine Verbindung.",
-    "unavailable": "Für diese Community ist aktuell keine Android-APK veröffentlicht. Du kannst die Website weiterhin im Browser benutzen."
+    "unavailable": "Für diese Community ist aktuell keine Android-APK veröffentlicht. Du kannst die Website weiterhin im Browser benutzen.",
+    "loading": "App-Download wird geladen…",
+    "back": "Zurück zur Community",
+    "stepServer": "Falls die App nach einer Serveradresse fragt, trage {url} ein."
   },
   "adminCategoriesUI": {
     "title": "Kategorien",
@@ -1162,6 +1191,10 @@
     "testimonials": "Erfahrungsberichte"
   },
   "adminSettingsUI": {
+    "journalReminderTitle": "Journal-Erinnerung",
+    "journalReminderDescription": "Mitglieder bekommen täglich eine E-Mail, ihr Journal abzuschließen. Jedes Mitglied kann die Uhrzeit ändern oder die Erinnerung abschalten.",
+    "journalReminderToggle": "Erinnerung senden",
+    "journalReminderTime": "Standard-Uhrzeit",
     "title": "Plattformeinstellungen",
     "description": "Markenauftritt und plattformweite Optionen konfigurieren.",
     "branding": "Markenauftritt",
@@ -1463,5 +1496,14 @@
     "added": "Aufzeichnung hinzugefügt",
     "failed": "Die Aufzeichnung konnte nicht gespeichert werden",
     "uploadFailed": "Die Datei konnte nicht hochgeladen werden"
+  },
+  "androidAppAdminUI": {
+    "title": "Android-App herunterladen",
+    "description": "Biete die Android-App deiner Community auf der Website an.",
+    "enable": "Android-App-Download anzeigen",
+    "url": "APK-Download-URL (HTTPS)",
+    "hint": "Verwende eine öffentliche URL zu einer signierten Release-APK. Mitglieder müssen sie ohne Repository-Zugriff herunterladen können. Behalte Signierschlüssel und eine fortlaufende APK-Versionierung für Updates bei.",
+    "invalidUrl": "Trage vor der Freigabe eine gültige HTTPS-Download-URL ohne Zugangsdaten oder Fragment ein.",
+    "saveError": "Die Einstellungen konnten nicht gespeichert werden."
   }
 }

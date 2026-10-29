@@ -212,6 +212,28 @@ export class UsersService {
     });
   }
 
+  /** Whether this instance sends journal reminders, its default time and the member's choice. */
+  async getJournalReminder(userId: string) {
+    const [settings, user] = await Promise.all([
+      this.prisma.platformSettings.findUnique({ where: { id: 'default' }, select: { journalReminders: true, journalReminderTime: true } }),
+      this.prisma.user.findUnique({ where: { id: userId }, select: { journalReminder: true } }),
+    ]);
+    return {
+      enabled: settings?.journalReminders ?? false,
+      defaultTime: settings?.journalReminderTime ?? '16:30',
+      choice: user?.journalReminder ?? 'default',
+    };
+  }
+
+  /** "default" (the instance's time), "off", or the member's own "HH:MM". */
+  async updateJournalReminder(userId: string, choice: string) {
+    if (choice !== 'default' && choice !== 'off' && !/^([01]\d|2[0-3]):[0-5]\d$/.test(choice)) {
+      throw new BadRequestException('Choose "default", "off" or a time HH:MM');
+    }
+    await this.prisma.user.update({ where: { id: userId }, data: { journalReminder: choice === 'default' ? null : choice } });
+    return this.getJournalReminder(userId);
+  }
+
   async updateDigestPreference(userId: string, frequency: string) {
     return this.prisma.user.update({
       where: { id: userId },
@@ -230,8 +252,8 @@ export class UsersService {
       this.prisma.user.findUnique({ where: { id: userId }, select: { welcomeVideoDismissedAt: true } }),
     ]);
     const videoUrl = settings?.welcomeVideoUrl ?? null;
+    // Only the player link: the share link would play outside the platform.
     return {
-      videoUrl,
       videoEmbedUrl: videoUrl ? toVideoEmbed(videoUrl)?.embedUrl ?? null : null,
       dismissed: !!user?.welcomeVideoDismissedAt,
     };

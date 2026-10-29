@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { authLink } from '@/lib/home';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('invite') ?? undefined;
+  const loginHref = authLink('/login', searchParams.get('from'));
   const t = useTranslations('auth');
   const { data: branding } = useBranding();
 
@@ -62,7 +64,7 @@ function RegisterForm() {
         <p className="mt-4 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
           {t('haveAccount')}{' '}
           <Link
-            href="/login"
+            href={loginHref}
             className="font-medium hover:underline"
             style={{ color: 'var(--theme-primary)' }}
           >
@@ -220,7 +222,7 @@ function RegisterForm() {
       <p className="mt-4 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
         {t('haveAccount')}{' '}
         <Link
-          href="/login"
+          href={loginHref}
           className="font-medium hover:underline"
           style={{ color: 'var(--theme-primary)' }}
         >

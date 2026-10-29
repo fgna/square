@@ -23,7 +23,6 @@ describe('UsersService — welcome video', () => {
     prisma.user.findUnique.mockResolvedValue({ welcomeVideoDismissedAt: null });
 
     await expect(service.getWelcome('u1')).resolves.toEqual({
-      videoUrl: 'https://www.loom.com/share/0123456789abcdef',
       videoEmbedUrl: 'https://www.loom.com/embed/0123456789abcdef',
       dismissed: false,
     });
