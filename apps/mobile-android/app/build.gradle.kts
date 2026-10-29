@@ -19,6 +19,23 @@ require(whiteLabelUrl.isEmpty() || (
         (it.rawPath.isNullOrEmpty() || it.rawPath == "/") }
 )) { "communityUrl must be an HTTPS origin without path, credentials, query or fragment." }
 
+val whiteLabelVersionCode = providers.gradleProperty("communityVersionCode").orElse("1").get().toIntOrNull()
+require(whiteLabelVersionCode != null && whiteLabelVersionCode in 1..2100000000) {
+    "communityVersionCode must be an integer between 1 and 2100000000."
+}
+val whiteLabelVersionName = providers.gradleProperty("communityVersionName").orElse("1.0").get()
+require(whiteLabelVersionName.isNotBlank()) { "communityVersionName may not be blank" }
+
+// Build-type resources override the shared main icon without modifying upstream files.
+val whiteLabelResources = providers.gradleProperty("communityResDir").orNull?.let { file(it) }
+whiteLabelResources?.let { resources ->
+    require(resources.isDirectory &&
+        resources.resolve("drawable/ic_launcher_foreground.xml").isFile &&
+        resources.resolve("values/colors.xml").isFile) {
+        "communityResDir must contain drawable/ic_launcher_foreground.xml and values/colors.xml."
+    }
+}
+
 val keystorePath = System.getenv("KEYSTORE_PATH")
 val storePasswordValue = System.getenv("KEYSTORE_PASSWORD")
 val keyAliasValue = System.getenv("KEY_ALIAS")
@@ -36,8 +53,8 @@ android {
         buildConfigField("String", "COMMUNITY_URL", "\"${whiteLabelUrl}\"")
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = whiteLabelVersionCode!!
+        versionName = whiteLabelVersionName
     }
     if (releaseConfigured) {
         signingConfigs {
@@ -54,6 +71,10 @@ android {
             isMinifyEnabled = false
             if (releaseConfigured) signingConfig = signingConfigs.getByName("release")
         }
+    }
+    whiteLabelResources?.let { resources ->
+        sourceSets.getByName("debug").res.srcDir(resources)
+        sourceSets.getByName("release").res.srcDir(resources)
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -1,0 +1,8 @@
+{
+  "name": "Example Community",
+  "applicationId": "org.example.community",
+  "url": "https://community.example.com",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "resources": "res"
+}
