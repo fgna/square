@@ -26,6 +26,13 @@ For a LAN server such as `https://192.168.1.121:3443`, install and verify the
 local CA on the test device first. Only debug builds trust user-installed CAs;
 release builds retain platform TLS verification. Never bypass certificate errors.
 
+If the instance cannot be loaded, the app shows the reason instead of a blank
+page, with "Try again" and (in the generic app) "Change server". A LAN server
+with Caddy's `tls internal` needs its root certificate
+(`caddy-data/caddy/pki/authorities/local/root.crt`) installed on the device under
+Settings → Security → Encryption & credentials → Install a certificate → CA
+certificate. Accepting a browser warning in Chrome does not make the app trust it.
+
 Release tasks fail unless all four signing environment variables are supplied:
 `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 No keystores or credentials belong in Git. No public APK distribution is enabled.
