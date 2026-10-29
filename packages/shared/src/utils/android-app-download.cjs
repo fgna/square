@@ -1,10 +1,5 @@
-export interface AndroidAppDownloadSettings {
-  androidAppDownloadEnabled?: boolean;
-  androidAppDownloadUrl?: string | null;
-}
-
-/** Validate links only. Never fetch an administrator's URL on the server. */
-export function isAndroidAppDownloadUrl(value: unknown): value is string {
+/** Runtime-safe shared contract for the CommonJS API and the web bundle. */
+function isAndroidAppDownloadUrl(value) {
   if (typeof value !== 'string' || value.length > 2048 || !/^https:\/\//i.test(value) || /[\\\s]/.test(value)) return false;
   if (/^https:\/\/[^/?#]*@/i.test(value)) return false;
   try {
@@ -15,11 +10,7 @@ export function isAndroidAppDownloadUrl(value: unknown): value is string {
   }
 }
 
-/** Return a complete valid pair, including for partial admin updates. */
-export function normalizeAndroidAppDownloadSettings(
-  current: AndroidAppDownloadSettings | null,
-  patch: AndroidAppDownloadSettings,
-): Required<AndroidAppDownloadSettings> {
+function normalizeAndroidAppDownloadSettings(current, patch) {
   const enabled = patch.androidAppDownloadEnabled === undefined
     ? current?.androidAppDownloadEnabled ?? false : patch.androidAppDownloadEnabled;
   if (typeof enabled !== 'boolean') throw new Error('Android app download enabled must be a boolean');
@@ -34,8 +25,11 @@ export function normalizeAndroidAppDownloadSettings(
   return { androidAppDownloadEnabled: enabled, androidAppDownloadUrl: url };
 }
 
-/** Fail closed for old, disabled or invalid stored configuration. */
-export function androidAppDownloadUrl(settings?: AndroidAppDownloadSettings | null): string | null {
+function androidAppDownloadUrl(settings) {
   return settings?.androidAppDownloadEnabled === true && isAndroidAppDownloadUrl(settings.androidAppDownloadUrl)
     ? settings.androidAppDownloadUrl : null;
 }
+
+exports.isAndroidAppDownloadUrl = isAndroidAppDownloadUrl;
+exports.normalizeAndroidAppDownloadSettings = normalizeAndroidAppDownloadSettings;
+exports.androidAppDownloadUrl = androidAppDownloadUrl;

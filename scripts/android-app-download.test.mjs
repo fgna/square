@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isAndroidAppDownloadUrl, normalizeAndroidAppDownloadSettings, androidAppDownloadUrl } from '../packages/shared/src/utils/android-app-download.ts';
+import { isAndroidAppDownloadUrl, normalizeAndroidAppDownloadSettings, androidAppDownloadUrl } from '../packages/shared/src/utils/android-app-download.cjs';
 import { editableSettings } from '../apps/web/src/lib/platform-settings.ts';
 
 const url = 'https://downloads.example.com/releases/community-v1.apk';

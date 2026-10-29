@@ -3,7 +3,7 @@ import { UpdatePlatformSettingsDto } from './dto/update-platform-settings.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { toVideoEmbed } from '../courses/video-url';
 import { GdprService } from '../gdpr/gdpr.service';
-import { normalizeAndroidAppDownloadSettings } from '@community/shared';
+import { normalizeAndroidAppDownloadSettings } from '@community/shared/android-app-download';
 
 /** Accounts deleted by their owner keep a placeholder row (see GdprService.deleteAccount). */
 export function isDeletedAccount(email: string | null | undefined): boolean {

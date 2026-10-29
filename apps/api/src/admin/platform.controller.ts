@@ -2,7 +2,7 @@ import { Controller, Get, SetMetadata } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IS_PUBLIC_KEY } from '../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
-import { androidAppDownloadUrl } from '@community/shared';
+import { androidAppDownloadUrl } from '@community/shared/android-app-download';
 
 /**
  * Name and logo of the platform, for the sidebar and the sign-in page, and
