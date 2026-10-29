@@ -126,7 +126,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(32, 64, 32, 32)
         }
-        val title = TextView(this).apply { text = "Square server (HTTPS)" }
+        val title = TextView(this).apply { text = "${getString(R.string.app_name)} server (HTTPS)" }
         val input = EditText(this).apply {
             hint = "https://community.example.com"
             setText(prefs.getString("server_url", ""))
@@ -135,7 +135,7 @@ class MainActivity : Activity() {
         }
         val message = TextView(this)
         val connect = Button(this).apply {
-            text = "Open Square"
+            text = "Open ${getString(R.string.app_name)}"
             setOnClickListener {
                 val url = input.text.toString().trim().trimEnd('/')
                 if (!TrustedOrigin.validBase(url)) {
@@ -247,7 +247,7 @@ class MainActivity : Activity() {
             isClickable = true
         }
         panel.addView(TextView(this).apply {
-            text = "Square could not be opened"
+            text = "${getString(R.string.app_name)} could not be opened"
             textSize = 20f
             setTextColor(Color.WHITE)
         })

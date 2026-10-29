@@ -67,12 +67,35 @@ generic server URL setup screen. The standard build without properties remains
 the shared Square app. Use a distinct and stable package ID per community;
 changing it creates a new installation. Ensure a trusted HTTPS certificate.
 
-**Brand artwork:** for a community-specific launcher icon, replace
-`app/src/main/res/drawable/ic_launcher_foreground.xml` and the background
-color in `app/src/main/res/values/colors.xml` in the community's build
-checkout (or add a dedicated Android product flavor). The old Community icon
-remains the default until a branded asset is supplied. The build properties
-alone do not customize the icon yet.
+## Community-owned branding and versions
+
+Use `-PcommunityResDir=/absolute/path/to/community/android/res` for an external
+resource overlay in both debug and release builds. The directory must contain
+`drawable/ic_launcher_foreground.xml` and `values/colors.xml` with the
+`ic_launcher_background` color. Keep all community artwork in its own repository.
+No tracked Square resource is replaced; building without the property uses the
+shared icon again.
+
+Use `-PcommunityVersionCode=2` and `-PcommunityVersionName=1.0.1` for updates.
+Version codes must be integers from 1 through 2100000000. Existing builds retain
+their default versionCode 1 and versionName 1.0.
+
+For a complete separate-repository configuration, build helper, release/download
+procedure and synthetic icon example, see
+[Community-owned Android build](../../examples/android-community/README.md).
+The helper uses Python 3 and the included Gradle wrapper, preserves community
+identity for tests and builds, and writes a named APK plus SHA-256 sidecar.
+
+Build-contract tests (no Android SDK needed):
+
+```sh
+python3 -m unittest discover -s apps/mobile-android/tests -v
+```
+
+These tests verify orchestration, config rejection and artifact checksums using
+synthetic APK bytes. They do not compile Android code, verify resource merging,
+verify release signatures or replace device acceptance. Run the real Gradle unit
+and APK builds for both generic and branded configurations before integration.
 
 **Release:** supply signing credentials via the documented environment variables
 and use `assembleRelease`. Keep the same signing key, application ID and
