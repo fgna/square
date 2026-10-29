@@ -14,11 +14,12 @@ describe('afterSignIn', () => {
 
   it('never leaves the app, however the destination is written', () => {
     for (const from of ['https://evil.example', '//evil.example', '/\\evil.example', '/\t/evil.example', '/\n/evil.example',
-      '/%09/evil.example', '/\\\\evil.example', 'javascript:alert(1)']) {
+      '/%09/evil.example', '/\\\\evil.example', 'javascript:alert(1)', '/.//evil.example', '/a/..//evil.example', '/./\\evil.example', '/%2e//evil.example']) {
       const target = afterSignIn(from, '/p/game');
       expect(new URL(target, 'https://app.test').origin, from).toBe('https://app.test');
     }
     expect(afterSignIn('/\t/evil.example', '/p/game')).toBe('/p/game');
+    expect(afterSignIn('/.//evil.example', '/p/game')).toBe('/p/game');
   });
 
   it('never loops back to the sign-in', () => {

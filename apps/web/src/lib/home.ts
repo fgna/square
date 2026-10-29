@@ -22,7 +22,10 @@ export function afterSignIn(from: string | null | undefined, home: string = HOME
   if (url.origin !== BASE) return home;
   // No loop back to the sign-in, and nothing outside the pages.
   if (/^\/(login|register|auth|api)(\/|$)/.test(url.pathname)) return home;
-  return url.pathname + url.search + url.hash;
+  // Normalizing can itself produce "//host" ("/.//host"): check the result once more.
+  const target = url.pathname + url.search + url.hash;
+  if (/^[/\\]{2}/.test(target) || new URL(target, BASE).origin !== BASE) return home;
+  return target;
 }
 
 /** The ?from= of the current page, read when needed (the auth hooks run outside a Suspense boundary). */
