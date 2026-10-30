@@ -7,7 +7,7 @@
 
 Square is built with a **Next.js web app**, a **NestJS API**, **Prisma/PostgreSQL** and a plugin interface. Each community can keep its identity, content and operational data separate from the reusable application.
 
-**[What's New in Square 1.0](docs/whats-new/v1.0.0.md)** — a user-focused overview of the first public source release.
+**[What's New in Square 1.1](docs/whats-new/v1.1.0.md)** — highlights of the latest source release, including community settings, media uploads, events and Android improvements. See also [What's New in 1.0](docs/whats-new/v1.0.0.md).
 
 ## What Square includes
 
@@ -79,7 +79,7 @@ Do not use the isolated demo launcher against a live database.
 
 ## Status and contributing
 
-[Square v1.0.0](https://github.com/fgna/square/releases/tag/v1.0.0) is the first public **source release**, not a claim of production readiness. Issues and changes for Square should be tracked in [this repository](https://github.com/fgna/square/issues). Before submitting a change, open an issue that explains the intended user outcome and acceptance criteria.
+[Square v1.1.0](https://github.com/fgna/square/releases/tag/v1.1.0) is the latest public **source release**; releases are not claims of production readiness. Issues and changes for Square should be tracked in [this repository](https://github.com/fgna/square/issues). Before submitting a change, open an issue that explains the intended user outcome and acceptance criteria.
 
 ## License
 
