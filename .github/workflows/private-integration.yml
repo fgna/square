@@ -40,6 +40,10 @@ jobs:
         run: pnpm --dir apps/api exec vitest run --exclude 'src/config/docker-secrets.adversarial.spec.ts'
       - name: Web tests
         run: pnpm --dir apps/web exec vitest run
+      - name: Install Playwright Chromium
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - name: Password recovery browser regression (mocked mail API)
+        run: pnpm --dir apps/web exec playwright test --config=playwright.recovery.config.ts
       - name: Report unvalidated deployment gate
         run: |
           if [ ! -f docker-compose.yml ]; then
