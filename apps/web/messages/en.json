@@ -82,6 +82,8 @@
     "location": "Location (optional)",
     "virtual": "Virtual event",
     "virtualDesc": "Include a meeting URL",
+    "remind24h": "Reminder 24 hours ahead",
+    "remind24hDesc": "Mail to everyone who is going. Rather off for daily events; the reminder one hour ahead is always sent. Applies to all dates of a series.",
     "meeting": "Meeting URL",
     "max": "Max RSVPs (optional)",
     "unlimited": "Leave blank for unlimited",
