@@ -26,6 +26,10 @@ export interface CommunityEvent {
   location?: string | null;
   isVirtual: boolean;
   meetingUrl?: string | null;
+  /** Uploaded picture (/uploads/…) or Unsplash photo URL. */
+  coverUrl?: string | null;
+  /** Photographer credit for a library photo. */
+  coverCredit?: { name: string; url: string; source?: string } | null;
   maxRsvps?: number | null;
   remind24h?: boolean;
   /** Shared by every occurrence of a repeating event; null for one-off events. */

@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { generateIcs } from '../email/ics.util';
+import { eventCalendarDescription, generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
-import type { Event, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { Event } from '@prisma/client';
 
 export interface EventListFilter {
   when?: 'upcoming' | 'past' | 'all';
@@ -206,6 +207,11 @@ function withRecordingLinks<T extends { url: string; createdAt: Date; attachment
   };
 }
 
+/** A photo credit as stored (JSON); null removes it. */
+function coverCreditValue(credit: { name: string; url: string; source?: string } | null) {
+  return credit ? { name: credit.name, url: credit.url, source: credit.source ?? 'unsplash' } : Prisma.DbNull;
+}
+
 @Injectable()
 export class EventsService {
   private readonly logger = new Logger(EventsService.name);
@@ -306,7 +312,8 @@ export class EventsService {
       throw new BadRequestException('startsAt must be before endsAt');
     }
 
-    const { recurrence, recurrenceEndsAt, categoryIds, ...eventData } = dto as any;
+    const { recurrence, recurrenceEndsAt, categoryIds, coverCredit, ...rest } = dto as any;
+    const eventData = { ...rest, ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }) };
 
     // Hand Prisma real Date objects: @IsDateString() also accepts values such as
     // "2026-10-01T14:30" (what an <input type="datetime-local"> produces), which
@@ -369,11 +376,12 @@ export class EventsService {
       throw new BadRequestException('startsAt must be before endsAt');
     }
 
-    const { categoryIds, ...fields } = dto;
+    const { categoryIds, coverCredit, ...fields } = dto;
     const updated = await this.prisma.event.update({
       where: { id },
       data: {
         ...fields,
+        ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }),
         ...(startsAt ? { startsAt } : {}),
         ...(endsAt ? { endsAt } : {}),
       },
@@ -626,7 +634,7 @@ export class EventsService {
       // Must stay identical between invitation and cancellation.
       uid: `${event.id}@community`,
       title: event.title,
-      description: event.description,
+      description: eventCalendarDescription(event),
       location: event.isVirtual ? event.meetingUrl || 'Online' : event.location || undefined,
       url: eventUrl(appUrl, event.id),
       startsAt: new Date(event.startsAt),

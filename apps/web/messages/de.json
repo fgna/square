@@ -69,6 +69,11 @@
     "coverImage": "Titelbild (optional)"
   },
   "adminEventsUI": {
+    "cover": "Titelbild",
+    "coverSearch": "Foto bei Unsplash suchen …",
+    "coverUnsplashNote": "Unsplash-Fotos werden von Unsplash geladen; der Fotograf wird genannt.",
+    "coverNone": "Keine Fotos gefunden.",
+    "coverClose": "Schließen",
     "new": "Neue Veranstaltung",
     "title": "Titel",
     "description": "Beschreibung",
@@ -345,6 +350,7 @@
     }
   },
   "events": {
+    "coverCredit": "Foto: <author>{name}</author> auf <library>Unsplash</library>",
     "title": "Veranstaltungen",
     "description": "Ihr lernt und inspiriert euch gegenseitig bei unseren Live-Veranstaltungen.",
     "list": "Liste",
@@ -354,6 +360,7 @@
     "spotsLeft": "{count} Plätze frei",
     "rsvp": "Zusagen",
     "cancelRsvp": "Zusage zurücknehmen",
+    "join": "Beitreten",
     "failed": "Veranstaltungen konnten nicht geladen werden.",
     "unknownError": "Unbekannter Fehler",
     "retry": "Erneut versuchen",
@@ -914,6 +921,12 @@
     "eventsCount": "{count} Veranstaltungen"
   },
   "dashboard": {
+    "month": {
+      "title": "Die nächsten 30 Tage",
+      "allEvents": "Alle Veranstaltungen",
+      "empty": "In den nächsten 30 Tagen ist nichts geplant.",
+      "recurring": "regelmäßig"
+    },
     "welcome": {
       "video": "Willkommensvideo",
       "heading": "Willkommen",
@@ -1236,6 +1249,17 @@
     "noPrompts": "Noch keine Impulse. Füge oben einen hinzu."
   },
   "adminDigestsUI": {
+    "sendTest": "Test an mich senden",
+    "testSent": "Test-Digest an {to} gesendet.",
+    "testFailed": "Test-Digest konnte nicht gesendet werden (Mailversand prüfen).",
+    "schedule": "Versand: wöchentlich {day} um {weekly}, täglich um {daily} ({zone}). Mitglieder wählen in ihren Einstellungen täglich, wöchentlich oder aus.",
+    "weekday0": "sonntags",
+    "weekday1": "montags",
+    "weekday2": "dienstags",
+    "weekday3": "mittwochs",
+    "weekday4": "donnerstags",
+    "weekday5": "freitags",
+    "weekday6": "samstags",
     "sectionNewPosts": "Neue Beiträge",
     "sectionUpcomingEvents": "Anstehende Veranstaltungen",
     "sectionNewCourses": "Neue Kurse",
@@ -1246,8 +1270,8 @@
     "nameExample": "z. B. Wöchentlicher Digest",
     "emailSubject": "E-Mail-Betreff",
     "subjectExample": "z. B. Dein wöchentlicher Community-Rückblick",
-    "headerHtml": "HTML-Kopfbereich",
-    "footerHtml": "HTML-Fußbereich",
+    "headerHtml": "Einleitung (z. B. dein Wochentext)",
+    "footerHtml": "Schlusstext",
     "accentColor": "Akzentfarbe",
     "logoOptional": "Logo-URL (optional)",
     "sections": "Digest-Abschnitte",

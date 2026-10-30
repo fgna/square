@@ -1,4 +1,6 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsInt, IsUrl, MinLength, MaxLength, Min, IsArray, ArrayMaxSize } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, IsInt, IsUrl, MinLength, MaxLength, Min, IsArray, ArrayMaxSize, Matches, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { COVER_URL, CoverCreditDto } from '../cover-image';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateEventDto {
@@ -60,4 +62,15 @@ export class UpdateEventDto {
   @ArrayMaxSize(10)
   @IsString({ each: true })
   categoryIds?: string[];
+
+  @ApiPropertyOptional({ description: 'Uploaded picture (/uploads/…) or Unsplash photo URL; null removes it' })
+  @IsOptional()
+  @Matches(COVER_URL, { message: 'coverUrl must be an uploaded picture or an Unsplash photo' })
+  coverUrl?: string | null;
+
+  @ApiPropertyOptional({ description: 'Photographer credit for an Unsplash photo' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CoverCreditDto)
+  coverCredit?: CoverCreditDto | null;
 }

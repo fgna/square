@@ -58,6 +58,15 @@ export default function CourseDetailPage() {
     },
   });
 
+  // On phones the lesson list sits above the lesson, so a tapped lesson
+  // opened far below, out of sight. Bring it into view there.
+  const openLesson = (lessonId: string) => {
+    setActiveLesson(lessonId);
+    if (typeof window !== 'undefined' && window.matchMedia?.('(max-width: 1023px)').matches) {
+      requestAnimationFrame(() => lessonPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  };
+
   const completedLessons: string[] = progress?.completedLessons ?? [];
   const percentage = progress?.percentage ?? 0;
 
@@ -143,7 +152,7 @@ export default function CourseDetailPage() {
                             color: isActive ? 'var(--theme-primary)' : done ? 'var(--theme-text-muted)' : 'var(--theme-text)',
                             background: isActive ? 'rgba(197,168,128,0.08)' : 'transparent',
                           }}
-                          onClick={() => setActiveLesson(lesson.id)}
+                          onClick={() => openLesson(lesson.id)}
                         >
                           {lesson.locked ? (
                             <Lock size={14} className="flex-shrink-0 opacity-60" />
