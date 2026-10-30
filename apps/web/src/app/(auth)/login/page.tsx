@@ -25,7 +25,11 @@ export default function LoginPage() {
   const { data: branding } = useBranding();
   // Read after mounting: the page is prerendered without a query.
   const [registerHref, setRegisterHref] = useState('/register');
-  useEffect(() => setRegisterHref(authLink('/register', currentFrom())), []);
+  const [forgotHref, setForgotHref] = useState('/forgot-password');
+  useEffect(() => {
+    setRegisterHref(authLink('/register', currentFrom()));
+    setForgotHref(authLink('/forgot-password', currentFrom()));
+  }, []);
   const {
     register,
     handleSubmit,
@@ -113,6 +117,7 @@ export default function LoginPage() {
           )}
         </div>
 
+        <div className="text-right text-sm"><Link href={forgotHref} className="hover:underline" style={{ color: 'var(--theme-primary)' }}>{t('forgotPassword')}</Link></div>
         <Button type="submit" className="w-full" disabled={loginLoading}>
           {loginLoading ? (
             <>
