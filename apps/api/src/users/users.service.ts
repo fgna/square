@@ -4,6 +4,9 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpsertChallengeDto } from './dto/upsert-challenge.dto';
 import * as argon2 from 'argon2';
 import { toVideoEmbed } from '../courses/video-url';
+import { isHostedVideo } from '../videos/hosted-video';
+import { signUploadPath } from '../uploads/attachment-links';
+import { absoluteUploadUrl } from '../uploads/public-url';
 
 @Injectable()
 export class UsersService {
@@ -255,6 +258,8 @@ export class UsersService {
     // Only the player link: the share link would play outside the platform.
     return {
       videoEmbedUrl: videoUrl ? toVideoEmbed(videoUrl)?.embedUrl ?? null : null,
+      // An uploaded welcome video plays from a signed, expiring link.
+      videoFileUrl: isHostedVideo(videoUrl) ? absoluteUploadUrl(signUploadPath(videoUrl)) : null,
       dismissed: !!user?.welcomeVideoDismissedAt,
     };
   }

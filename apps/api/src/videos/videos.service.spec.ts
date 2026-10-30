@@ -28,7 +28,7 @@ const mp4 = (size: number) => video(size);
 /** Prisma stub: no lesson or recording uses any video unless listed. */
 function unused(used: string[] = []) {
   const count = vi.fn(async ({ where }: any) => (used.includes(where.videoUrl ?? where.url) ? 1 : 0));
-  return { lesson: { count }, recording: { count } };
+  return { lesson: { count }, recording: { count }, platformSettings: { count: vi.fn(async ({ where }: any) => (used.includes(where.welcomeVideoUrl) ? 1 : 0)) } };
 }
 
 describe('VideosService: chunked MP4 uploads', () => {
@@ -154,13 +154,23 @@ describe('deleteUnusedHostedVideos', () => {
     const { id } = await service.start('a', { filename: 'v.mp4', size: 100 });
     await service.appendChunk(id, 0, mp4(100));
     const { url } = await service.complete(id);
-    const prisma: any = { lesson: { count: vi.fn().mockResolvedValue(1) }, recording: { count: vi.fn().mockResolvedValue(0) } };
+    const prisma: any = {
+      lesson: { count: vi.fn().mockResolvedValue(1) },
+      recording: { count: vi.fn().mockResolvedValue(0) },
+      platformSettings: { count: vi.fn().mockResolvedValue(0) },
+    };
     const logger: any = { warn: vi.fn() };
 
     await deleteUnusedHostedVideos(prisma, [url, 'https://vimeo.com/1'], logger);
     expect(existsSync(hostedVideoFile(url)!)).toBe(true);
 
+    // Still the welcome video: kept.
     prisma.lesson.count.mockResolvedValue(0);
+    prisma.platformSettings.count.mockResolvedValue(1);
+    await deleteUnusedHostedVideos(prisma, [url], logger);
+    expect(existsSync(hostedVideoFile(url)!)).toBe(true);
+
+    prisma.platformSettings.count.mockResolvedValue(0);
     await deleteUnusedHostedVideos(prisma, [url], logger);
     expect(existsSync(hostedVideoFile(url)!)).toBe(false);
   });

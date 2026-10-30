@@ -24,8 +24,17 @@ describe('UsersService — welcome video', () => {
 
     await expect(service.getWelcome('u1')).resolves.toEqual({
       videoEmbedUrl: 'https://www.loom.com/embed/0123456789abcdef',
+      videoFileUrl: null,
       dismissed: false,
     });
+  });
+
+  it('plays an uploaded welcome video from a signed link, never the stored path', async () => {
+    prisma.platformSettings.findUnique.mockResolvedValue({ welcomeVideoUrl: '/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4' });
+    prisma.user.findUnique.mockResolvedValue({ welcomeVideoDismissedAt: null });
+    const welcome = await service.getWelcome('u1');
+    expect(welcome.videoEmbedUrl).toBeNull();
+    expect(welcome.videoFileUrl).toMatch(/\/uploads\/videos\/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e\.mp4\?exp=\d+&sig=[0-9a-f]+$/);
   });
 
   it('reports no video when none is set', async () => {
