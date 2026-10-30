@@ -131,5 +131,42 @@ describe('api-client', () => {
         { withCredentials: true },
       );
     });
+    async function refreshFailure(refreshError: unknown) {
+      const axios = (await import('axios')).default;
+      const { useAuthStore } = await import('@/store/auth.store');
+      const clearAuth = vi.fn();
+      vi.mocked(useAuthStore.getState).mockReturnValue({ isAuthenticated: true, clearAuth } as any);
+      const mod = await import('./api-client');
+      mod.setAccessToken('old-token');
+      const calls = vi.mocked(mod.default.interceptors.response.use).mock.calls as any;
+      const errorHandler = calls[calls.length - 1][1];
+      vi.mocked(axios.post).mockRejectedValueOnce(refreshError);
+      const originalError = console.error;
+      const stderr = vi.spyOn(console, 'error').mockImplementation((...args) => {
+        if (String(args[0]).includes('Not implemented: navigation')) return;
+        originalError(...args);
+      });
+      try {
+        await expect(errorHandler({ response: { status: 401 }, config: { url: '/members/me', headers: {} } })).rejects.toBe(refreshError);
+      } finally {
+        stderr.mockRestore();
+      }
+      return { clearAuth };
+    }
+
+    it.each([429, 500, 502])('keeps the session when refresh fails with %d', async status => {
+      const { clearAuth } = await refreshFailure({ response: { status } });
+      expect(clearAuth).not.toHaveBeenCalled();
+    });
+
+    it('keeps the session when the refresh request never reaches the server', async () => {
+      const { clearAuth } = await refreshFailure(new Error('Network Error'));
+      expect(clearAuth).not.toHaveBeenCalled();
+    });
+
+    it.each([401, 403])('signs out when the server rejects the refresh with %d', async status => {
+      const { clearAuth } = await refreshFailure({ response: { status } });
+      expect(clearAuth).toHaveBeenCalled();
+    });
   });
 });

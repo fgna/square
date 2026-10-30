@@ -4,6 +4,7 @@ import { EventsService, EventListFilter, recordingRetentionDays } from './events
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateRecordingDto } from './dto/create-recording.dto';
+import { UnsplashCovers } from './cover-image';
 import { RsvpDto } from './dto/rsvp.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -13,6 +14,8 @@ import { AddAttachmentDto } from '../courses/dto/course-content.dto';
 @ApiBearerAuth()
 @Controller('events')
 export class EventsController {
+  private readonly covers = new UnsplashCovers();
+
   constructor(private eventsService: EventsService) {}
 
   @Get()
@@ -103,6 +106,29 @@ export class EventsController {
   @ApiOperation({ summary: 'Cancel RSVP' })
   cancelRsvp(@Param('id') id: string, @CurrentUser() user: any) {
     return this.eventsService.cancelRsvp(id, user.id);
+  }
+
+  // ── Cover images from an image library (only with UNSPLASH_ACCESS_KEY) ──
+
+  @Get('covers/status')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Whether a photo library is configured for event covers' })
+  coverStatus() {
+    return { unsplash: this.covers.enabled() };
+  }
+
+  @Get('covers/search')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Search photos for an event cover (Admin only)' })
+  searchCovers(@Query('q') q = '') {
+    return this.covers.search(q);
+  }
+
+  @Post('covers/chosen')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Report a chosen library photo, as the library requires (Admin only)' })
+  coverChosen(@Body() body: { downloadLocation: string }) {
+    return this.covers.markChosen(String(body?.downloadLocation ?? ''));
   }
 
   // ── Recordings ─────────────────────────────────────────────────────────

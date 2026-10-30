@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import apiClient from '@/lib/api-client';
+import { previewText } from '@/lib/preview-text';
 import { getInitials } from '@community/shared';
 
 type Category = 'all' | 'posts' | 'members' | 'events' | 'courses' | 'recordings';
@@ -31,10 +32,6 @@ const CATEGORIES: { value: Category; icon: React.ElementType }[] = [
   { value: 'courses', icon: GraduationCap },
   { value: 'recordings', icon: Play },
 ];
-
-function stripHtml(text: string): string {
-  return text.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ');
-}
 
 function formatDate(date: string, locale: string): string {
   return new Date(date).toLocaleDateString(locale, {
@@ -233,7 +230,7 @@ export function SearchPage() {
                   className="block p-3 rounded-lg transition-colors hover:bg-white/5"
                 >
                   <p className="text-sm line-clamp-2" style={{ color: 'var(--theme-text)' }}>
-                    {stripHtml(p.content).slice(0, 200)}
+                    {previewText(p.content).slice(0, 200)}
                   </p>
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
@@ -273,7 +270,7 @@ export function SearchPage() {
                       {e.title}
                     </p>
                     <p className="text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>
-                      {e.isVirtual ? t('virtual') : e.description?.slice(0, 60)}
+                      {e.isVirtual ? t('virtual') : (e.description && previewText(e.description).slice(0, 60))}
                     </p>
                   </div>
                 </Link>

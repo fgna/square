@@ -1,5 +1,7 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsInt, IsUrl, MinLength, MaxLength, Min, IsIn, IsArray, ArrayMaxSize } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, IsInt, IsUrl, MinLength, MaxLength, Min, IsIn, IsArray, ArrayMaxSize, Matches, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { COVER_URL, CoverCreditDto } from '../cover-image';
 
 export const RECURRENCE_RULES = ['DAILY', 'WEEKDAYS', 'WEEKLY', 'BIWEEKLY', 'MONTHLY'] as const;
 
@@ -72,4 +74,15 @@ export class CreateEventDto {
   @ArrayMaxSize(10)
   @IsString({ each: true })
   categoryIds?: string[];
+
+  @ApiPropertyOptional({ description: 'Uploaded picture (/uploads/…) or Unsplash photo URL; null removes it' })
+  @IsOptional()
+  @Matches(COVER_URL, { message: 'coverUrl must be an uploaded picture or an Unsplash photo' })
+  coverUrl?: string | null;
+
+  @ApiPropertyOptional({ description: 'Photographer credit for an Unsplash photo' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CoverCreditDto)
+  coverCredit?: CoverCreditDto | null;
 }

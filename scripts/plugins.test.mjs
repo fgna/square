@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { collect, renderApiRegistry, renderMessages, renderWebRegistry, satisfies } from './plugins.mjs';
+import { collect, renderApiRegistry, renderHome, renderMessages, renderWebRegistry, satisfies } from './plugins.mjs';
 
 const repo = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const sample = join(repo, 'examples/plugins/hello-world');
@@ -102,6 +102,7 @@ test('the committed registries are the ones for the default config (built-in plu
   assert.equal(readFileSync(join(repo, 'apps/api/src/plugins/registry.generated.ts'), 'utf8'), renderApiRegistry(plugins));
   assert.equal(readFileSync(join(repo, 'apps/web/src/plugins/registry.generated.ts'), 'utf8'), renderWebRegistry(plugins));
   assert.equal(readFileSync(join(repo, 'apps/web/src/plugins/messages.generated.json'), 'utf8'), renderMessages(plugins));
+  assert.equal(readFileSync(join(repo, 'apps/web/src/plugins/home.generated.ts'), 'utf8'), renderHome(null));
 });
 
 test('built-in plugins are active by default, from their own folders', () => {
@@ -220,4 +221,35 @@ test('Core version ranges', () => {
   assert.ok(!satisfies('1.0.1', '1.0.0'));
   assert.ok(satisfies('9.9.9', '*'));
   assert.throws(() => satisfies('1.0.0', '1.x'), /unsupported Core range/);
+});
+
+test('"home" makes an installed plugin the start page', () => {
+  const env = setup();
+  try {
+    editJson(env.config, (c) => { c.home = 'hello-world'; });
+    assert.equal(syncIn(env).status, 0);
+    const home = readFileSync(join(env.root, 'apps/web/src/plugins/home.generated.ts'), 'utf8');
+    assert.match(home, /HOME_PLUGIN: string \| null = 'hello-world';/);
+    assert.match(home, /HOME_PATH: string = '\/p\/hello-world';/);
+    // Without "home" the Core dashboard is the start page again.
+    editJson(env.config, (c) => { delete c.home; });
+    assert.equal(syncIn(env).status, 0);
+    assert.equal(readFileSync(join(env.root, 'apps/web/src/plugins/home.generated.ts'), 'utf8'), renderHome(null));
+  } finally {
+    rmSync(env.root, { recursive: true, force: true });
+  }
+});
+
+test('"home" must name an active plugin with a web part', () => {
+  for (const home of ['missing', 42]) {
+    const env = setup();
+    try {
+      editJson(env.config, (c) => { c.home = home; });
+      const result = syncIn(env);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      assert.match(result.stderr, /"home" must name an active plugin with a web part/);
+    } finally {
+      rmSync(env.root, { recursive: true, force: true });
+    }
+  }
 });

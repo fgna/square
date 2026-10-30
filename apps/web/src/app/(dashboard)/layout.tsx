@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { CommandPalette } from '@/components/command-palette/command-palette';
-import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard';
+import { OnboardingWizard, onboardingAllowedOn } from '@/components/onboarding/onboarding-wizard';
 import { useProfileSync } from '@/hooks/use-profile-sync';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
   useProfileSync();
 
   return (
@@ -29,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
       </div>
       <CommandPalette />
-      <OnboardingWizard />
+      {onboardingAllowedOn(pathname) && <OnboardingWizard />}
     </div>
   );
 }

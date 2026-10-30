@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslations } from 'next-intl';
 import { getInitials } from '@community/shared';
 import { useFormatters } from '@/lib/use-formatters';
+import { previewText } from '@/lib/preview-text';
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   ai: Sparkles,
@@ -231,7 +232,7 @@ export function CategoryLandingPage() {
                     </p>
                     {e.description && (
                       <p className="text-xs truncate mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                        {e.description.slice(0, 80)}
+                        {previewText(e.description).slice(0, 80)}
                       </p>
                     )}
                   </div>
