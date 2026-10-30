@@ -13,3 +13,5 @@ The command first runs the existing pinned Core/content revision validator and i
 After PASS, the operator still must review intervening release notes, verify database migrations and backups, complete isolated API/Web/browser staging acceptance, and explicitly approve deployment. PASS is a **static content compatibility gate**, not a guarantee of plugin/runtime compatibility or production safety.
 
 Use `node --test scripts/check-square-candidate.test.mjs` for unit coverage. Related: #37 and [release discovery](SQUARE-UPDATES.md).
+
+For the operator procedure, write freeze, backup and rollback decisions, see [independent instance upgrade and recovery](SQUARE-UPGRADE-RECOVERY.md).

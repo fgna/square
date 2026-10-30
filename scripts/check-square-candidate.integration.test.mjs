@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -43,7 +43,7 @@ function fixture(callback) {
           '--candidate-pair', path],
         { cwd: core, encoding: 'utf8' });
     };
-    return callback({ pair, run, content });
+    return callback({ pair, run, content, core });
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -65,3 +65,29 @@ test('real pinned Git pair refuses dirty instance checkout', () => fixture(({ co
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Candidate preflight rejected/);
 }));
+
+test('committed incompatible pack blocks promotion without changing the accepted pair or extension', () => fixture(({ pair, run, content, core }) => {
+  const accepted = structuredClone(pair);
+  const extension = join(content, 'extension.mjs');
+  writeFileSync(extension, 'export const instanceOwned = true;\n');
+  git(content, 'add', '.');
+  git(content, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Instance extension');
+  accepted.content.revision = git(content, 'rev-parse', 'HEAD');
+  const originalExtension = readFileSync(extension, 'utf8');
+  const manifest = join(content, 'content/community.json');
+  const json = JSON.parse(readFileSync(manifest, 'utf8'));
+  json.platformCompatibility = '^99.0.0';
+  writeFileSync(manifest, JSON.stringify(json));
+  git(content, 'add', '.');
+  git(content, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Incompatible candidate');
+  pair.content.revision = git(content, 'rev-parse', 'HEAD');
+  const result = run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Candidate preflight rejected/);
+  assert.equal(readFileSync(extension, 'utf8'), originalExtension);
+  assert.equal(git(core, 'rev-parse', 'HEAD'), accepted.core.revision);
+  git(content, 'checkout', '--detach', accepted.content.revision);
+  pair.content.revision = accepted.content.revision;
+  assert.equal(run().status, 0, 'previous reviewed pair remains usable');
+}));
+
