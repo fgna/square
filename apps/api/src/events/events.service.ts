@@ -264,6 +264,12 @@ export class EventsService {
       }),
       this.prisma.event.count({ where }),
     ]);
+    // A daily series has hundreds of dates; counted as events it swamps the
+    // number. Each series counts once, one-off events count as themselves.
+    const [oneOff, series] = await Promise.all([
+      this.prisma.event.count({ where: { ...where, seriesId: null } }),
+      this.prisma.event.groupBy({ by: ['seriesId'], where: { ...where, seriesId: { not: null } } }),
+    ]);
 
     // The member's own answer, also when they are not among the five shown.
     const own = userId && data.length
@@ -280,6 +286,7 @@ export class EventsService {
     return {
       data: events,
       total,
+      distinctTotal: oneOff + series.length,
       page,
       limit,
       totalPages: Math.ceil(total / limit),

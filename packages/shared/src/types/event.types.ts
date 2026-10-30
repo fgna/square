@@ -46,6 +46,8 @@ export interface CommunityEvent {
 export interface PaginatedEvents {
   data: CommunityEvent[];
   total: number;
+  /** Like total, but each series counts once. */
+  distinctTotal?: number;
   page: number;
   limit: number;
   totalPages: number;
