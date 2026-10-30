@@ -1,0 +1,7 @@
+{
+  "title": "Admin pages fit on phones even with wide tables",
+  "category": "fixed",
+  "audience": "admins",
+  "description": "A wide table, such as course participation in the course editor, no longer makes the whole admin page wider than a phone screen; only the table scrolls sideways.",
+  "pr": 100
+}
