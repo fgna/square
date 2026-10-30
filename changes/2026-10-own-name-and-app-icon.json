@@ -1,0 +1,7 @@
+{
+  "title": "Home screen, browser tab and sign-in show the community's own name and icon",
+  "category": "new",
+  "audience": "members and admins",
+  "description": "When members add the site to their home screen, it appears with the community's name and an app icon that admins upload in Settings (without one, the first letter of the name). The browser tab, the sign-in page and the start page use the name from Settings instead of \"Community Platform\".",
+  "pr": 101
+}
