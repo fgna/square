@@ -35,7 +35,7 @@ export function currentFrom(): string | null {
 }
 
 /** A link to the other sign-in form that keeps the page to return to (only a valid one). */
-export function authLink(path: '/login' | '/register', from: string | null): string {
+export function authLink(path: '/login' | '/register' | '/forgot-password', from: string | null): string {
   return from && afterSignIn(from, '') ? `${path}?from=${encodeURIComponent(from)}` : path;
 }
 
