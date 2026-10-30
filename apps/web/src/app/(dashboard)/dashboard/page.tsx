@@ -75,24 +75,28 @@ export default function DashboardPage() {
           title={t('totalMembers')}
           value={membersError ? '!' : (membersData?.total ?? '—')}
           icon={Users}
+          href="/members"
           description={membersError ? t('failedPosts') : t('totalMembersDesc')}
         />
         <StatsCard
           title={t('communityPosts')}
           value={feedError ? '!' : (feedData?.total ?? '—')}
           icon={MessageCircle}
+          href="/feed"
           description={feedError ? t('failedPosts') : t('communityPostsDesc')}
         />
         <StatsCard
           title={t('availableCourses')}
           value={coursesError ? '!' : (coursesData?.total ?? '—')}
           icon={BookOpen}
+          href="/courses"
           description={coursesError ? t('failedPosts') : t('availableCoursesDesc')}
         />
         <StatsCard
           title={t('upcomingEventsCard')}
           value={eventsError ? '!' : (eventsData?.distinctTotal ?? eventsData?.total ?? '—')}
           icon={Calendar}
+          href="/events"
           description={eventsError ? t('failedEvents') : t('upcomingEventsCardDesc')}
         />
       </div>

@@ -19,6 +19,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 import {
   format,
@@ -37,6 +38,7 @@ import {
 import type { CommunityEvent } from "@community/shared";
 import { EventProposalsSection } from "@/components/event-proposals/event-proposals-section";
 import { AddToCalendar } from "./add-to-calendar";
+import { EventCover } from "./event-cover";
 import { EventDescription } from "./event-description";
 
 function EventCard({
@@ -98,6 +100,7 @@ function EventCard({
       }
     >
       <CardContent className="p-0">
+        <EventCover url={event.coverUrl} credit={event.coverCredit} title={event.title} />
         {/* Date strip */}
         <div
           className="flex items-center gap-4 px-5 py-3"
@@ -176,7 +179,8 @@ function EventCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          {/* Wraps on phones: the series link takes its own line instead of pushing the card wider than the screen. */}
+          <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1">
             <div className="flex -space-x-2">
               {event.rsvps?.slice(0, 5).map((attendee) => (
                 <div
@@ -194,7 +198,7 @@ function EventCard({
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
                 variant={userRsvp ? "outline" : "default"}
@@ -219,13 +223,26 @@ function EventCard({
                 )}
               </Button>
               <AddToCalendar event={event} />
+              {/* Straight into the online room (Zoom etc.) until the event has ended. */}
+              {event.isVirtual && event.meetingUrl && new Date(event.endsAt) > new Date() && (
+                <a
+                  href={event.meetingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md px-3 h-8 text-xs font-medium"
+                  style={{ background: "var(--theme-primary)", color: "var(--theme-background)" }}
+                >
+                  <ExternalLink size={12} />
+                  {t("join")}
+                </a>
+              )}
             </div>
             {event.seriesId && (
               <button
                 type="button"
                 onClick={handleSeries}
                 disabled={isPending}
-                className="text-xs underline self-start"
+                className="basis-full text-left text-xs underline"
                 style={{ color: "var(--theme-text-muted)" }}
               >
                 {userRsvp ? t("seriesCancel") : t("seriesRsvp")}

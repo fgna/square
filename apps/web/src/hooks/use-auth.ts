@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import apiClient, { setAccessToken, clearAccessToken } from '@/lib/api-client';
 import type { LoginResponse } from '@community/shared';
+import { afterSignIn, currentFrom, takeReturn } from '@/lib/home';
 
 export function useAuth() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export function useAuth() {
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
       setAuth(data.user);
-      router.push('/dashboard');
+      router.push(afterSignIn(currentFrom()));
     },
   });
 
@@ -34,7 +35,7 @@ export function useAuth() {
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
       setAuth(data.user);
-      router.push('/dashboard');
+      router.push(afterSignIn(currentFrom()));
     },
   });
 
@@ -46,7 +47,7 @@ export function useAuth() {
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
       setAuth(data.user);
-      router.push('/dashboard');
+      router.push(afterSignIn(takeReturn()));
     },
   });
 

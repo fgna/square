@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { PageHeader } from '@/components/common/page-header';
 import { RadarChart } from './radar-chart';
+import { previewText } from '@/lib/preview-text';
 import {
   useAssessmentQuestions,
   useLatestAssessment,
@@ -355,7 +356,7 @@ export function AssessmentPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate" style={{ color: 'var(--theme-text)' }}>{e.title}</p>
-                          <p className="text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>{e.description}</p>
+                          <p className="text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>{e.description && previewText(e.description)}</p>
                         </div>
                       </Link>
                     ))}

@@ -16,6 +16,7 @@ import { CreateDigestTemplateDto } from './dto/create-digest-template.dto';
 
 function buildMockPrisma() {
   return {
+    platformSettings: { findFirst: vi.fn().mockResolvedValue(null) },
     digestTemplate: {
       create: vi.fn(),
       findMany: vi.fn(),

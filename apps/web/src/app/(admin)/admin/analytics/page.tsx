@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/api-client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,15 +28,18 @@ function StatCard({
   value,
   sub,
   color = 'var(--theme-primary)',
+  href,
 }: {
   icon: React.ElementType;
   label: string;
   value: number | string;
   sub?: string;
   color?: string;
+  /** Where the admin looks at what the number counts. */
+  href?: string;
 }) {
-  return (
-    <Card>
+  const card = (
+    <Card className={href ? 'h-full transition-colors hover:border-[var(--theme-primary)]' : undefined}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
@@ -60,6 +64,12 @@ function StatCard({
         </div>
       </CardContent>
     </Card>
+  );
+  if (!href) return card;
+  return (
+    <Link href={href} className="block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+      {card}
+    </Link>
   );
 }
 
@@ -110,10 +120,10 @@ export default function AnalyticsPage() {
           {t('members')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard icon={Users} label={t('totalMembers')} value={data.users.total} />
-          <StatCard icon={UserCheck} label={t('activeMembers')} value={data.users.active} sub={t('ofTotal', {percent: Math.round(data.users.active / Math.max(data.users.total, 1) * 100)})} color="#22c55e" />
-          <StatCard icon={TrendingUp} label={t('new30')} value={data.users.newLast30d} color="#3b82f6" />
-          <StatCard icon={TrendingUp} label={t('new7')} value={data.users.newLast7d} color="#8b5cf6" />
+          <StatCard icon={Users} label={t('totalMembers')} href="/admin/users" value={data.users.total} />
+          <StatCard icon={UserCheck} label={t('activeMembers')} href="/admin/users" value={data.users.active} sub={t('ofTotal', {percent: Math.round(data.users.active / Math.max(data.users.total, 1) * 100)})} color="#22c55e" />
+          <StatCard icon={TrendingUp} label={t('new30')} href="/admin/users" value={data.users.newLast30d} color="#3b82f6" />
+          <StatCard icon={TrendingUp} label={t('new7')} href="/admin/users" value={data.users.newLast7d} color="#8b5cf6" />
         </div>
       </div>
 
@@ -123,9 +133,9 @@ export default function AnalyticsPage() {
           {t('content')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard icon={FileText} label={t('totalPosts')} value={data.content.posts} />
-          <StatCard icon={FileText} label={t('posts30')} value={data.content.postsLast30d} color="#f59e0b" />
-          <StatCard icon={BarChart2} label={t('comments')} value={data.content.comments} color="#ec4899" />
+          <StatCard icon={FileText} label={t('totalPosts')} href="/feed" value={data.content.posts} />
+          <StatCard icon={FileText} label={t('posts30')} href="/feed" value={data.content.postsLast30d} color="#f59e0b" />
+          <StatCard icon={BarChart2} label={t('comments')} href="/feed" value={data.content.comments} color="#ec4899" />
           <StatCard icon={BarChart2} label={t('reactions')} value={data.content.reactions} color="#ef4444" />
         </div>
       </div>
@@ -136,10 +146,10 @@ export default function AnalyticsPage() {
           {t('coursesEvents')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard icon={BookOpen} label={t('totalCourses')} value={data.courses.total} />
-          <StatCard icon={BookOpen} label={t('published')} value={data.courses.published} color="#22c55e" />
-          <StatCard icon={Calendar} label={t('totalEvents')} value={data.events.total} />
-          <StatCard icon={Calendar} label={t('upcoming')} value={data.events.upcoming} color="#3b82f6" sub={t('rsvps', {count: data.events.totalRsvps})} />
+          <StatCard icon={BookOpen} label={t('totalCourses')} href="/admin/courses" value={data.courses.total} />
+          <StatCard icon={BookOpen} label={t('published')} href="/admin/courses" value={data.courses.published} color="#22c55e" />
+          <StatCard icon={Calendar} label={t('totalEvents')} href="/admin/events" value={data.events.total} />
+          <StatCard icon={Calendar} label={t('upcoming')} href="/events" value={data.events.upcoming} color="#3b82f6" sub={t('rsvps', {count: data.events.totalRsvps})} />
         </div>
       </div>
 
@@ -163,9 +173,10 @@ export default function AnalyticsPage() {
           <Card>
             <CardContent className="p-0">
               {data.topPostAuthors.map((author, idx) => (
-                <div
+                <Link
                   key={author.id ?? idx}
-                  className="flex items-center gap-4 px-5 py-3"
+                  href={author.id ? `/members/${author.id}` : '#'}
+                  className="flex items-center gap-4 px-5 py-3 hover:bg-white/5"
                   style={{ borderBottom: idx < data.topPostAuthors.length - 1 ? '1px solid var(--theme-border)' : undefined }}
                 >
                   <span className="text-sm font-mono w-5 text-center" style={{ color: 'var(--theme-text-muted)' }}>
@@ -184,7 +195,7 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-semibold flex-shrink-0" style={{ color: 'var(--theme-primary)' }}>
                     {t('postsCount', {count: author.postCount})}
                   </span>
-                </div>
+                </Link>
               ))}
             </CardContent>
           </Card>

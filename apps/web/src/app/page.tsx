@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { AndroidAppLink } from '@/components/common/android-app-link';
 import { Users, BookOpen, Calendar, MessageSquare, Shield, Zap } from 'lucide-react';
 
 const features = [
@@ -108,6 +109,7 @@ export default async function LandingPage() {
               {t('signInTitle')}
             </Link>
           </div>
+          <AndroidAppLink className="mt-6" />
         </section>
 
         {/* Features */}
