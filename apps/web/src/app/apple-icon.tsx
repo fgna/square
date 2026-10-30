@@ -1,28 +1,10 @@
-import { ImageResponse } from 'next/og';
+import { renderAppIcon } from '@/lib/app-icon';
 
 export const size = { width: 180, height: 180 };
 export const contentType = 'image/png';
+// Reads the icon chosen in Admin → Settings at request time.
+export const dynamic = 'force-dynamic';
 
 export default function AppleIcon() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          display: 'flex',
-          width: '100%',
-          height: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#090d16',
-          color: '#c5a880',
-          fontSize: 90,
-          fontWeight: 700,
-          fontFamily: 'sans-serif',
-        }}
-      >
-        C
-      </div>
-    ),
-    size,
-  );
+  return renderAppIcon(180, { rounded: false });
 }

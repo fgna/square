@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { AndroidAppLink } from '@/components/common/android-app-link';
+import { getServerBranding } from '@/lib/server-branding';
 import { Users, BookOpen, Calendar, MessageSquare, Shield, Zap } from 'lucide-react';
 
 const features = [
@@ -32,6 +33,7 @@ const features = [
 
 export default async function LandingPage() {
   const t = await getTranslations('landingUI');
+  const { platformName } = await getServerBranding();
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -58,7 +60,7 @@ export default async function LandingPage() {
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
               </svg>
             </div>
-            <span className="text-sm sm:text-lg font-semibold leading-tight"><span className="sm:hidden">Community</span><span className="hidden sm:inline">Community Platform</span></span>
+            <span className="text-sm sm:text-lg font-semibold leading-tight">{platformName}</span>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -169,7 +171,7 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t py-8" style={{ borderColor: 'var(--theme-border)' }}>
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-          <span>&copy; {new Date().getFullYear()} Community Platform</span>
+          <span>&copy; {new Date().getFullYear()} {platformName}</span>
           <div className="flex gap-6">
             <Link href="/login" className="hover:opacity-80 transition-opacity">{t('signInTitle')}</Link>
             <Link href="/register" className="hover:opacity-80 transition-opacity">{t('register')}</Link>

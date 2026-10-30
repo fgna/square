@@ -1234,7 +1234,9 @@
     "publicSignup": "Öffentliche Registrierung erlauben",
     "publicSignupDescription": "Neue Mitglieder können sich ohne Einladung registrieren.",
     "save": "Änderungen speichern",
-    "logoHint": "Erscheint oben links anstelle des Namens. Am besten wirkt ein breites Logo auf transparentem oder dunklem Hintergrund."
+    "logoHint": "Erscheint oben links anstelle des Namens. Am besten wirkt ein breites Logo auf transparentem oder dunklem Hintergrund.",
+    "appIcon": "App-Icon",
+    "appIconHint": "Erscheint auf dem Startbildschirm, wenn Mitglieder die Seite dort ablegen, und im Browser-Tab. Quadratisches Bild, mindestens 512 × 512 Pixel. Ohne Icon erscheint der Anfangsbuchstabe des Namens."
   },
   "adminJournalUI": {
     "title": "Journal-Impulse",

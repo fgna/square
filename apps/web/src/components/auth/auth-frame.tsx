@@ -5,6 +5,7 @@ import { LegalLinks } from '@/components/common/legal-links';
 import { AndroidAppLink } from '@/components/common/android-app-link';
 import { findWebPlugin } from '@/plugins';
 import { HOME_PLUGIN } from '@/plugins/home.generated';
+import { useBranding } from '@/hooks/use-branding';
 
 /** The start page plugin's frame for the sign-in pages, if it brings one. */
 export function homeAuthFrame(home: string | null = HOME_PLUGIN): ComponentType<{ children: ReactNode }> | null {
@@ -14,6 +15,7 @@ export function homeAuthFrame(home: string | null = HOME_PLUGIN): ComponentType<
 
 export function AuthFrame({ children }: { children: ReactNode }) {
   const Frame = homeAuthFrame();
+  const { data: branding } = useBranding();
   if (Frame) {
     return (
       <Frame>
@@ -51,7 +53,8 @@ export function AuthFrame({ children }: { children: ReactNode }) {
             className="text-2xl font-bold"
             style={{ color: 'var(--theme-text)' }}
           >
-            Community Platform
+            {/* Name from Admin → Settings; a blank keeps the height while it loads. */}
+            {branding?.platformName ?? '\u00a0'}
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--theme-text-muted)' }}>
             Your premium learning community

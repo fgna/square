@@ -472,6 +472,8 @@ model PlatformSettings {
   id           String   @id @default("default")
   platformName String   @default("Community")
   logoUrl      String?
+  /// Square icon for the home screen and browser tab (an own upload under /uploads/).
+  appIconUrl   String?
   primaryColor String   @default("#c5a880")
   accentColor  String   @default("#6366f1")
   allowSignups Boolean  @default(true)

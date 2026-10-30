@@ -359,6 +359,13 @@ export class AdminService {
         throw new BadRequestException((error as Error).message);
       }
     }
+    if (data.appIconUrl !== undefined) {
+      const icon = data.appIconUrl?.trim() || null;
+      // Only own uploads: the web app fetches this file on the server to build
+      // the home-screen icons, so an outside address must never get there.
+      if (icon && !isOwnUploadPath(icon)) throw new BadRequestException('App icon must be an uploaded image');
+      data.appIconUrl = icon;
+    }
     if (data.welcomeVideoUrl !== undefined) {
       const url = data.welcomeVideoUrl?.trim() || null;
       // Same as course videos: an uploaded video (must exist), or a host that
@@ -382,4 +389,9 @@ export class AdminService {
     }
     return settings;
   }
+}
+
+/** "/uploads/…" without query, fragment, backslash, whitespace or "..". */
+export function isOwnUploadPath(value: string): boolean {
+  return /^\/uploads\/[^?#\\\s]+$/.test(value) && !value.split('/').includes('..');
 }
