@@ -69,6 +69,11 @@
     "coverImage": "Titelbild (optional)"
   },
   "adminEventsUI": {
+    "cover": "Titelbild",
+    "coverSearch": "Foto bei Unsplash suchen …",
+    "coverUnsplashNote": "Unsplash-Fotos werden von Unsplash geladen; der Fotograf wird genannt.",
+    "coverNone": "Keine Fotos gefunden.",
+    "coverClose": "Schließen",
     "new": "Neue Veranstaltung",
     "title": "Titel",
     "description": "Beschreibung",
@@ -343,6 +348,7 @@
     }
   },
   "events": {
+    "coverCredit": "Foto: <author>{name}</author> auf <library>Unsplash</library>",
     "title": "Veranstaltungen",
     "description": "Ihr lernt und inspiriert euch gegenseitig bei unseren Live-Veranstaltungen.",
     "list": "Liste",

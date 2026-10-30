@@ -37,6 +37,7 @@ import {
 import type { CommunityEvent } from "@community/shared";
 import { EventProposalsSection } from "@/components/event-proposals/event-proposals-section";
 import { AddToCalendar } from "./add-to-calendar";
+import { EventCover } from "./event-cover";
 import { EventDescription } from "./event-description";
 
 function EventCard({
@@ -98,6 +99,7 @@ function EventCard({
       }
     >
       <CardContent className="p-0">
+        <EventCover url={event.coverUrl} credit={event.coverCredit} title={event.title} />
         {/* Date strip */}
         <div
           className="flex items-center gap-4 px-5 py-3"
