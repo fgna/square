@@ -358,6 +358,7 @@
     "spotsLeft": "{count} spots left",
     "rsvp": "RSVP",
     "cancelRsvp": "Cancel RSVP",
+    "join": "Join",
     "failed": "Failed to load events.",
     "unknownError": "Unknown error",
     "retry": "Retry",
