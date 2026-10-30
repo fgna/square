@@ -19,6 +19,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 import {
   format,
@@ -220,6 +221,19 @@ function EventCard({
                 )}
               </Button>
               <AddToCalendar event={event} />
+              {/* Straight into the online room (Zoom etc.) until the event has ended. */}
+              {event.isVirtual && event.meetingUrl && new Date(event.endsAt) > new Date() && (
+                <a
+                  href={event.meetingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md px-3 h-8 text-xs font-medium"
+                  style={{ background: "var(--theme-primary)", color: "var(--theme-background)" }}
+                >
+                  <ExternalLink size={12} />
+                  {t("join")}
+                </a>
+              )}
             </div>
             {event.seriesId && (
               <button

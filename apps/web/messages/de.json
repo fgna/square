@@ -352,6 +352,7 @@
     "spotsLeft": "{count} Plätze frei",
     "rsvp": "Zusagen",
     "cancelRsvp": "Zusage zurücknehmen",
+    "join": "Beitreten",
     "failed": "Veranstaltungen konnten nicht geladen werden.",
     "unknownError": "Unbekannter Fehler",
     "retry": "Erneut versuchen",

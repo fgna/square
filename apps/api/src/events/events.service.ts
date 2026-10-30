@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { generateIcs } from '../email/ics.util';
+import { eventCalendarDescription, generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
 import type { Event, Prisma } from '@prisma/client';
 
@@ -622,7 +622,7 @@ export class EventsService {
       // Must stay identical between invitation and cancellation.
       uid: `${event.id}@community`,
       title: event.title,
-      description: event.description,
+      description: eventCalendarDescription(event),
       location: event.isVirtual ? event.meetingUrl || 'Online' : event.location || undefined,
       url: eventUrl(appUrl, event.id),
       startsAt: new Date(event.startsAt),
