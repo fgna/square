@@ -1,0 +1,7 @@
+{
+  "title": "Day-ahead reminder can be switched off per event",
+  "category": "improved",
+  "audience": "admins",
+  "description": "Admins choose per event whether members get the reminder 24 hours ahead; for a series the choice applies to all its dates. Daily events such as a morning session no longer send a day-ahead mail next to the one-hour reminder. Existing events keep sending both.",
+  "pr": 95
+}

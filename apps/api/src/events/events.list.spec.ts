@@ -7,7 +7,7 @@ describe('EventsService.findAll: which events a list gets', () => {
 
   beforeEach(() => {
     prisma = {
-      event: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+      event: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0), groupBy: vi.fn().mockResolvedValue([]) },
       eventRsvp: { findMany: vi.fn().mockResolvedValue([]) },
     };
     service = new EventsService(prisma, { send: vi.fn() } as any);
@@ -50,6 +50,18 @@ describe('EventsService.findAll: which events a list gets', () => {
     const { data } = await service.findAll(1, 20, 'u1');
     expect(data[0].userRsvp).toBeNull();
     expect(data[1].userRsvp).toMatchObject({ status: 'GOING' });
+  });
+
+  it('counts a series once next to its single dates', async () => {
+    // 260 dates in total: 258 of two daily series, 2 one-off events.
+    prisma.event.count.mockImplementation(({ where }: any) => Promise.resolve(where.seriesId === null ? 2 : 260));
+    prisma.event.groupBy.mockResolvedValue([{ seriesId: 's1' }, { seriesId: 's2' }]);
+
+    const result = await service.findAll(1, 1);
+
+    expect(result.total).toBe(260);
+    expect(result.distinctTotal).toBe(4);
+    expect(prisma.event.groupBy.mock.calls[0][0]).toMatchObject({ by: ['seriesId'], where: { seriesId: { not: null } } });
   });
 });
 

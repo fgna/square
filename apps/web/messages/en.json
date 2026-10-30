@@ -84,6 +84,8 @@
     "location": "Location (optional)",
     "virtual": "Virtual event",
     "virtualDesc": "Include a meeting URL",
+    "remind24h": "Reminder 24 hours ahead",
+    "remind24hDesc": "Mail to everyone who is going. Rather off for daily events; the reminder one hour ahead is always sent. Applies to all dates of a series.",
     "meeting": "Meeting URL",
     "max": "Max RSVPs (optional)",
     "unlimited": "Leave blank for unlimited",
@@ -1525,6 +1527,15 @@
     "added": "Recording added",
     "failed": "The recording could not be saved",
     "uploadFailed": "The file could not be uploaded"
+  },
+  "videoUpload": {
+    "button": "Upload video",
+    "progress": "{percent}% uploaded",
+    "cancel": "Cancel upload",
+    "hint": "MP4 or MOV with H.264; 720p is enough. In QuickTime: File → Export As → 720p. The video stays on this platform and plays only here.",
+    "onlyMp4": "Please choose an MP4 or MOV file.",
+    "failed": "Upload failed. Please try again.",
+    "uploaded": "Uploaded video"
   },
   "androidAppAdminUI": {
     "title": "Android app download",

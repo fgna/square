@@ -27,6 +27,7 @@ import { htmlToText } from '../email/html-to-text';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
 import { toVideoEmbed } from '../courses/video-url';
+import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
 import { unlink } from 'fs/promises';
 import { resolve, sep } from 'path';
 
@@ -187,10 +188,14 @@ function unexpiredRecordings() {
  * the share link itself would play anywhere once copied, and recordings show
  * members. Admins keep the share link to manage the recording. Other links
  * (e.g. a cloud folder) cannot be embedded and stay a plain link.
+ * A video uploaded to the platform plays from a signed, expiring link (fileUrl).
  */
 export function recordingVideo(url: string, forAdmin: boolean) {
+  if (isHostedVideo(url)) {
+    return { url: forAdmin ? url : null, embedUrl: null, fileUrl: absoluteUploadUrl(signUploadPath(url)) };
+  }
   const embedUrl = toVideoEmbed(url)?.embedUrl ?? null;
-  return { url: forAdmin || !embedUrl ? url : null, embedUrl };
+  return { url: forAdmin || !embedUrl ? url : null, embedUrl, fileUrl: null };
 }
 
 /** Player link, signed links for the attachments, and the date the recording disappears (null if never). */
@@ -259,6 +264,12 @@ export class EventsService {
       }),
       this.prisma.event.count({ where }),
     ]);
+    // A daily series has hundreds of dates; counted as events it swamps the
+    // number. Each series counts once, one-off events count as themselves.
+    const [oneOff, series] = await Promise.all([
+      this.prisma.event.count({ where: { ...where, seriesId: null } }),
+      this.prisma.event.groupBy({ by: ['seriesId'], where: { ...where, seriesId: { not: null } } }),
+    ]);
 
     // The member's own answer, also when they are not among the five shown.
     const own = userId && data.length
@@ -275,6 +286,7 @@ export class EventsService {
     return {
       data: events,
       total,
+      distinctTotal: oneOff + series.length,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
@@ -393,6 +405,10 @@ export class EventsService {
         where: { seriesId: event.seriesId, startsAt: { gte: new Date() } },
         data: { featured: dto.featured },
       });
+    }
+    // A daily series is the usual case for switching the day-ahead reminder off.
+    if (dto.remind24h !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({ where: { seriesId: event.seriesId }, data: { remind24h: dto.remind24h } });
     }
     return updated;
   }
@@ -541,16 +557,18 @@ export class EventsService {
 
   /**
    * Deletes recordings older than RECORDING_RETENTION_DAYS with their
-   * attachments; does nothing when no retention is set. The video itself lives
-   * on Vimeo, YouTube, Loom or Drive and is deleted there.
+   * attachments and their videos hosted by the platform; does nothing when no
+   * retention is set. Videos on Vimeo, YouTube, Loom or Drive are deleted there.
    */
   async deleteExpiredRecordings(now = new Date()) {
     const cutoff = recordingCutoff(now);
     if (!cutoff) return 0;
     const expired = { createdAt: { lt: cutoff } };
     const files = await this.prisma.recordingAttachment.findMany({ where: { recording: expired }, select: { url: true } });
+    const videos = await this.prisma.recording.findMany({ where: expired, select: { url: true } });
     const result = await this.prisma.recording.deleteMany({ where: expired });
     await removeUploadedFiles(files.map((f) => f.url), this.logger);
+    await deleteUnusedHostedVideos(this.prisma, videos.map((v) => v.url), this.logger);
     if (result.count > 0) this.logger.log(`Deleted ${result.count} recordings older than ${recordingRetentionDays()} days`);
     return result.count;
   }
@@ -558,6 +576,9 @@ export class EventsService {
   async createRecording(eventId: string, dto: CreateRecordingDto) {
     const event = await this.prisma.event.findUnique({ where: { id: eventId } });
     if (!event) throw new NotFoundException('Event not found');
+    if (isHostedVideo(dto.url) && !hostedVideoExists(dto.url)) {
+      throw new BadRequestException('Uploaded video not found');
+    }
 
     return this.prisma.recording.create({
       data: { ...dto, eventId },
@@ -568,9 +589,12 @@ export class EventsService {
   }
 
   async deleteRecording(id: string) {
-    const recording = await this.prisma.recording.findUnique({ where: { id } });
+    const recording = await this.prisma.recording.findUnique({ where: { id }, include: { attachments: { select: { url: true } } } });
     if (!recording) throw new NotFoundException('Recording not found');
     await this.prisma.recording.delete({ where: { id } });
+    // Its files go too: attachments (slides, handouts) and a video hosted by the platform.
+    await removeUploadedFiles((recording.attachments ?? []).map((a) => a.url), this.logger);
+    await deleteUnusedHostedVideos(this.prisma, [recording.url], this.logger);
     return { message: 'Recording deleted' };
   }
 

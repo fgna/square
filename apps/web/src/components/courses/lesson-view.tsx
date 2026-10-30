@@ -6,6 +6,7 @@ import { Download, ExternalLink, FileText, Lock, Music } from 'lucide-react';
 import { renderPostContent } from '@/lib/render-post-content';
 import { useFormatters } from '@/lib/use-formatters';
 import { ClickToLoadVideo } from '@/components/common/click-to-load-video';
+import { HostedVideo } from '@/components/common/hosted-video';
 import type { Lesson, LessonAttachment } from '@community/shared';
 
 /** PDF and audio can be shown in the lesson; Office files only open once downloaded. */
@@ -95,6 +96,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
 
   return (
     <div className="space-y-5">
+      {lesson.videoFileUrl && <HostedVideo src={lesson.videoFileUrl} title={lesson.title} />}
       {lesson.videoEmbedUrl && (
         <ClickToLoadVideo embedUrl={lesson.videoEmbedUrl} title={lesson.title} />
       )}
