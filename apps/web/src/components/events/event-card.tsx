@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RsvpButton } from './rsvp-button';
 import { AddToCalendar } from './add-to-calendar';
+import { previewText } from '@/lib/preview-text';
 import { formatEventDuration, isUpcoming } from '@community/shared';
 import type { CommunityEvent } from '@community/shared';
 import { EventCover } from './event-cover';
@@ -54,7 +55,7 @@ export function EventCard({ event }: EventCardProps) {
 
         {/* Short preview on the dashboard: the text without formatting. */}
         <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>
-          {event.description.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()}
+          {previewText(event.description)}
         </p>
 
         <div className="space-y-1.5">

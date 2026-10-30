@@ -109,10 +109,16 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        clearAccessToken();
-        clearAuth();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        // Only a rejected session ends it. A throttled refresh (429), a server
+        // error or a dropped connection keeps the member signed in; the next
+        // request tries again.
+        const status = (refreshError as { response?: { status?: number } })?.response?.status;
+        if (status === 401 || status === 403) {
+          clearAccessToken();
+          clearAuth();
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(refreshError);
       } finally {

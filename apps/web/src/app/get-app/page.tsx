@@ -3,6 +3,9 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Smartphone, Download, CheckCircle, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { useBranding } from '@/hooks/use-branding';
+import { androidAppDownloadUrl } from '@community/shared';
 import { Button } from '@/components/ui/button';
 
 const featureItems = [
@@ -10,20 +13,14 @@ const featureItems = [
   { icon: CheckCircle, key: 'featureContent' },
 ] as const;
 
-const downloadUrl = process.env.NEXT_PUBLIC_APK_URL || '/api/download-app';
-
 export default function GetAppPage() {
   const t = useTranslations('getAppUI');
-  const [downloadAvailable, setDownloadAvailable] = useState(false);
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(downloadUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal })
-      .then((response) => setDownloadAvailable(response.ok))
-      .catch(() => setDownloadAvailable(false));
-    return () => controller.abort();
-  }, []);
+  const { data: branding, isLoading } = useBranding();
+  const downloadUrl = androidAppDownloadUrl(branding);
+  const [communityUrl, setCommunityUrl] = useState('');
+  useEffect(() => { setCommunityUrl(window.location.origin); }, []);
   return (
-    <div className="max-w-lg mx-auto py-12 px-4 space-y-8 animate-fade-in">
+    <main className="max-w-lg mx-auto py-12 px-4 space-y-8 animate-fade-in">
       <div className="text-center space-y-4">
         <div
           className="w-20 h-20 mx-auto rounded-2xl flex items-center justify-center"
@@ -59,18 +56,18 @@ export default function GetAppPage() {
       </div>
 
       <div className="text-center space-y-3">
-        {downloadAvailable ? <Button asChild size="lg" className="gap-2 w-full sm:w-auto">
-          <a href={downloadUrl}>
+        {downloadUrl ? <Button asChild size="lg" className="gap-2 w-full sm:w-auto">
+          <a href={downloadUrl} referrerPolicy="no-referrer">
             <Download size={16} />
             {t('download')}
           </a>
-        </Button> : <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>{t("unavailable")}</p>}
+        </Button> : <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>{isLoading ? t('loading') : t('unavailable')}</p>}
         <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
           {t('requirement')}
         </p>
       </div>
 
-      <div
+      {downloadUrl && <div
         className="rounded-xl p-5 space-y-3"
         style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}
       >
@@ -82,10 +79,12 @@ export default function GetAppPage() {
           <li>{t('stepOpen')}</li>
           <li>{t('stepAllow')}</li>
           <li>{t('stepInstall')}</li>
+          <li>{t('stepServer', { url: communityUrl })}</li>
           <li>{t('stepSignIn')}</li>
         </ol>
-      </div>
+      </div>}
       <p className="text-xs text-center" style={{ color: 'var(--theme-text-muted)' }}>{t('offline')}</p>
-    </div>
+      <p className="text-center text-sm"><Link href="/" className="underline">{t('back')}</Link></p>
+    </main>
   );
 }

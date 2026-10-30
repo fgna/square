@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { generateCalendarFeed, CalendarFeedEvent } from '../email/ics.util';
+import { eventCalendarDescription, generateCalendarFeed, CalendarFeedEvent } from '../email/ics.util';
 import { eventUrl } from '../events/event-url';
 
 @Injectable()
@@ -72,7 +72,7 @@ export class CalendarService {
       // creating a duplicate when an event is edited.
       uid: `event-${event.id}@community-platform`,
       title: event.title,
-      description: event.description,
+      description: eventCalendarDescription(event),
       location: event.isVirtual ? event.meetingUrl || 'Online' : event.location || undefined,
       url: eventUrl(appUrl, event.id),
       startsAt: event.startsAt,
