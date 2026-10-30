@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Newspaper, CheckCircle, Trash2, Eye, Pencil, Plus } from 'lucide-react';
+import { Newspaper, CheckCircle, Trash2, Eye, Pencil, Plus, Send } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
@@ -270,6 +270,21 @@ export default function AdminDigestsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'digest-templates'] }),
   });
 
+  // When digests go out (set by the operator: DIGEST_DAILY_TIME, DIGEST_WEEKLY).
+  const { data: schedule } = useQuery<{ daily: { hour: number; minute: number }; weekly: { day: number; hour: number; minute: number }; timeZone: string }>({
+    queryKey: ['admin', 'digest-templates', 'schedule'],
+    queryFn: () => apiClient.get('/digest-templates/schedule').then((r) => r.data),
+  });
+  const clock = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+  // Sends the weekly digest with real content to the signed-in admin.
+  const [testResult, setTestResult] = useState<string | null>(null);
+  const testMutation = useMutation({
+    mutationFn: (id: string) => apiClient.post(`/digest-templates/${id}/test`).then((r) => r.data as { sent: boolean; to: string }),
+    onSuccess: (r) => setTestResult(r.sent ? t('testSent', { to: r.to }) : t('testFailed')),
+    onError: () => setTestResult(t('testFailed')),
+  });
+
   const handleEdit = (template: DigestTemplate) => {
     setEditTemplate(template);
     setFormOpen(true);
@@ -310,6 +325,20 @@ export default function AdminDigestsPage() {
           {t('newTemplate')}
         </Button>
       </div>
+
+      {schedule && (
+        <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
+          {t('schedule', {
+            day: t(`weekday${schedule.weekly.day}`),
+            weekly: clock(schedule.weekly.hour, schedule.weekly.minute),
+            daily: clock(schedule.daily.hour, schedule.daily.minute),
+            zone: schedule.timeZone,
+          })}
+        </p>
+      )}
+      {testResult && (
+        <p role="status" className="text-sm" style={{ color: 'var(--theme-text)' }}>{testResult}</p>
+      )}
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -416,6 +445,17 @@ export default function AdminDigestsPage() {
                 >
                   <Eye size={13} />
                   {t('view')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  style={{ color: 'var(--theme-text-muted)' }}
+                  disabled={testMutation.isPending}
+                  onClick={() => { setTestResult(null); testMutation.mutate(tpl.id); }}
+                >
+                  <Send size={13} />
+                  {t('sendTest')}
                 </Button>
                 <Button
                   variant="ghost"
