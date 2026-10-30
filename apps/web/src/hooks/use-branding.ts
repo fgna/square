@@ -6,6 +6,8 @@ export interface Branding {
   logoUrl: string | null;
   /** Admin → Settings: without it, registration needs an invitation. */
   allowSignups: boolean;
+  androidAppDownloadEnabled?: boolean;
+  androidAppDownloadUrl?: string | null;
 }
 
 /** Name, logo and sign-up setting from Admin → Settings (public: also used before sign-in). */

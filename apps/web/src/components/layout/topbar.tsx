@@ -17,6 +17,8 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { getInitials } from '@community/shared';
 import { isPathEnabled } from '@/lib/capabilities';
+import { useBranding } from '@/hooks/use-branding';
+import { androidAppDownloadUrl } from '@community/shared';
 
 interface TopbarProps {
   title?: string;
@@ -25,6 +27,7 @@ interface TopbarProps {
 
 export function Topbar({ title, onMenuClick }: TopbarProps) {
   const { user, logout } = useAuth();
+  const { data: branding } = useBranding();
   const [insideAndroidApp, setInsideAndroidApp] = useState(false);
 
   useEffect(() => {
@@ -129,7 +132,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {!insideAndroidApp && (
+          {!insideAndroidApp && androidAppDownloadUrl(branding) && (
             <DropdownMenuItem asChild className="gap-2 cursor-pointer">
               <Link href="/get-app">
                 <Smartphone size={14} />

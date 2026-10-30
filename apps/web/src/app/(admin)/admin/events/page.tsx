@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { formatDate } from '@community/shared';
 import type { CommunityEvent } from '@community/shared';
+import { CoverPicker, type CoverCredit } from '@/components/events/cover-picker';
 
 function useAdminEvents() {
   return useQuery({
@@ -71,6 +72,9 @@ function EventDialog({
   const [isVirtual, setIsVirtual] = useState(event ? event.isVirtual : !!lastMeetingUrl);
   const [meetingUrl, setMeetingUrl] = useState(event ? (event.meetingUrl ?? '') : (lastMeetingUrl ?? ''));
   const [maxRsvps, setMaxRsvps] = useState(event?.maxRsvps ? String(event.maxRsvps) : '');
+  const [coverUrl, setCoverUrl] = useState<string | null>(event?.coverUrl ?? null);
+  const [coverCredit, setCoverCredit] = useState<CoverCredit>(event?.coverCredit ?? null);
+  const [remind24h, setRemind24h] = useState(event?.remind24h ?? true);
   const [categoryIds, setCategoryIds] = useState<string[]>((event?.categories ?? []).map((c) => c.category.id));
   const [recurrence, setRecurrence] = useState<string>('NONE');
   const [recurrenceEndsAt, setRecurrenceEndsAt] = useState('');
@@ -95,7 +99,10 @@ function EventDialog({
         isVirtual,
         meetingUrl: meetingUrl.trim() || undefined,
         maxRsvps: maxRsvps ? Number(maxRsvps) : undefined,
+        remind24h,
         categoryIds,
+        coverUrl: coverUrl ?? null,
+        coverCredit: coverUrl ? coverCredit : null,
       };
       if (editing) return apiClient.put(`/events/${event!.id}`, common);
       return apiClient.post('/events', {
@@ -193,7 +200,7 @@ function EventDialog({
               <RichTextEditor content={description} onChange={setDescription} placeholder={t('sampleDesc')} compact />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="e-start">{t('starts')}</Label>
               <Input id="e-start" type="datetime-local" step={900} value={startsAt} onChange={(e) => changeStart(e.target.value)} />
@@ -203,6 +210,7 @@ function EventDialog({
               <Input id="e-end" type="datetime-local" step={900} value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
             </div>
           </div>
+          <CoverPicker url={coverUrl} onChange={(url, credit) => { setCoverUrl(url); setCoverCredit(credit); }} />
           <div className="space-y-1.5">
             <Label htmlFor="e-loc">{t('location')}</Label>
             <Input id="e-loc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('sampleLocation')} />
@@ -223,6 +231,13 @@ function EventDialog({
           <div className="space-y-1.5">
             <Label htmlFor="e-max">{t('max')}</Label>
             <Input id="e-max" type="number" min={1} value={maxRsvps} onChange={(e) => setMaxRsvps(e.target.value)} placeholder={t('unlimited')} />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>{t('remind24h')}</p>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('remind24hDesc')}</p>
+            </div>
+            <Switch checked={remind24h} onCheckedChange={setRemind24h} />
           </div>
           <CategoryPicker value={categoryIds} onChange={setCategoryIds} />
           {editing ? (

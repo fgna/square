@@ -1,4 +1,6 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsInt, IsUrl, MinLength, MaxLength, Min, IsArray, ArrayMaxSize } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, IsInt, IsUrl, MinLength, MaxLength, Min, IsArray, ArrayMaxSize, Matches, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { COVER_URL, CoverCreditDto } from '../cover-image';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateEventDto {
@@ -49,10 +51,26 @@ export class UpdateEventDto {
   @Min(1)
   maxRsvps?: number;
 
+  @ApiPropertyOptional({ description: 'Send the reminder 24 hours ahead (default true); for a series, applies to all its dates' })
+  @IsOptional()
+  @IsBoolean()
+  remind24h?: boolean;
+
   @ApiPropertyOptional({ description: 'Categories (topics) this belongs to; shown under Explore', type: [String] })
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(10)
   @IsString({ each: true })
   categoryIds?: string[];
+
+  @ApiPropertyOptional({ description: 'Uploaded picture (/uploads/…) or Unsplash photo URL; null removes it' })
+  @IsOptional()
+  @Matches(COVER_URL, { message: 'coverUrl must be an uploaded picture or an Unsplash photo' })
+  coverUrl?: string | null;
+
+  @ApiPropertyOptional({ description: 'Photographer credit for an Unsplash photo' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CoverCreditDto)
+  coverCredit?: CoverCreditDto | null;
 }

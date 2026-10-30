@@ -95,6 +95,12 @@ export interface PluginTaskAttemptRecord extends PluginTaskAttemptCreate {
 export interface PluginTaskAttempts {
   record(userId: string, input: PluginTaskAttemptCreate): Promise<PluginTaskAttemptRecord>;
   list(userId: string, taskId?: string): Promise<PluginTaskAttemptRecord[]>;
+  /**
+   * A whole task family (ids starting with `taskIdPrefix`, e.g. "quiz."), newest
+   * first; `limit` 1–1000, default 500. For replaying adaptive progress that
+   * must not be cut off by attempts in other families.
+   */
+  listByPrefix(userId: string, taskIdPrefix: string, limit?: number): Promise<PluginTaskAttemptRecord[]>;
   /** Increment server-owned hint usage for an authenticated member and pending attempt. */
   revealHint(userId: string, taskId: string, taskVersion: number, idempotencyKey: string, hintCount: number): Promise<number>;
   /** Read server-owned hint usage; clients must never supply this as an answer field. */

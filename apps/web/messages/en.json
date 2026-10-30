@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"My thoughts","placeholder":"What's on your mind today?"},
+  "journalSimpleUI": {
+    "thoughts": "My thoughts",
+    "placeholder": "What's on your mind today?"
+  },
   "journalMoodUI": {
     "grateful": "Grateful",
     "happy": "Happy",
@@ -66,6 +69,11 @@
     "coverImage": "Cover image (optional)"
   },
   "adminEventsUI": {
+    "cover": "Cover picture",
+    "coverSearch": "Search photos on Unsplash…",
+    "coverUnsplashNote": "Unsplash photos load from Unsplash; the photographer is credited.",
+    "coverNone": "No photos found.",
+    "coverClose": "Close",
     "new": "New Event",
     "title": "Title",
     "description": "Description",
@@ -74,6 +82,8 @@
     "location": "Location (optional)",
     "virtual": "Virtual event",
     "virtualDesc": "Include a meeting URL",
+    "remind24h": "Reminder 24 hours ahead",
+    "remind24hDesc": "Mail to everyone who is going. Rather off for daily events; the reminder one hour ahead is always sent. Applies to all dates of a series.",
     "meeting": "Meeting URL",
     "max": "Max RSVPs (optional)",
     "unlimited": "Leave blank for unlimited",
@@ -340,6 +350,7 @@
     }
   },
   "events": {
+    "coverCredit": "Photo by <author>{name}</author> on <library>Unsplash</library>",
     "title": "Events",
     "description": "Learn from and inspire each other at our live events.",
     "list": "List",
@@ -349,6 +360,7 @@
     "spotsLeft": "{count} spots left",
     "rsvp": "RSVP",
     "cancelRsvp": "Cancel RSVP",
+    "join": "Join",
     "failed": "Failed to load events.",
     "unknownError": "Unknown error",
     "retry": "Retry",
@@ -915,6 +927,12 @@
     "eventsCount": "{count} events"
   },
   "dashboard": {
+    "month": {
+      "title": "The next 30 days",
+      "allEvents": "All events",
+      "empty": "Nothing is planned for the next 30 days.",
+      "recurring": "recurring"
+    },
     "welcome": {
       "video": "Welcome video",
       "heading": "Welcome",
@@ -1143,11 +1161,14 @@
     "steps": "Installation",
     "stepDownload": "Download the APK",
     "stepOpen": "Open the file",
-    "stepAllow": "Allow installation",
+    "stepAllow": "Allow installation from this browser or file manager when Android asks. You can turn this permission off again afterwards.",
     "stepInstall": "Install the app",
     "stepSignIn": "Sign in",
     "offline": "Some features need an internet connection.",
-    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser."
+    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser.",
+    "loading": "Loading app download…",
+    "back": "Back to the community",
+    "stepServer": "If the app asks for a server address, enter {url}."
   },
   "adminCategoriesUI": {
     "title": "Categories",
@@ -1234,6 +1255,17 @@
     "noPrompts": "No prompts yet. Add one above."
   },
   "adminDigestsUI": {
+    "sendTest": "Send test to me",
+    "testSent": "Test digest sent to {to}.",
+    "testFailed": "Could not send the test digest (check e-mail settings).",
+    "schedule": "Sent weekly on {day} at {weekly}, daily at {daily} ({zone}). Members choose daily, weekly or off in their settings.",
+    "weekday0": "Sundays",
+    "weekday1": "Mondays",
+    "weekday2": "Tuesdays",
+    "weekday3": "Wednesdays",
+    "weekday4": "Thursdays",
+    "weekday5": "Fridays",
+    "weekday6": "Saturdays",
     "sectionNewPosts": "New Posts",
     "sectionUpcomingEvents": "Upcoming Events",
     "sectionNewCourses": "New Courses",
@@ -1244,8 +1276,8 @@
     "nameExample": "e.g. Weekly Digest v2",
     "emailSubject": "Email Subject",
     "subjectExample": "e.g. Your weekly community digest",
-    "headerHtml": "Header HTML",
-    "footerHtml": "Footer HTML",
+    "headerHtml": "Introduction (e.g. your weekly note)",
+    "footerHtml": "Closing text",
     "accentColor": "Accent Color",
     "logoOptional": "Logo URL (optional)",
     "sections": "Digest Sections",
@@ -1505,5 +1537,14 @@
     "onlyMp4": "Please choose an MP4 or MOV file.",
     "failed": "Upload failed. Please try again.",
     "uploaded": "Uploaded video"
+  },
+  "androidAppAdminUI": {
+    "title": "Android app download",
+    "description": "Offer your community's Android app on the website.",
+    "enable": "Show Android app download",
+    "url": "APK download URL (HTTPS)",
+    "hint": "Use a public URL for a signed release APK. Members must be able to download it without repository access. Keep signing keys and APK versioning consistent for updates.",
+    "invalidUrl": "Enter a valid HTTPS download URL without credentials or a fragment before enabling the download.",
+    "saveError": "Settings could not be saved."
   }
 }

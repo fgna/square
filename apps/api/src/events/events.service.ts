@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { generateIcs } from '../email/ics.util';
+import { eventCalendarDescription, generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
-import type { Event, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { Event } from '@prisma/client';
 
 export interface EventListFilter {
   when?: 'upcoming' | 'past' | 'all';
@@ -198,6 +199,11 @@ function withRecordingLinks<T extends { url: string; createdAt: Date; attachment
   };
 }
 
+/** A photo credit as stored (JSON); null removes it. */
+function coverCreditValue(credit: { name: string; url: string; source?: string } | null) {
+  return credit ? { name: credit.name, url: credit.url, source: credit.source ?? 'unsplash' } : Prisma.DbNull;
+}
+
 @Injectable()
 export class EventsService {
   private readonly logger = new Logger(EventsService.name);
@@ -245,6 +251,12 @@ export class EventsService {
       }),
       this.prisma.event.count({ where }),
     ]);
+    // A daily series has hundreds of dates; counted as events it swamps the
+    // number. Each series counts once, one-off events count as themselves.
+    const [oneOff, series] = await Promise.all([
+      this.prisma.event.count({ where: { ...where, seriesId: null } }),
+      this.prisma.event.groupBy({ by: ['seriesId'], where: { ...where, seriesId: { not: null } } }),
+    ]);
 
     // The member's own answer, also when they are not among the five shown.
     const own = userId && data.length
@@ -261,6 +273,7 @@ export class EventsService {
     return {
       data: events,
       total,
+      distinctTotal: oneOff + series.length,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
@@ -298,7 +311,8 @@ export class EventsService {
       throw new BadRequestException('startsAt must be before endsAt');
     }
 
-    const { recurrence, recurrenceEndsAt, categoryIds, ...eventData } = dto as any;
+    const { recurrence, recurrenceEndsAt, categoryIds, coverCredit, ...rest } = dto as any;
+    const eventData = { ...rest, ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }) };
 
     // Hand Prisma real Date objects: @IsDateString() also accepts values such as
     // "2026-10-01T14:30" (what an <input type="datetime-local"> produces), which
@@ -361,16 +375,21 @@ export class EventsService {
       throw new BadRequestException('startsAt must be before endsAt');
     }
 
-    const { categoryIds, ...fields } = dto;
+    const { categoryIds, coverCredit, ...fields } = dto;
     const updated = await this.prisma.event.update({
       where: { id },
       data: {
         ...fields,
+        ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }),
         ...(startsAt ? { startsAt } : {}),
         ...(endsAt ? { endsAt } : {}),
       },
     });
     await this.setCategories([id], categoryIds);
+    // A daily series is the usual case for switching the day-ahead reminder off.
+    if (dto.remind24h !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({ where: { seriesId: event.seriesId }, data: { remind24h: dto.remind24h } });
+    }
     return updated;
   }
 
@@ -622,7 +641,7 @@ export class EventsService {
       // Must stay identical between invitation and cancellation.
       uid: `${event.id}@community`,
       title: event.title,
-      description: event.description,
+      description: eventCalendarDescription(event),
       location: event.isVirtual ? event.meetingUrl || 'Online' : event.location || undefined,
       url: eventUrl(appUrl, event.id),
       startsAt: new Date(event.startsAt),

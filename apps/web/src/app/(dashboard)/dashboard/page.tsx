@@ -10,12 +10,12 @@ import { useCourses } from '@/hooks/use-courses';
 import { useEvents } from '@/hooks/use-events';
 import { useMembers } from '@/hooks/use-members';
 import { PostCard } from '@/components/feed/post-card';
-import { EventCard } from '@/components/events/event-card';
 import { PostSkeleton } from '@/components/common/loading-skeleton';
 import { MyChallenge } from '@/components/dashboard/my-challenge';
 import { MyGoals } from '@/components/dashboard/my-goals';
 import { EventProposalsSection } from '@/components/event-proposals/event-proposals-section';
 import { WelcomeVideoCard } from '@/components/onboarding/welcome-video';
+import { MonthOverview } from '@/components/dashboard/month-overview';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -24,10 +24,9 @@ export default function DashboardPage() {
   const { data: feedData, isLoading: feedLoading, isError: feedError } = useFeed(1, 3);
   const { data: coursesData, isError: coursesError } = useCourses(1, 1);
   // The API returns only events that have not ended, soonest first.
-  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useEvents(1, 2, { when: 'upcoming' });
+  const { data: eventsData, isError: eventsError } = useEvents(1, 1, { when: 'upcoming' });
   const { data: membersData, isError: membersError } = useMembers(1, 1);
 
-  const upcomingEvents = eventsData?.data ?? [];
 
   return (
     <div className="space-y-8">
@@ -43,9 +42,13 @@ export default function DashboardPage() {
         <MyGoals />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* One place for events: the next 30 days, then open date polls. */}
+      <MonthOverview />
+      <EventProposalsSection compact />
+
+      <div className="space-y-4">
         {/* Recent posts */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4">
           <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
             {t('recentPosts')}
           </h3>
@@ -64,28 +67,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Upcoming events */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
-            {t('upcomingEvents')}
-          </h3>
-          {eventsLoading ? (
-            <div className="space-y-4">{[1, 2].map((i) => <PostSkeleton key={i} />)}</div>
-          ) : eventsError ? (
-            <p className="text-sm py-4" style={{ color: 'var(--theme-danger, #ef4444)' }}>
-              {t('failedEvents')}. <button className="underline" onClick={() => window.location.reload()}>{tc('retry')}</button>
-            </p>
-          ) : upcomingEvents.length > 0 ? (
-            <div className="space-y-4">
-              {upcomingEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{t('noUpcomingEvents')}</p>
-          )}
-          <EventProposalsSection compact />
-        </div>
       </div>
 
       {/* Stats */}
@@ -94,24 +75,28 @@ export default function DashboardPage() {
           title={t('totalMembers')}
           value={membersError ? '!' : (membersData?.total ?? '—')}
           icon={Users}
+          href="/members"
           description={membersError ? t('failedPosts') : t('totalMembersDesc')}
         />
         <StatsCard
           title={t('communityPosts')}
           value={feedError ? '!' : (feedData?.total ?? '—')}
           icon={MessageCircle}
+          href="/feed"
           description={feedError ? t('failedPosts') : t('communityPostsDesc')}
         />
         <StatsCard
           title={t('availableCourses')}
           value={coursesError ? '!' : (coursesData?.total ?? '—')}
           icon={BookOpen}
+          href="/courses"
           description={coursesError ? t('failedPosts') : t('availableCoursesDesc')}
         />
         <StatsCard
           title={t('upcomingEventsCard')}
-          value={eventsError ? '!' : upcomingEvents.length}
+          value={eventsError ? '!' : (eventsData?.distinctTotal ?? eventsData?.total ?? '—')}
           icon={Calendar}
+          href="/events"
           description={eventsError ? t('failedEvents') : t('upcomingEventsCardDesc')}
         />
       </div>

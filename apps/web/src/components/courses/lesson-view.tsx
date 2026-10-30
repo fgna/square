@@ -91,6 +91,8 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
   const all = lesson.attachments ?? [];
   const files = all.filter((f) => f.downloadable !== false);
   const viewOnly = all.filter((f) => f.downloadable === false && isViewableInBrowser(f.mimeType));
+  // Audio (a guided meditation) plays in the lesson; downloading stays possible.
+  const players = files.filter((f) => f.mimeType.startsWith('audio/'));
 
   return (
     <div className="space-y-5">
@@ -123,6 +125,19 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         <div className="space-y-4">
           {viewOnly.map((file) => (
             <ViewOnlyFile key={file.id} file={file} />
+          ))}
+        </div>
+      )}
+
+      {players.length > 0 && (
+        <div className="space-y-4">
+          {players.map((file) => (
+            <figure key={file.id} className="space-y-1.5">
+              <figcaption className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text)' }}>
+                <Music size={16} style={{ color: 'var(--theme-primary)' }} /> {file.filename}
+              </figcaption>
+              <audio controls preload="none" src={file.url} className="w-full" />
+            </figure>
           ))}
         </div>
       )}

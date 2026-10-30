@@ -30,6 +30,7 @@ export class EventRemindersService {
       where: {
         startsAt: { gt: in75min, lte: in25h },
         reminder24hSent: false,
+        remind24h: true,
       },
     });
 

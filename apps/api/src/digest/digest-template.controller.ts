@@ -4,12 +4,18 @@ import { DigestTemplateService } from './digest-template.service';
 import { CreateDigestTemplateDto } from './dto/create-digest-template.dto';
 import { UpdateDigestTemplateDto } from './dto/update-digest-template.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { DigestService } from '../email/digest.service';
+import { digestSchedule } from '../email/digest-render';
 
 @ApiTags('digest-templates')
 @ApiBearerAuth()
 @Controller('digest-templates')
 export class DigestTemplateController {
-  constructor(private digestTemplateService: DigestTemplateService) {}
+  constructor(
+    private digestTemplateService: DigestTemplateService,
+    private digests: DigestService,
+  ) {}
 
   @Get()
   @Roles('ADMIN')
@@ -23,6 +29,20 @@ export class DigestTemplateController {
   @ApiOperation({ summary: 'Create a digest template (Admin only)' })
   create(@Body() dto: CreateDigestTemplateDto) {
     return this.digestTemplateService.create(dto);
+  }
+
+  @Get('schedule')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'When daily and weekly digests are sent (DIGEST_DAILY_TIME, DIGEST_WEEKLY)' })
+  schedule() {
+    return digestSchedule();
+  }
+
+  @Post(':id/test')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Send the weekly digest with this template and current content to me (Admin only)' })
+  sendTest(@Param('id') id: string, @CurrentUser() user: { id: string }) {
+    return this.digests.sendTest(user.id, id);
   }
 
   @Get('preview/:id')

@@ -22,7 +22,6 @@ import { MessagesModule } from './messages/messages.module';
 import { SearchModule } from './search/search.module';
 import { InvitesModule } from './invites/invites.module';
 import { EmailModule } from './email/email.module';
-import { DigestService } from './email/digest.service';
 import { CategoriesModule } from './categories/categories.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
 import { GoalsModule } from './goals/goals.module';
@@ -111,7 +110,6 @@ import { PluginsModule } from './plugins/plugins.module';
     PluginsModule.register(),
   ],
   providers: [
-    DigestService,
     // UserThrottlerGuard uses authenticated userId as throttle key (falls back to IP),
     // which is more accurate than IP-based limiting behind a reverse proxy.
     { provide: APP_GUARD, useClass: UserThrottlerGuard },
