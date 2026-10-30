@@ -30,7 +30,14 @@ Use only reviewed material that you own or are licensed to use.
    domains, storage, backups, retention, allowed origins and TLS.
    Do not expose PostgreSQL or Redis publicly.
 
-5. Pin a reviewed core commit or release. Run core unit tests, Prisma
+5. For a new minimal community, explicitly set matching capability allowlists:
+   SQUARE_CAPABILITIES=courses,assessments
+   NEXT_PUBLIC_SQUARE_CAPABILITIES=courses,assessments
+   This keeps journal, testimonials and recordings disabled. Existing deployments
+   without these variables keep all capabilities enabled. Review the complete
+   list in docs/CAPABILITIES.md and rebuild the web app after a change.
+
+6. Pin a reviewed core commit or release. Run core unit tests, Prisma
    generate, API/Web typechecks and builds, then complete an isolated
    runtime smoke test with temporary data. Do not deploy the example
    pack, use development signing keys, or treat a green build as an
