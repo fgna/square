@@ -29,7 +29,7 @@ export class PasswordRecoveryService {
     let baseUrl: URL;
     try {
       baseUrl = new URL(origin);
-      if (baseUrl.protocol !== 'https:' || baseUrl.username || baseUrl.password || baseUrl.search || baseUrl.hash) {
+      if (baseUrl.protocol !== 'https:' || baseUrl.username || baseUrl.password || baseUrl.search || baseUrl.hash || baseUrl.pathname !== '/') {
         return CONFIRMATION;
       }
     } catch { return CONFIRMATION; }
