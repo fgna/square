@@ -97,5 +97,8 @@ tasks.matching { it.name in setOf("assembleRelease", "bundleRelease") }.configur
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.webkit:webkit:1.12.1")
     testImplementation("junit:junit:4.13.2")
+    // Android's own org.json is a stub in JVM unit tests.
+    testImplementation("org.json:json:20240303")
 }
