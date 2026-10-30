@@ -48,6 +48,14 @@ export interface Poll {
   votes?: { optionId: string }[];
 }
 
+export interface PostAttachment {
+  id: string;
+  filename: string;
+  url: string;
+  mimeType: string;
+  size: number;
+}
+
 export interface Post {
   id: string;
   content: string;
@@ -56,6 +64,8 @@ export interface Post {
   comments: Comment[];
   reactions: Reaction[];
   poll?: Poll | null;
+  /** Audio or uploaded videos an admin attached; links are signed and expire. */
+  attachments?: PostAttachment[];
   isPinned: boolean;
   isHidden: boolean;
   createdAt: string;

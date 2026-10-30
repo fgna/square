@@ -28,7 +28,7 @@ const mp4 = (size: number) => video(size);
 /** Prisma stub: no lesson or recording uses any video unless listed. */
 function unused(used: string[] = []) {
   const count = vi.fn(async ({ where }: any) => (used.includes(where.videoUrl ?? where.url) ? 1 : 0));
-  return { lesson: { count }, recording: { count }, platformSettings: { count: vi.fn(async ({ where }: any) => (used.includes(where.welcomeVideoUrl) ? 1 : 0)) } };
+  return { lesson: { count }, recording: { count }, platformSettings: { count: vi.fn(async ({ where }: any) => (used.includes(where.welcomeVideoUrl) ? 1 : 0)) }, postAttachment: { count } };
 }
 
 describe('VideosService: chunked MP4 uploads', () => {
@@ -158,6 +158,7 @@ describe('deleteUnusedHostedVideos', () => {
       lesson: { count: vi.fn().mockResolvedValue(1) },
       recording: { count: vi.fn().mockResolvedValue(0) },
       platformSettings: { count: vi.fn().mockResolvedValue(0) },
+      postAttachment: { count: vi.fn().mockResolvedValue(0) },
     };
     const logger: any = { warn: vi.fn() };
 

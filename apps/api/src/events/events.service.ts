@@ -26,10 +26,9 @@ import { mailDate, mailTime, firstName } from '../email/mail-format';
 import { htmlToText } from '../email/html-to-text';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
+import { removeUploadedFiles } from '../uploads/remove-uploaded-files';
 import { toVideoEmbed } from '../courses/video-url';
 import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
-import { unlink } from 'fs/promises';
-import { resolve, sep } from 'path';
 
 function escapeHtml(text: string): string {
   return text
@@ -149,18 +148,6 @@ export function expandRecurrence(
  * Deletes stored files (paths such as /uploads/uploads/…) from the upload
  * folder. Paths outside it are ignored; a missing file is not an error.
  */
-async function removeUploadedFiles(paths: string[], logger: Logger) {
-  const root = resolve(process.cwd(), 'uploads');
-  for (const p of paths) {
-    if (!p.startsWith('/uploads/')) continue;
-    const file = resolve(root, p.slice('/uploads/'.length));
-    if (!file.startsWith(root + sep)) continue;
-    await unlink(file).catch((err: NodeJS.ErrnoException) => {
-      if (err.code !== 'ENOENT') logger.warn(`Could not delete ${p}: ${err.message}`);
-    });
-  }
-}
-
 /**
  * How many days members can watch a recording, from RECORDING_RETENTION_DAYS
  * (e.g. 365 when the privacy policy promises at most a year). Unset or 0 keeps

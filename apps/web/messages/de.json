@@ -517,6 +517,12 @@
       "errorGeneric": "Veröffentlichen hat nicht geklappt. Bitte versuch es noch einmal.",
       "shareSuccess": "Erfolg teilen"
     },
+    "attachments": {
+      "title": "Anhänge (nur Admins)",
+      "audio": "Audio anhängen",
+      "remove": "Anhang entfernen",
+      "failed": "Hochladen fehlgeschlagen. Versuch es noch einmal."
+    },
     "card": {
       "pin": "Oben anpinnen",
       "unpin": "Nicht mehr anpinnen",

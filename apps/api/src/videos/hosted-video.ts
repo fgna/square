@@ -49,19 +49,20 @@ export function videoMaxBytes(): number {
 }
 
 /**
- * Deletes hosted video files that no lesson, no recording and not the
- * welcome video points to any more. Called after a video was replaced or its
+ * Deletes hosted video files that no lesson, recording, post attachment or
+ * the welcome video points to any more. Called after a video was replaced or its
  * lesson/recording deleted, and by the daily clean-up.
  */
 export async function deleteUnusedHostedVideos(prisma: PrismaService, urls: (string | null | undefined)[], logger: Logger) {
   let deleted = 0;
   for (const url of new Set(urls.filter(isHostedVideo))) {
-    const [lessons, recordings, welcome] = await Promise.all([
+    const [lessons, recordings, welcome, posts] = await Promise.all([
       prisma.lesson.count({ where: { videoUrl: url } }),
       prisma.recording.count({ where: { url } }),
       prisma.platformSettings.count({ where: { welcomeVideoUrl: url } }),
+      prisma.postAttachment.count({ where: { url } }),
     ]);
-    if (lessons > 0 || recordings > 0 || welcome > 0) continue;
+    if (lessons > 0 || recordings > 0 || welcome > 0 || posts > 0) continue;
     const file = hostedVideoFile(url);
     if (!file) continue;
     await unlink(file).then(
