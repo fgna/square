@@ -25,7 +25,7 @@ describe('PasswordRecoveryService', () => {
   const service = new PasswordRecoveryService(prisma as any, email as any, redis as any);
 
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     cache.clear();
     process.env.PUBLIC_BASE_URL = 'https://example.org';
     email.isConfigured = true;
