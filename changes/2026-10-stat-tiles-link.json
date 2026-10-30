@@ -1,0 +1,7 @@
+{
+  "title": "Numbers on the dashboard and in admin analytics link to their pages",
+  "category": "improved",
+  "audience": "members and admins",
+  "description": "The four tiles at the bottom of the dashboard open members, feed, courses and events. In admin analytics, the numbers open the matching admin or community page, and the most active authors open their profiles.",
+  "pr": 94
+}
