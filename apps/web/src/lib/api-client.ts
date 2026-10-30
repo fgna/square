@@ -60,7 +60,7 @@ apiClient.interceptors.response.use(
 
     // Public authentication failures are credentials errors, not expired sessions.
     // Never attempt cookie refresh or redirect while signing in or registering.
-    const isPublicAuthRequest = /\/auth\/(login|register|oauth\/google|oauth\/linkedin)(?:\?|$)/.test(originalRequest?.url ?? '');
+    const isPublicAuthRequest = /\/auth\/(login|register|password-reset\/request|password-reset\/confirm|oauth\/google|oauth\/linkedin)(?:\?|$)/.test(originalRequest?.url ?? '');
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isPublicAuthRequest) {
       // Don't attempt refresh on the refresh endpoint itself (prevents infinite loop)
       if (originalRequest.url?.includes('/auth/refresh')) {
