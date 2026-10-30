@@ -91,7 +91,7 @@ export default function DashboardPage() {
         />
         <StatsCard
           title={t('upcomingEventsCard')}
-          value={eventsError ? '!' : (eventsData?.total ?? '—')}
+          value={eventsError ? '!' : (eventsData?.distinctTotal ?? eventsData?.total ?? '—')}
           icon={Calendar}
           description={eventsError ? t('failedEvents') : t('upcomingEventsCardDesc')}
         />
