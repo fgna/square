@@ -1,0 +1,7 @@
+{
+  "title": "Android app shows dialogs, opens downloads and picks files",
+  "category": "fixed",
+  "audience": "Android members and admins",
+  "description": "The app now shows the web app's confirmations and prompts, so deleting and other confirmed actions work. Course files and other links to files open in the browser or a matching app, CSV reports, data exports and calendar files can be saved, and image uploads open the file picker. The session cookie is written to storage when the app goes to the background.",
+  "pr": 90
+}

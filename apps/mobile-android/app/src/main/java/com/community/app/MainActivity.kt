@@ -1,11 +1,17 @@
 package com.community.app
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.SslErrorHandler
 import android.net.http.SslError
 import android.view.Gravity
@@ -25,6 +31,8 @@ import android.graphics.Color
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import java.net.URI
 
 /** HTTPS origin matching deliberately excludes username/password and alternative ports. */
@@ -96,6 +104,8 @@ class MainActivity : Activity() {
     private var browser: WebView? = null
     private var loading: TextView? = null
     private var problem: View? = null
+    private var pendingUpload: ValueCallback<Array<Uri>>? = null
+    private var pendingSave: WebFiles.Blob? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -203,6 +213,24 @@ class MainActivity : Activity() {
                 }
             }
         }
+        view.webChromeClient = pageDialogsAndFiles()
+        // Files the page links to (course PDFs, audio) open in the browser or a
+        // matching app: the links are signed, so no app session is needed.
+        view.setDownloadListener { fileUrl, _, _, _, _ ->
+            if (fileUrl.startsWith("https:", true)) openExternally(Uri.parse(fileUrl))
+        }
+        // Blob downloads (CSV reports, data export, calendar files) never reach
+        // the download listener; a script in trusted frames hands them over.
+        val origins = setOf(url.trimEnd('/'))
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) &&
+            WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            WebViewCompat.addWebMessageListener(view, "SquareFiles", origins) { _, message, source, isMainFrame, _ ->
+                if (isMainFrame && TrustedOrigin.matches(allowedOrigin, source.toString())) {
+                    WebFiles.parse(message.data)?.let { saveAs(it) }
+                }
+            }
+            WebViewCompat.addDocumentStartJavaScript(view, WebFiles.PAGE_SCRIPT, origins)
+        }
         // Android 15 enforces edge-to-edge. Reserve the physical system bar areas
         // outside WebView so Square navigation does not overlap status/nav controls.
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -279,12 +307,96 @@ class MainActivity : Activity() {
         problem = panel
     }
 
+    /**
+     * Without a WebChromeClient a WebView shows no alert/confirm/prompt and no
+     * file picker: delete confirmations did nothing and image uploads never opened.
+     */
+    private fun pageDialogsAndFiles() = object : WebChromeClient() {
+        override fun onJsAlert(view: WebView, pageUrl: String, message: String, result: JsResult): Boolean {
+            AlertDialog.Builder(this@MainActivity).setMessage(message)
+                .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm() }
+                .setOnCancelListener { result.confirm() }.show()
+            return true
+        }
+        override fun onJsConfirm(view: WebView, pageUrl: String, message: String, result: JsResult): Boolean {
+            AlertDialog.Builder(this@MainActivity).setMessage(message)
+                .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm() }
+                .setNegativeButton(android.R.string.cancel) { _, _ -> result.cancel() }
+                .setOnCancelListener { result.cancel() }.show()
+            return true
+        }
+        override fun onJsPrompt(view: WebView, pageUrl: String, message: String, defaultValue: String?, result: JsPromptResult): Boolean {
+            val input = EditText(this@MainActivity).apply { setText(defaultValue ?: "") }
+            AlertDialog.Builder(this@MainActivity).setMessage(message).setView(input)
+                .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm(input.text.toString()) }
+                .setNegativeButton(android.R.string.cancel) { _, _ -> result.cancel() }
+                .setOnCancelListener { result.cancel() }.show()
+            return true
+        }
+        override fun onJsBeforeUnload(view: WebView, pageUrl: String, message: String?, result: JsResult): Boolean =
+            onJsConfirm(view, pageUrl, "Leave this page? Changes you made may not be saved.", result)
+
+        override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams): Boolean {
+            pendingUpload?.onReceiveValue(null)
+            pendingUpload = callback
+            return try {
+                startActivityForResult(params.createIntent(), REQUEST_UPLOAD)
+                true
+            } catch (_: ActivityNotFoundException) {
+                pendingUpload = null
+                false
+            }
+        }
+    }
+
+    /** Lets the member choose where a blob download is stored. */
+    private fun saveAs(blob: WebFiles.Blob) = runOnUiThread {
+        pendingSave = blob
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+            .setType(blob.mimeType).putExtra(Intent.EXTRA_TITLE, blob.name)
+        try { startActivityForResult(intent, REQUEST_SAVE) } catch (_: ActivityNotFoundException) { pendingSave = null }
+    }
+
+    private fun openExternally(uri: Uri) {
+        try { startActivity(Intent(Intent.ACTION_VIEW, uri)) } catch (_: ActivityNotFoundException) { }
+    }
+
+    @Deprecated("Deprecated in Android")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            REQUEST_UPLOAD -> {
+                pendingUpload?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+                pendingUpload = null
+            }
+            REQUEST_SAVE -> {
+                val blob = pendingSave
+                val target = data?.data
+                pendingSave = null
+                if (resultCode == RESULT_OK && blob != null && target != null) {
+                    try { contentResolver.openOutputStream(target)?.use { it.write(blob.bytes) } } catch (_: Exception) { }
+                }
+            }
+            else -> super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    // The session cookie must survive Android stopping the app in the background.
+    override fun onPause() {
+        CookieManager.getInstance().flush()
+        super.onPause()
+    }
+
     @Deprecated("Deprecated in Android")
     override fun onBackPressed() {
         val view = browser
         if (view != null && view.canGoBack()) view.goBack()
         else if (view != null && BuildConfig.COMMUNITY_URL.isEmpty()) showSetup()
         else super.onBackPressed()
+    }
+
+    private companion object {
+        const val REQUEST_UPLOAD = 1
+        const val REQUEST_SAVE = 2
     }
 
     override fun onDestroy() {
