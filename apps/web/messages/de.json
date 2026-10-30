@@ -77,6 +77,8 @@
     "location": "Ort (optional)",
     "virtual": "Online-Veranstaltung",
     "virtualDesc": "Link zum Online-Meeting hinzufügen",
+    "remind24h": "Erinnerung 24 Stunden vorher",
+    "remind24hDesc": "Mail an alle mit Zusage. Bei täglichen Terminen eher aus; die Erinnerung eine Stunde vorher kommt immer. Gilt für alle Termine einer Serie.",
     "meeting": "Meeting-URL",
     "max": "Maximale Zusagen (optional)",
     "unlimited": "Leer lassen für unbegrenzte Teilnahme",

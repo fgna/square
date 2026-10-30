@@ -261,6 +261,8 @@ model Event {
   maxRsvps        Int?
   reminder24hSent Boolean         @default(false)
   reminder1hSent  Boolean         @default(false)
+  /// Off for daily events (e.g. a morning session), where a day-ahead mail is noise.
+  remind24h       Boolean         @default(true)
   // Recurring events are materialised as individual rows sharing a seriesId,
   // so each occurrence keeps its own RSVPs, reminders and recordings and can
   // be moved or cancelled on its own.

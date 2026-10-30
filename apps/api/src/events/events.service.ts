@@ -379,6 +379,10 @@ export class EventsService {
       },
     });
     await this.setCategories([id], categoryIds);
+    // A daily series is the usual case for switching the day-ahead reminder off.
+    if (dto.remind24h !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({ where: { seriesId: event.seriesId }, data: { remind24h: dto.remind24h } });
+    }
     return updated;
   }
 

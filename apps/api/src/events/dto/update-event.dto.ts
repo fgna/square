@@ -49,6 +49,11 @@ export class UpdateEventDto {
   @Min(1)
   maxRsvps?: number;
 
+  @ApiPropertyOptional({ description: 'Send the reminder 24 hours ahead (default true); for a series, applies to all its dates' })
+  @IsOptional()
+  @IsBoolean()
+  remind24h?: boolean;
+
   @ApiPropertyOptional({ description: 'Categories (topics) this belongs to; shown under Explore', type: [String] })
   @IsOptional()
   @IsArray()

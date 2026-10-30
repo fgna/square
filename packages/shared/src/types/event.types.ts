@@ -27,6 +27,7 @@ export interface CommunityEvent {
   isVirtual: boolean;
   meetingUrl?: string | null;
   maxRsvps?: number | null;
+  remind24h?: boolean;
   /** Shared by every occurrence of a repeating event; null for one-off events. */
   seriesId?: string | null;
   categories?: { category: { id: string; name: string; slug: string } }[];
