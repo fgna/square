@@ -31,6 +31,7 @@ export interface CommunityEvent {
   /** Photographer credit for a library photo. */
   coverCredit?: { name: string; url: string; source?: string } | null;
   maxRsvps?: number | null;
+  remind24h?: boolean;
   /** Shared by every occurrence of a repeating event; null for one-off events. */
   seriesId?: string | null;
   categories?: { category: { id: string; name: string; slug: string } }[];
@@ -46,6 +47,8 @@ export interface CommunityEvent {
 export interface PaginatedEvents {
   data: CommunityEvent[];
   total: number;
+  /** Like total, but each series counts once. */
+  distinctTotal?: number;
   page: number;
   limit: number;
   totalPages: number;

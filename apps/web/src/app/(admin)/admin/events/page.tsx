@@ -74,6 +74,7 @@ function EventDialog({
   const [maxRsvps, setMaxRsvps] = useState(event?.maxRsvps ? String(event.maxRsvps) : '');
   const [coverUrl, setCoverUrl] = useState<string | null>(event?.coverUrl ?? null);
   const [coverCredit, setCoverCredit] = useState<CoverCredit>(event?.coverCredit ?? null);
+  const [remind24h, setRemind24h] = useState(event?.remind24h ?? true);
   const [categoryIds, setCategoryIds] = useState<string[]>((event?.categories ?? []).map((c) => c.category.id));
   const [recurrence, setRecurrence] = useState<string>('NONE');
   const [recurrenceEndsAt, setRecurrenceEndsAt] = useState('');
@@ -98,6 +99,7 @@ function EventDialog({
         isVirtual,
         meetingUrl: meetingUrl.trim() || undefined,
         maxRsvps: maxRsvps ? Number(maxRsvps) : undefined,
+        remind24h,
         categoryIds,
         coverUrl: coverUrl ?? null,
         coverCredit: coverUrl ? coverCredit : null,
@@ -229,6 +231,13 @@ function EventDialog({
           <div className="space-y-1.5">
             <Label htmlFor="e-max">{t('max')}</Label>
             <Input id="e-max" type="number" min={1} value={maxRsvps} onChange={(e) => setMaxRsvps(e.target.value)} placeholder={t('unlimited')} />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>{t('remind24h')}</p>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('remind24hDesc')}</p>
+            </div>
+            <Switch checked={remind24h} onCheckedChange={setRemind24h} />
           </div>
           <CategoryPicker value={categoryIds} onChange={setCategoryIds} />
           {editing ? (
