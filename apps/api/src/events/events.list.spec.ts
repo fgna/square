@@ -64,3 +64,22 @@ describe('EventsService.findAll: which events a list gets', () => {
     expect(prisma.event.groupBy.mock.calls[0][0]).toMatchObject({ by: ['seriesId'], where: { seriesId: { not: null } } });
   });
 });
+
+describe('EventsService.update: highlighting a series', () => {
+  it('highlights every upcoming date of the series', async () => {
+    const prisma: any = {
+      event: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'e1', seriesId: 's1', startsAt: new Date('2026-11-01T08:00:00Z'), endsAt: new Date('2026-11-01T09:00:00Z') }),
+        update: vi.fn().mockResolvedValue({ id: 'e1', featured: true }),
+        updateMany: vi.fn(),
+      },
+      eventCategory: { deleteMany: vi.fn(), createMany: vi.fn() },
+    };
+    const service = new EventsService(prisma, { send: vi.fn() } as any);
+    await service.update('e1', { featured: true });
+    expect(prisma.event.updateMany).toHaveBeenCalledWith({
+      where: { seriesId: 's1', startsAt: { gte: expect.any(Date) } },
+      data: { featured: true },
+    });
+  });
+});

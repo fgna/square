@@ -263,6 +263,8 @@ model Event {
   coverUrl        String?
   /// Credit required by the image library: { name, url, source }.
   coverCredit     Json?
+  /// Highlighted by an admin in lists and the calendar.
+  featured        Boolean         @default(false)
   maxRsvps        Int?
   reminder24hSent Boolean         @default(false)
   reminder1hSent  Boolean         @default(false)
