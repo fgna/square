@@ -1,0 +1,7 @@
+{
+  "title": "Upload videos for lessons and recordings",
+  "category": "new",
+  "audience": "admins",
+  "description": "Admins can upload MP4 or QuickTime MOV videos (H.264) for lessons and recordings instead of linking a video host. Videos stay on the instance and play only inside the platform through links that expire; unused uploads are removed automatically.",
+  "pr": 17
+}

@@ -62,11 +62,18 @@ describe('recordings: attachments and one-year retention', () => {
     expect(recordingVideo('https://drive.example.com/folder/1', false)).toEqual({
       url: 'https://drive.example.com/folder/1',
       embedUrl: null,
+      fileUrl: null,
     });
     expect(recordingVideo('https://youtu.be/dQw4w9WgXcQ', false)).toEqual({
       url: null,
       embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+      fileUrl: null,
     });
+    // A video uploaded to the platform: a signed, expiring file link, never the path itself.
+    const hosted = recordingVideo('/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4', false);
+    expect(hosted.url).toBeNull();
+    expect(hosted.embedUrl).toBeNull();
+    expect(hosted.fileUrl).toMatch(/\/uploads\/videos\/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e\.mp4\?exp=\d+&sig=[0-9a-f]+$/);
   });
 
   it('deletes recordings older than a year', async () => {
