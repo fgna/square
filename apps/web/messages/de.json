@@ -74,6 +74,8 @@
     "coverUnsplashNote": "Unsplash-Fotos werden von Unsplash geladen; der Fotograf wird genannt.",
     "coverNone": "Keine Fotos gefunden.",
     "coverClose": "Schließen",
+    "featured": "Hervorheben",
+    "featuredDesc": "Erscheint markiert in Liste, Kalender und Dashboard; bei einer Serie für alle kommenden Termine.",
     "new": "Neue Veranstaltung",
     "title": "Titel",
     "description": "Beschreibung",
@@ -351,6 +353,9 @@
   },
   "events": {
     "coverCredit": "Foto: <author>{name}</author> auf <library>Unsplash</library>",
+    "compressSeries": "Regelmäßige Termine zusammenfassen",
+    "featured": "Hervorgehoben",
+    "seriesMore": "Regelmäßig – weitere Termine im Kalender",
     "title": "Veranstaltungen",
     "description": "Ihr lernt und inspiriert euch gegenseitig bei unseren Live-Veranstaltungen.",
     "list": "Liste",

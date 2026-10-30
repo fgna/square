@@ -399,6 +399,13 @@ export class EventsService {
       },
     });
     await this.setCategories([id], categoryIds);
+    // Highlighting a date of a series highlights the series' upcoming dates too.
+    if (dto.featured !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({
+        where: { seriesId: event.seriesId, startsAt: { gte: new Date() } },
+        data: { featured: dto.featured },
+      });
+    }
     // A daily series is the usual case for switching the day-ahead reminder off.
     if (dto.remind24h !== undefined && event.seriesId) {
       await this.prisma.event.updateMany({ where: { seriesId: event.seriesId }, data: { remind24h: dto.remind24h } });
