@@ -34,6 +34,30 @@ time, not loaded at runtime. There is no marketplace and no sandbox.
 Removing a plugin from the config and syncing again uninstalls it: no navigation
 entry, its pages answer 404, and its API routes are not registered.
 
+### A plugin as the start page
+
+An instance whose main experience is a plugin (a learning game, for example) can
+make it the start page:
+
+```json
+{ "plugins": [{ "path": "../my-instance/plugins/game" }], "home": "game" }
+```
+
+`home` must name an active plugin with a web part; the sync writes
+`apps/web/src/plugins/home.generated.ts`. Then:
+
+- after signing in or registering, members go back to the page that asked for the
+  sign-in (`/login?from=…`), otherwise to `/p/<home>` instead of the dashboard;
+- signed-in members opening `/`, `/login` or `/register` land on `/p/<home>`;
+  visitors opening `/` see the sign-in instead of the Core's landing page;
+- if the start page plugin exports `AuthFrame`, it frames the sign-in and
+  registration pages. It renders `children` (the Core's forms and legal links)
+  once and can restyle them through the `--theme-*` CSS variables; sign-in
+  itself stays the Core's.
+
+Without `home` everything stays as before. If an operator switches the plugin's
+path off (capabilities), the dashboard is the start page again.
+
 ## Built-in plugins
 
 The Core ships some modules as plugins of its own, in
@@ -137,6 +161,23 @@ from `@nestjs/common` themselves.
 
 The built-in journal uses the same services, so the Core's own journal and a
 replacement see the same data.
+
+**Runtime-neutral helpers**: besides the types, the SDK ships small pure
+modules that any plugin may use. They know nothing about a plugin's subject.
+
+- `@community/plugin-sdk/tasks`: validation and grading of numeric and choice
+  tasks; answer keys stay on the server.
+- `@community/plugin-sdk/adaptive`: adaptive practice. `replayLadder` replays
+  judged trials over a plugin's ordered levels (move up after stable
+  independent success, step back one level after repeated failure),
+  `reviewQueue` brings failed items back with growing spacing,
+  `planNextTrial` mixes practice, review and an easier "confidence" trial after
+  a failure streak, and `personalPace`/`isBrisk` compare a learner only with
+  their own typical response time (never show it as a countdown).
+
+The Core does not hand these modules to plugins at runtime yet, so a plugin
+that needs one copies the file unchanged (with its `.d.ts`) and checks it
+against the SDK version it targets. `pnpm test:sdk` runs their tests.
 
 ## Not part of the first step
 

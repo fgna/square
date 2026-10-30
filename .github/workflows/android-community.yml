@@ -1,0 +1,86 @@
+name: Android community build
+on:
+  pull_request:
+    branches: [main, feat/59-android-apk-migration]
+    paths:
+      - 'apps/mobile-android/**'
+      - 'examples/android-community/**'
+      - '.github/workflows/android-community.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: android-community-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Android SDK 35
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" >/dev/null
+      - name: Build orchestration contracts
+        run: python3 -m unittest discover -s apps/mobile-android/tests -v
+      - name: Generic APK and unit tests
+        working-directory: apps/mobile-android
+        run: |
+          ./gradlew --no-daemon testDebugUnitTest assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/square-before.apk"
+      - name: External community build and APK identity
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, shutil, subprocess, zipfile
+          from pathlib import Path
+          root = Path.cwd()
+          fixture = Path(os.environ['RUNNER_TEMP']) / 'community'
+          shutil.copytree(root / 'examples/android-community', fixture)
+          config_path = fixture / 'android/community.json'
+          config = json.loads(config_path.read_text())
+          config.update(versionCode=7, versionName='1.2.3')
+          config_path.write_text(json.dumps(config))
+          subprocess.run(['python3', str(root / 'apps/mobile-android/build-community.py'),
+                          '--config', str(config_path)], check=True)
+          apk = fixture / 'android/dist/org.example.community-7-debug.apk'
+          aapt = Path(os.environ['ANDROID_HOME']) / 'build-tools/35.0.0/aapt'
+          badging = subprocess.check_output([str(aapt), 'dump', 'badging', str(apk)], text=True)
+          assert "package: name='org.example.community'" in badging
+          assert "versionCode='7'" in badging and "versionName='1.2.3'" in badging
+          assert "application-label:'Example Community'" in badging
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          assert apk.with_suffix('.apk.sha256').read_text() == f'{digest}  {apk.name}\n'
+          def icon(path):
+              with zipfile.ZipFile(path) as archive:
+                  return archive.read('res/drawable/ic_launcher_foreground.xml')
+          assert icon(apk) != icon(Path(os.environ['RUNNER_TEMP']) / 'square-before.apk')
+          print('Branded APK identity, version, icon and checksum PASS')
+          PY
+      - name: Default build returns to shared identity and artwork
+        working-directory: apps/mobile-android
+        run: |
+          ./gradlew --no-daemon assembleDebug
+          python3 - <<'PY'
+          import os, subprocess, zipfile
+          from pathlib import Path
+          apk = Path('app/build/outputs/apk/debug/app-debug.apk')
+          aapt = Path(os.environ['ANDROID_HOME']) / 'build-tools/35.0.0/aapt'
+          badging = subprocess.check_output([str(aapt), 'dump', 'badging', str(apk)], text=True)
+          assert "package: name='com.community.app'" in badging
+          assert "application-label:'Square'" in badging
+          assert "versionCode='1'" in badging and "versionName='1.0'" in badging
+          def icon(path):
+              with zipfile.ZipFile(path) as archive:
+                  return archive.read('res/drawable/ic_launcher_foreground.xml')
+          assert icon(apk) == icon(Path(os.environ['RUNNER_TEMP']) / 'square-before.apk')
+          print('Default APK identity, version and icon restored PASS')
+          PY

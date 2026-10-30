@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { SocialButtons } from '@/components/auth/social-buttons';
 import { useBranding } from '@/hooks/use-branding';
+import { authLink, currentFrom } from '@/lib/home';
 
 interface LoginForm {
   email: string;
@@ -22,6 +23,9 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const t = useTranslations('auth');
   const { data: branding } = useBranding();
+  // Read after mounting: the page is prerendered without a query.
+  const [registerHref, setRegisterHref] = useState('/register');
+  useEffect(() => setRegisterHref(authLink('/register', currentFrom())), []);
   const {
     register,
     handleSubmit,
@@ -125,7 +129,7 @@ export default function LoginPage() {
         <p className="mt-4 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
           {t('noAccount')}{' '}
           <Link
-            href="/register"
+            href={registerHref}
             className="font-medium hover:underline"
             style={{ color: 'var(--theme-primary)' }}
           >

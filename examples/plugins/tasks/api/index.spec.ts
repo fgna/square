@@ -9,11 +9,12 @@ function controller() {
   const list = vi.fn().mockResolvedValue([]);
   const revealHint = vi.fn().mockResolvedValue(1);
   const hintUsage = vi.fn().mockResolvedValue(0);
+  const listByPrefix = vi.fn().mockResolvedValue([]);
   const registration = plugin.register({
     pluginId: 'tasks',
     CurrentUser: () => () => undefined,
     Roles: () => () => undefined,
-    data: { tasks: { record, list, revealHint, hintUsage }, journal: {} as never },
+    data: { tasks: { record, list, listByPrefix, revealHint, hintUsage }, journal: {} as never },
     contentPack: {} as never,
   });
   const ControllerType = registration.controllers![0] as new () => {
