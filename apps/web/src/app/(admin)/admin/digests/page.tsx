@@ -141,7 +141,7 @@ function TemplateFormDialog({
               placeholder='<div style="font-size: 12px; text-align: center;">Unsubscribe link here</div>'
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="dt-accent">{t('accentColor')}</Label>
               <div className="flex items-center gap-2">

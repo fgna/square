@@ -193,7 +193,7 @@ function EventDialog({
               <RichTextEditor content={description} onChange={setDescription} placeholder={t('sampleDesc')} compact />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="e-start">{t('starts')}</Label>
               <Input id="e-start" type="datetime-local" step={900} value={startsAt} onChange={(e) => changeStart(e.target.value)} />
