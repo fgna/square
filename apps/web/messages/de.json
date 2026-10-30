@@ -918,6 +918,12 @@
     "eventsCount": "{count} Veranstaltungen"
   },
   "dashboard": {
+    "month": {
+      "title": "Die nächsten 30 Tage",
+      "allEvents": "Alle Veranstaltungen",
+      "empty": "In den nächsten 30 Tagen ist nichts geplant.",
+      "recurring": "regelmäßig"
+    },
     "welcome": {
       "video": "Willkommensvideo",
       "heading": "Willkommen",
