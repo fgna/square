@@ -8,6 +8,8 @@ import type { LucideIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/common/page-header';
 import { CreatePost } from '@/components/feed/create-post';
+import { ScheduledPosts } from '@/components/feed/scheduled-posts';
+import { useAuthStore } from '@/store/auth.store';
 import { PostCard } from '@/components/feed/post-card';
 import { PostSkeleton } from '@/components/common/loading-skeleton';
 import { EmptyState } from '@/components/common/empty-state';
@@ -50,6 +52,7 @@ function isForumTab(value: string | null): value is ForumTab {
 
 function ForumPage() {
   const t = useTranslations('feed');
+  const isAdmin = useAuthStore((s) => s.user?.role === 'ADMIN');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -148,6 +151,9 @@ function ForumPage() {
         initialType={composerType}
         initialFocused={!!introType}
       />
+
+      {/* Posts an admin prepared for later (e.g. the Monday post written at the weekend). */}
+      {isAdmin && !activeType && <ScheduledPosts />}
 
       {/* Banner, events and proposals belong to the overview; in a filtered
           tab they would push the matching posts down. */}

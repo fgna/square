@@ -597,7 +597,20 @@
       "topicsHint": "Schlag ein Thema für eine Veranstaltung, eine Masterclass oder neue Inhalte vor. Alle können mitdiskutieren; Zustimmung zeigst du mit einer Reaktion. Das Team greift beliebte Vorschläge für die Planung auf."
     },
     "shareSuccess": "Erfolg teilen",
-    "topicSuggestion": "Themenvorschlag"
+    "topicSuggestion": "Themenvorschlag",
+    "schedule": {
+      "label": "Später veröffentlichen",
+      "clear": "Doch sofort veröffentlichen",
+      "submit": "Planen",
+      "inPast": "Wähle einen Zeitpunkt in der Zukunft.",
+      "heading": "Geplante Beiträge",
+      "for": "Geplant für {date}",
+      "publishNow": "Jetzt veröffentlichen",
+      "move": "Verschieben",
+      "moveSave": "Zeit speichern",
+      "delete": "Löschen",
+      "deleteConfirm": "Diesen geplanten Beitrag löschen? Das lässt sich nicht rückgängig machen."
+    }
   },
   "groups": {
     "title": "Meine Lerngruppen",

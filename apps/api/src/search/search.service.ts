@@ -15,6 +15,7 @@ export class SearchService {
       this.prisma.post.findMany({
         where: {
           isHidden: false,
+          publishAt: null,
           content: { contains: term, mode: 'insensitive' },
         },
         take: limit,
