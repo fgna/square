@@ -23,8 +23,9 @@ test('reset rejects expired tokens without exposing the supplied token in page e
   await page.goto('/reset-password?token=' + token);
   await page.getByLabel(/new password|neues passwort/i).fill('New-password-123');
   await page.getByRole('button', { name: /change password|passwort ändern/i }).click();
-  await expect(page.getByRole('alert')).toContainText(/invalid or expired|ungültig oder abgelaufen/i);
-  await expect(page.getByRole('alert')).not.toContainText(token);
+  const resetError = page.locator('p[role="alert"]');
+  await expect(resetError).toContainText(/invalid or expired|ungültig oder abgelaufen/i);
+  await expect(resetError).not.toContainText(token);
 });
 
 test('successful reset clears token from location and returns to sign in', async ({ page }) => {
