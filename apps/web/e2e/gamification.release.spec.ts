@@ -2,8 +2,8 @@ import { test, expect } from './authenticated.fixture';
 
 // Run against a disposable Square installation at the exact PR revision.
 // Pre-provision a synthetic member and server-side issuer; never use a live instance.
-// Required: SQUARE_E2E_WEB_URL, SQUARE_E2E_API_URL, SQUARE_E2E_EMAIL,
-// SQUARE_E2E_PASSWORD, SQUARE_E2E_ADMIN_TOKEN, SQUARE_E2E_ISSUER_TOKEN.
+// Required: SQUARE_TEST_URL/EMAIL/PASSWORD (Square #102), SQUARE_E2E_API_URL,
+// SQUARE_E2E_ADMIN_TOKEN, SQUARE_E2E_ISSUER_TOKEN.
 const required = ['SQUARE_TEST_URL','SQUARE_TEST_EMAIL','SQUARE_TEST_PASSWORD',
   'SQUARE_E2E_API_URL','SQUARE_E2E_ADMIN_TOKEN','SQUARE_E2E_ISSUER_TOKEN'] as const;
 const ready = required.every(k => Boolean(process.env[k]));
@@ -14,21 +14,14 @@ const adminHeaders = { Authorization: 'Bearer ' + (process.env.SQUARE_E2E_ADMIN_
 const issuerHeaders = { Authorization: 'Bearer ' + (process.env.SQUARE_E2E_ISSUER_TOKEN || '') };
 
 test.describe('Square #107 browser sign-in and persistent gamification', () => {
-  test('requires an explicitly configured disposable test instance', () => {
-    expect(ready, 'Square #102 runtime variables and isolated gamification credentials are required').toBe(true);
-  });
-
   test('login → trusted reward → purchase/equip → logout/relogin persists', async ({ authenticatedPage: page, request }) => {
+    expect(ready, 'Square #102 runtime variables and isolated gamification credentials are required').toBe(true);
     const rewardCode = process.env.SQUARE_E2E_REWARD_CODE || 'playwright-completed';
     const rewardAmount = 20;
     const itemName = runId + '-cosmetic';
 
-    // Exercise real browser sign-in, not a mocked token or user state.
-    await page.goto(new URL('/login', webUrl).toString());
-    await page.locator('#email').fill(process.env.SQUARE_TEST_EMAIL!);
-    await page.locator('#password').fill(process.env.SQUARE_TEST_PASSWORD!);
-    await page.locator('button[type="submit"]').click();
-    await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
+    // The Square #102 authenticatedPage fixture completed the real login.
+    await expect(page.locator('body')).toBeVisible();
 
     // Authenticate separately to obtain a short-lived token and authoritative user id
     // for checks; the login above still uses actual browser form/cookies.
