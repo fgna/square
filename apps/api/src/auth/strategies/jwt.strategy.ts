@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -7,6 +8,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  pwdv?: string;
 }
 
 @Injectable()
@@ -22,13 +24,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, name: true, role: true, isActive: true, avatarUrl: true, membershipTier: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true, avatarUrl: true, membershipTier: true, passwordHash: true },
     });
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    return user;
+    if (!payload.pwdv || payload.pwdv !== createHash('sha256').update(user.passwordHash || '').digest('hex')) {
+      throw new UnauthorizedException('Session invalidated');
+    }
+    const { passwordHash: _, ...safeUser } = user;
+    return safeUser;
   }
 }

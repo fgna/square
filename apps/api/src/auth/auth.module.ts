@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
+import { PasswordRecoveryService } from './password-recovery.service';
 import { OAuthService } from './oauth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -22,6 +23,7 @@ import { InvitesModule } from '../invites/invites.module';
   ],
   providers: [
     AuthService,
+    PasswordRecoveryService,
     OAuthService,
     JwtStrategy,
     JwtRefreshStrategy,

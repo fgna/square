@@ -4,6 +4,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
+import { PasswordRecoveryService } from './password-recovery.service';
+import { RequestPasswordResetDto, ResetPasswordDto } from './dto/password-recovery.dto';
 import { OAuthService } from './oauth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -20,6 +22,7 @@ const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 export class AuthController {
   constructor(
     private authService: AuthService,
+    private passwordRecovery: PasswordRecoveryService,
     private oauthService: OAuthService,
   ) {}
 
@@ -121,6 +124,22 @@ export class AuthController {
     }
     this.clearRefreshCookie(res);
     return { message: 'Logged out successfully' };
+  }
+
+  @Post('password-reset/request')
+  @SetMetadata(IS_PUBLIC_KEY, true)
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ auth: { limit: 5, ttl: 900_000 } })
+  async requestPasswordReset(@Body() dto: RequestPasswordResetDto) {
+    return this.passwordRecovery.request(dto.email);
+  }
+
+  @Post('password-reset/confirm')
+  @SetMetadata(IS_PUBLIC_KEY, true)
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ auth: { limit: 10, ttl: 900_000 } })
+  async confirmPasswordReset(@Body() dto: ResetPasswordDto) {
+    return this.passwordRecovery.reset(dto.token, dto.password);
   }
 
   @Post('oauth/google')

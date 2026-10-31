@@ -264,7 +264,17 @@
     "haveAccount": "Already have an account?",
     "registrationFailed": "Registration failed",
     "inviteOnlyTitle": "Invitation only",
-    "inviteOnlyMessage": "New accounts currently require an invitation. Please use the link from your invitation."
+    "inviteOnlyMessage": "New accounts currently require an invitation. Please use the link from your invitation.",
+    "forgotPassword": "Forgot password?",
+    "resetRequestTitle": "Reset password",
+    "resetRequestButton": "Send reset link",
+    "resetRequestDone": "If an eligible account exists, an email with a reset link will be sent.",
+    "resetNewPassword": "New password",
+    "resetConfirmButton": "Change password",
+    "resetDone": "Password changed. You can now sign in.",
+    "resetInvalid": "This link is invalid or expired.",
+    "resetError": "Please try again later.",
+    "backToLogin": "Back to sign in"
   },
   "bookmarks": {
     "title": "Saved Posts",

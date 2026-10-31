@@ -264,7 +264,17 @@
     "haveAccount": "Bereits ein Konto?",
     "registrationFailed": "Registrierung fehlgeschlagen",
     "inviteOnlyTitle": "Nur mit Einladung",
-    "inviteOnlyMessage": "Neue Konten gibt es zurzeit nur mit einer Einladung. Bitte nutze den Link aus deiner Einladung."
+    "inviteOnlyMessage": "Neue Konten gibt es zurzeit nur mit einer Einladung. Bitte nutze den Link aus deiner Einladung.",
+    "forgotPassword": "Passwort vergessen?",
+    "resetRequestTitle": "Passwort zurücksetzen",
+    "resetRequestButton": "Reset-Link senden",
+    "resetRequestDone": "Falls ein berechtigtes Konto existiert, erhältst du eine E-Mail mit einem Link zum Zurücksetzen.",
+    "resetNewPassword": "Neues Passwort",
+    "resetConfirmButton": "Passwort ändern",
+    "resetDone": "Passwort geändert. Du kannst dich jetzt anmelden.",
+    "resetInvalid": "Der Link ist ungültig oder abgelaufen.",
+    "resetError": "Bitte versuche es später erneut.",
+    "backToLogin": "Zur Anmeldung"
   },
   "bookmarks": {
     "title": "Gespeicherte Beiträge",

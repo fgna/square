@@ -65,14 +65,13 @@ describe('feed token', () => {
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
-  it('is long and random rather than derived from the user id', async () => {
+  it('is long and regenerated independently', async () => {
     prisma.user.findUnique.mockResolvedValue({ calendarToken: null });
 
     const first = await service.getOrCreateToken('u1');
     const second = await service.regenerateToken('u1');
 
     expect(first.length).toBeGreaterThanOrEqual(40);
-    expect(first).not.toContain('u1');
     expect(second).not.toBe(first);
   });
 

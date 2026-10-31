@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { isPathEnabled } from './lib/capabilities';
 import { HOME_PATH, HOME_PLUGIN } from './plugins/home.generated';
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/api/health'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/api/health'];
 const AUTH_PATHS = ['/login', '/register'];
 const ADMIN_PATHS = ['/admin'];
 

@@ -188,7 +188,10 @@ export class AuthService {
   }
 
   async generateTokens(userId: string, email: string, role: string, fingerprint?: string) {
-    const payload = { sub: userId, email, role };
+    // Bind short-lived access tokens to the current password hash so password
+    // recovery invalidates already issued access tokens immediately.
+    const authUser = await this.prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true } });
+    const payload = { sub: userId, email, role, pwdv: createHash('sha256').update(authUser?.passwordHash || '').digest('hex') };
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: process.env.JWT_EXPIRES_IN || '15m',
