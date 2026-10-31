@@ -8,7 +8,7 @@ This test-only fixture signs in a dedicated synthetic member using the **real Sq
 2. Confirm that the test executor can reach the verified candidate instance over HTTPS and trusts any private Caddy test CA at the OS/browser level. An SSH tunnel or a headed browser is unnecessary when the instance is reachable by the executor.
 3. Store the instance origin, account email and password in private runner environment/secrets. Never commit them, paste them into Issues, or include them in traces/artifacts.
 
-Required environment variables: `SQUARE_TEST_URL` (origin, e.g. `https://test.example.invalid`), `SQUARE_TEST_EMAIL`, `SQUARE_TEST_PASSWORD`. Optional `SQUARE_TEST_LOGIN_PATH` selects a same-origin plugin login entry page (default `/login`); `SQUARE_TEST_LOGIN_FRAME` is the CSS selector of a same-origin or cross-origin iframe containing Square's normal email/password login form. Omit it for Square-hosted login. Frame navigation and cookies remain subject to the actual browser security model.
+Optional `SQUARE_TEST_PROTECTED_PATH` selects the authenticated protected route to validate (default `/dashboard`); use a known enabled plugin path if the dashboard is disabled on the instance. The runner includes `*.smoke.spec.ts` and `*.auth.spec.ts` scenarios under `apps/web/e2e`.\n\nRequired environment variables: `SQUARE_TEST_URL` (origin, e.g. `https://test.example.invalid`), `SQUARE_TEST_EMAIL`, `SQUARE_TEST_PASSWORD`. Optional `SQUARE_TEST_LOGIN_PATH` selects a same-origin plugin login entry page (default `/login`); `SQUARE_TEST_LOGIN_FRAME` is the CSS selector of a same-origin or cross-origin iframe containing Square's normal email/password login form. Omit it for Square-hosted login. Frame navigation and cookies remain subject to the actual browser security model.
 
 ## One-command invocation
 
@@ -24,7 +24,7 @@ Missing variables, credentials, network access, a working Chromium install, or a
 
 ## Consuming from an instance/plugin regression
 
-In a test file in `apps/web/e2e/`:
+In a test file named `your-plugin.auth.spec.ts` in `apps/web/e2e/`:
 
 ```ts
 import { test, expect } from './authenticated.fixture';
