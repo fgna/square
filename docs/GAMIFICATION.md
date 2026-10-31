@@ -127,10 +127,14 @@ Publication, real-data migration, rollback/restore and the deployment security
 gates remain subject to separate authorization and proof. This section records
 verified candidate evidence only and is not a release approval.
 
-## Optional external Turbo Mathe consumer gate (Square CI only)
+## Repository and test ownership
 
-Square runs the consumer contract using its own `.github/workflows/gamification-playwright.yml` workflow. Trigger `workflow_dispatch` on the candidate branch with the **exact 40-character Turbo Mathe commit** as `turbo_sha`. An authorized Square administrator must configure a read-only `TURBO_MATHE_READ_TOKEN` Actions secret with access to the separate private `fgna/turbo-mathe` repository. Missing access fails explicitly.
+Square maintains generic authentication, issuer authorization, wallet, purchase,
+equipment and capability-disabled tests in its own CI. No consumer-specific
+source checkout, token or hard-coded learning task belongs in Square workflows.
 
-The workflow temporarily checks out the pinned consumer under `.external/turbo-mathe`, installs it through Square's standard plugin sync, and runs the regular #102 browser tests plus `scripts/test-turbo-mathe-consumer.mjs`. The consumer test submits a real correct task through the Turbo Mathe server endpoint, then checks the Square wallet, durable task attempt, reward ledger and replay idempotence. The external source is temporary runner input and **is never committed into Square**. Turbo Mathe has no CI workflow and receives no changes from this test. No developer server or real learner account is accessed.
-
-Until a manual run with a verified consumer commit succeeds, this extra task-to-coin gate remains **unverified**. A green standard PR run does not imply the optional consumer gate ran.
+Consuming applications independently own task eligibility rules and verify
+their own task-completion-to-reward integration against a pinned compatible
+Square release. Turbo Mathe remains a separate repository without GitHub
+Actions, as decided for this project. Square's issuer tests establish the
+platform contract, not the correctness of a particular learning application.
