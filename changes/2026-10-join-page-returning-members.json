@@ -1,0 +1,7 @@
+{
+  "title": "Invitation-only communities point visitors to their own page; members go straight to sign-in",
+  "category": "new",
+  "audience": "admins and members",
+  "description": "Admins can set a page for visitors without an invitation. While sign-ups need an invitation, the start page's join and register links lead there. Members who signed in on a browser before go straight to the sign-in form instead of the start page.",
+  "pr": 109
+}
