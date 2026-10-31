@@ -56,4 +56,16 @@ export class CreatePostDto {
   @IsArray()
   @IsString({ each: true })
   categoryIds?: string[];
+
+  @ApiPropertyOptional({ example: '2026-11-02T05:00:00.000Z', description: 'Admins only: publish at this time instead of now' })
+  @IsOptional()
+  @IsDateString()
+  publishAt?: string;
+}
+
+export class SchedulePostDto {
+  @ApiPropertyOptional({ nullable: true, description: 'New publishing time; null publishes now' })
+  @IsOptional()
+  @IsDateString()
+  publishAt?: string | null;
 }
