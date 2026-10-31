@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: '.',
-  testMatch: ['**/*.smoke.spec.ts'],
+  testMatch: ['**/*.smoke.spec.ts', '**/*.auth.spec.ts'],
   workers: 1,
   retries: 0,
   timeout: 30000,
