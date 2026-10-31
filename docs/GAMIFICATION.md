@@ -31,9 +31,9 @@ Third-party applications need a trusted server-side integration that authenticat
 with appropriate admin privileges; **do not expose admin credentials to clients**.
 Application-specific reward eligibility stays outside Square.
 
-This candidate includes scoped application issuers and focused PostgreSQL test sources,
-but their successful execution on the exact release candidate has not yet been
-verified. Refunds and item quantities are not supported. Do not apply the
+This candidate includes scoped application issuers. PostgreSQL, migration and
+headless Playwright verification are automated in PR CI; see the latest SHA-specific
+workflow runs before treating a candidate as validated. Refunds and item quantities are not supported. Do not apply the
 migrations to a production database before isolated rehearsal and approval.
 
 ## Restricted application reward issuers (experimental)
@@ -60,9 +60,9 @@ before awarding; Square cannot judge application-specific learning completion.
 Issuer secrets must be rotated/revoked via server config and server restart.
 The capability guard still blocks the API when gamification is disabled.
 
-**Before production:** run the focused issuer tests and live issuer HTTP smoke,
-validate configuration lifecycle and revocation, evaluate rate limits and key
-management, and verify that no credentials are logged or exposed by clients.
+**Before production:** validate issuer credential rotation and revocation against
+running processes, evaluate rate limits and key management, verify no credentials
+are logged or exposed by clients, and complete separate release/security review.
 
 ## External issuer integration contract (#69)
 
@@ -104,3 +104,25 @@ in an isolated disposable PostgreSQL instance. Re-run the focused issuer HTTP,
 authentication, capability-disabled, reward concurrency and purchase integrity
 tests at the exact current commit. A successful unit test alone does not prove
 a live migration or user-facing end-to-end readiness.
+
+## Exact candidate verification (2026-10-31)
+
+On Square PR #108 commit `1aab28c82190f48a576945c71ce73ef49bc660fe`,
+all of the following GitHub Actions completed successfully:
+
+- [Headless Playwright #102, run 41191112488](https://github.com/fgna/square/actions/runs/41191112488): dedicated synthetic member login, disabled-capability API denial, trusted issuer reward, idempotent retry, purchase/equipment and re-login persistence.
+- [Private integration validation, run 41191112491](https://github.com/fgna/square/actions/runs/41191112491): API/Web builds and tests, isolated PostgreSQL regressions, baseline task-history migration, economy data seeding and repeat-migration preservation of wallet balance, ledger, purchases, inventory and equipment.
+- [Release-history gate, run 41191112557](https://github.com/fgna/square/actions/runs/41191112557): required changelog entry.
+
+The Playwright workflows start their own ephemeral PostgreSQL, Redis, real API/Web
+processes and headless Chromium. They do not need the operator's server, and
+never use live member accounts. Full consumer-owned **task completion → reward**
+integration must be verified in the consuming application, which decides
+eligibility and invokes the issuer; Square's generic issuer cannot independently
+validate a math answer. In Turbo Mathe, that adapter lives in
+`plugins/turbo-mathe/api/index.ts`. Do not claim this part passed merely
+because the Square issuer endpoint is exercised.
+
+Publication, real-data migration, rollback/restore and the deployment security
+gates remain subject to separate authorization and proof. This section records
+verified candidate evidence only and is not a release approval.
