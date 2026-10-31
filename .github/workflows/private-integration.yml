@@ -86,3 +86,54 @@ jobs:
         run: pnpm --dir apps/api exec prisma generate
       - name: Verify wallet concurrency and owned equipment on PostgreSQL
         run: pnpm --dir apps/api exec vitest run src/gamification/gamification.postgres.spec.ts src/gamification/gamification.equipment-postgres.spec.ts
+
+  gamification-upgrade:
+    # Existing synthetic task history must survive the additive economy migrations.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: square_upgrade
+          POSTGRES_PASSWORD: disposable_test_only
+          POSTGRES_DB: square_upgrade_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U square_upgrade -d square_upgrade_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://square_upgrade:disposable_test_only@localhost:5432/square_upgrade_test?schema=public
+      GAMIFICATION_UPGRADE_DISPOSABLE_DB: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply main migrations as baseline
+        run: |
+          git checkout --detach "${{ github.event.pull_request.base.sha }}"
+          pnpm --dir apps/api exec prisma migrate deploy
+          pnpm --dir apps/api exec prisma generate
+      - name: Seed task history using baseline Prisma client
+        run: |
+          git checkout --detach "${{ github.event.pull_request.head.sha }}"
+          node scripts/test-gamification-upgrade.mjs seed
+      - name: Upgrade the same database with candidate migrations
+        run: |
+          pnpm --dir apps/api exec prisma migrate deploy
+          pnpm --dir apps/api exec prisma generate
+      - name: Assert existing task attempt and hint history survived
+        run: node scripts/test-gamification-upgrade.mjs verify
