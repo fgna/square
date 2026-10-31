@@ -80,8 +80,16 @@ export const test = base.extend<{ authenticatedPage: Page; syntheticAccountScope
           .some(cookie => cookie.name === 'auth-session' && cookie.value === '1'), { timeout: 15000 }).toBe(true);
       }
       phase = 'protected page';
+      // The protected page may rotate its single-use refresh token after loading.
+      // Wait for that response before handing the page to a consumer whose first
+      // navigation could otherwise abort the rotation and retain a spent cookie.
+      const refreshSettled = page.waitForResponse(
+        (response) => new URL(response.url()).pathname.endsWith('/api/auth/refresh'),
+        { timeout: 15000 },
+      ).catch(() => null);
       const response = await page.goto(target.href, { waitUntil: 'domcontentloaded' });
       if (!response || response.status() >= 400) throw new Error('Protected route unavailable');
+      await refreshSettled;
       await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
     } catch (error) {
       const detail = error instanceof Error ? error.message : '';
