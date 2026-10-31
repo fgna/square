@@ -103,8 +103,11 @@ export const test = base.extend<{ authenticatedPage: Page }>({
       const response = await page.goto(target.href, { waitUntil: 'domcontentloaded' });
       if (!response || response.status() >= 400) throw new Error('Protected route unavailable');
       await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
-    } catch {
-      throw new Error(`Square authentication failed during ${phase}. Check TLS trust, normal signup/login, member credentials and enabled protected route. No credentials are logged.`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : '';
+      const diagnostic = /net::ERR_CERT_[A-Z_]+/.exec(detail)?.[0]
+        || (/TimeoutError/.test(detail) ? 'TIMEOUT' : 'FORM_OR_SESSION_FAILURE');
+      throw new Error(`Square authentication failed during ${phase} (${diagnostic}). Check browser TLS trust, form and synthetic account. No credentials are logged.`);
     }
     await use(page);
   },
