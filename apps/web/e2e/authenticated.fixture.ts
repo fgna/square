@@ -80,7 +80,7 @@ export const test = base.extend<{ authenticatedPage: Page }>({
         await page.locator('#password').fill(member.password);
         await page.locator('#confirmPassword').fill(member.password);
         await page.locator('button[type="submit"]').click();
-        await expect(page).not.toHaveURL(/\\/register(?:[/?#]|$)/, { timeout: 15000 });
+        await expect(page).not.toHaveURL(/\/register(?:[/?#]|$)/, { timeout: 15000 });
         phase = 'registration session';
         await expect.poll(async () => (await page.context().cookies(origin.origin))
           .some(cookie => cookie.name === 'auth-session' && cookie.value === '1'), { timeout: 15000 }).toBe(true);
@@ -102,7 +102,7 @@ export const test = base.extend<{ authenticatedPage: Page }>({
       phase = 'protected page';
       const response = await page.goto(target.href, { waitUntil: 'domcontentloaded' });
       if (!response || response.status() >= 400) throw new Error('Protected route unavailable');
-      await expect(page).not.toHaveURL(/\\/login(?:[/?#]|$)/);
+      await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/);
     } catch {
       throw new Error(`Square authentication failed during ${phase}. Check TLS trust, normal signup/login, member credentials and enabled protected route. No credentials are logged.`);
     }
