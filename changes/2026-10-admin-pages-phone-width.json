@@ -1,7 +1,7 @@
 {
-  "title": "Admin pages fit on phones even with wide tables",
+  "title": "Admin pages and tables fit on phones",
   "category": "fixed",
   "audience": "admins",
-  "description": "A wide table, such as course participation in the course editor, no longer makes the whole admin page wider than a phone screen; only the table scrolls sideways.",
+  "description": "Admin tables (courses, members, audit log, invites) scroll sideways on a phone instead of cutting off their right-hand columns, and a wide table no longer makes the whole page wider than the screen. In the course list, the course title opens the course editor.",
   "pr": 100
 }
