@@ -139,3 +139,9 @@ jobs:
           pnpm --dir apps/api exec prisma generate
       - name: Assert existing task attempt and hint history survived
         run: node scripts/test-gamification-upgrade.mjs verify
+      - name: Seed synthetic economy state in upgraded database
+        run: node scripts/test-gamification-upgrade.mjs economy-seed
+      - name: Reapply migrations as an idempotent rollout rehearsal
+        run: pnpm --dir apps/api exec prisma migrate deploy
+      - name: Check balances, ledger, inventory, equipment and task history preserved
+        run: node scripts/test-gamification-upgrade.mjs economy-verify
