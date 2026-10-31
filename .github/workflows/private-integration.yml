@@ -45,3 +45,44 @@ jobs:
           if [ ! -f docker-compose.yml ]; then
             echo '::warning title=Deployment security not validated::No reviewed compose exists; Docker security suite is uncollected. Release blocked by issue #11.'
           fi
+
+  gamification-postgres:
+    # Focused disposable DB gate for #107. No production credentials or services.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: square_test
+          POSTGRES_PASSWORD: disposable_test_only
+          POSTGRES_DB: square_gamification_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U square_test -d square_gamification_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://square_test:disposable_test_only@localhost:5432/square_gamification_test?schema=public
+      GAMIFICATION_INTEGRATION_TEST: '1'
+      TURBO_EQUIPMENT_DISPOSABLE_DB: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply migrations on disposable PostgreSQL
+        run: pnpm --dir apps/api exec prisma migrate deploy
+      - name: Generate Prisma client
+        run: pnpm --dir apps/api exec prisma generate
+      - name: Verify wallet concurrency and owned equipment on PostgreSQL
+        run: pnpm --dir apps/api exec vitest run src/gamification/gamification.postgres.spec.ts src/gamification/gamification.equipment-postgres.spec.ts
