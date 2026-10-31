@@ -60,3 +60,7 @@ authorization fail explicitly. No production auth change is introduced.
 
 Selection regression: `node --test apps/web/e2e/authenticated.accounts.test.mjs`
 on Node 22.18+ (native TypeScript stripping).
+
+## Plugin consumer execution
+
+Generic isolated Square CI runs the shared authenticated smoke checks without assuming optional plugins are installed. To include the Turbo Mathe behavior consumer against an authorized instance that has the matching plugin revision, set `SQUARE_TEST_PLUGIN_TESTS=1` when invoking the same Playwright command. Never label the generic CI run as plugin behavior acceptance. The operator must verify the served Square and plugin revisions and record the actual test result before closing the acceptance issue.
