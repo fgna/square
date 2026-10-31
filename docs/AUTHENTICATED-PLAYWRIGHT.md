@@ -41,3 +41,22 @@ Plugins own their own behavioral assertions. If a plugin renders a Square login 
 Before merging a behavior fix to `main`, deploy its **exact candidate SHA** to an authorized isolated test instance, independently verify the served revision, then run the generic smoke and the plugin-specific regression together. Record the SHA and the results on the relevant PR. This issue does **not** authorize deployment, instance mutation, synthetic account creation in production, or automatic destructive cleanup.
 
 For a Nightly executor, configure network access and private secret injection in that executor's authorized runtime. Nightly must fail if any required runtime prerequisite is missing; it must not report a green test based only on compiling these files.
+
+## Isolated synthetic learner scopes
+
+Consumers whose scenarios need different onboarding/progress can use
+`test.use({ syntheticAccountScope: 'mecki-grade2' })`. The default empty scope
+preserves the existing account filename and global credential configuration.
+A named scope uses its own origin-specific private account file and never
+silently reuses `SQUARE_TEST_EMAIL/PASSWORD`.
+
+For a named scope, supply matching private environment variables, for example
+`SQUARE_TEST_MECKI_GRADE2_EMAIL` and `SQUARE_TEST_MECKI_GRADE2_PASSWORD`, or opt
+into normal registration with `SQUARE_TEST_ALLOW_SIGNUP=1` on the authorized
+isolated instance. Registered scoped accounts are reused on later runs. No
+account, learner history or profile is reset, and product onboarding belongs
+to the consumer scenario. Missing scoped credentials/account and absent signup
+authorization fail explicitly. No production auth change is introduced.
+
+Selection regression: `node --test apps/web/e2e/authenticated.accounts.test.mjs`
+on Node 22.18+ (native TypeScript stripping).

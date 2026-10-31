@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test';
-import { createHash, randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, chmodSync } from 'node:fs';
+import { mkdirSync, renameSync, writeFileSync, chmodSync } from 'node:fs';
+import { testAccount } from './authenticated.accounts';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -19,35 +19,6 @@ function testOrigin(): URL {
   return url;
 }
 
-function localAccountFile(origin: string): string {
-  const hash = createHash('sha256').update(origin).digest('hex').slice(0, 12);
-  return join(homedir(), '.config', 'turbo-mathe', `playwright-account-${hash}.json`);
-}
-
-function account(origin: string): { email: string; password: string; newlyGenerated: boolean; file?: string } {
-  const email = process.env.SQUARE_TEST_EMAIL;
-  const password = process.env.SQUARE_TEST_PASSWORD;
-  if (email || password) {
-    if (!email || !password) throw new Error('Both SQUARE_TEST_EMAIL and SQUARE_TEST_PASSWORD are required');
-    return { email, password, newlyGenerated: false };
-  }
-  const file = localAccountFile(origin);
-  if (existsSync(file)) {
-    const data = JSON.parse(readFileSync(file, 'utf8'));
-    if (typeof data.email !== 'string' || typeof data.password !== 'string') throw new Error('Invalid synthetic account file');
-    return { ...data, newlyGenerated: false };
-  }
-  if (process.env.SQUARE_TEST_ALLOW_SIGNUP !== '1') {
-    throw new Error('No synthetic member exists. Set SQUARE_TEST_ALLOW_SIGNUP=1 only for an authorized isolated signup-enabled test instance');
-  }
-  return {
-    email: `square-playwright-${randomBytes(10).toString('hex')}@example.test`,
-    password: 'T' + randomBytes(24).toString('base64url') + 'a9!',
-    newlyGenerated: true,
-    file,
-  };
-}
-
 function persistAccount(file: string, data: { email: string; password: string }): void {
   const dir = join(homedir(), '.config', 'turbo-mathe');
   mkdirSync(dir, { recursive: true, mode: 0o700 });
@@ -57,10 +28,11 @@ function persistAccount(file: string, data: { email: string; password: string })
   chmodSync(file, 0o600);
 }
 
-export const test = base.extend<{ authenticatedPage: Page }>({
-  authenticatedPage: async ({ page }, use) => {
+export const test = base.extend<{ authenticatedPage: Page; syntheticAccountScope: string }>({
+  syntheticAccountScope: ['', { option: true }],
+  authenticatedPage: async ({ page, syntheticAccountScope }, use) => {
     const origin = testOrigin();
-    const member = account(origin.origin);
+    const member = testAccount(origin.origin, syntheticAccountScope);
     const protectedPath = process.env.SQUARE_TEST_PROTECTED_PATH || '/dashboard';
     const loginPath = process.env.SQUARE_TEST_LOGIN_PATH || '/login';
     for (const path of [protectedPath, loginPath]) {
@@ -114,3 +86,4 @@ export const test = base.extend<{ authenticatedPage: Page }>({
 });
 
 export { expect };
+
