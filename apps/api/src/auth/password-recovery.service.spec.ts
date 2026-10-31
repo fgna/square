@@ -73,6 +73,25 @@ describe('PasswordRecoveryService', () => {
     expect(redis.del).toHaveBeenCalledOnce();
   });
 
+  it('rejects an expired token without updating the account', async () => {
+    await service.request('known@example.org');
+    const token = (email.send.mock.calls[0][0].html as string).match(/token=([a-f0-9]{64})/)?.[1];
+    expect(token).toBeTruthy();
+    // Simulate Redis TTL expiration; no persistence change is allowed.
+    cache.clear();
+    await expect(service.reset(token!, 'A-new-password-123')).rejects.toThrow('Invalid or expired reset link');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects a recovery token after delivery failed', async () => {
+    email.send.mockResolvedValue(false);
+    await service.request('known@example.org');
+    const token = (email.send.mock.calls[0][0].html as string).match(/token=([a-f0-9]{64})/)?.[1];
+    expect(token).toBeTruthy();
+    await expect(service.reset(token!, 'A-new-password-123')).rejects.toThrow('Invalid or expired reset link');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it('rejects expired or reused tokens', async () => {
     await expect(service.reset('0'.repeat(64), 'A-new-password-123')).rejects.toThrow();
     await expect(service.reset('invalid', 'A-new-password-123')).rejects.toThrow();
