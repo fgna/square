@@ -61,7 +61,15 @@ export const test = base.extend<{ authenticatedPage: Page; syntheticAccountScope
         phase = 'login';
         const login = new URL(loginPath, origin);
         if (loginPath === '/login') login.searchParams.set('from', target.pathname);
-        await page.goto(login.href, { waitUntil: 'domcontentloaded' });
+        await page.goto(login.href, { waitUntil: 'load' });
+        // Wait until React has hydrated the form. Otherwise a fast headless
+        // click may submit server-rendered markup before its login handler exists.
+        if (!process.env.SQUARE_TEST_LOGIN_FRAME) {
+          await page.waitForFunction(() => {
+            const form = document.querySelector('form');
+            return !!form && Object.keys(form).some(key => key.startsWith('__reactProps' + '$'));
+          }, undefined, { timeout: 15000 });
+        }
         const selector = process.env.SQUARE_TEST_LOGIN_FRAME?.trim();
         const form = selector ? page.frameLocator(selector) : page;
         await form.locator('input[type="email"]').fill(member.email);
