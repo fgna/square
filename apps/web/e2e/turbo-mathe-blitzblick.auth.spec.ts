@@ -14,7 +14,7 @@ test('Turbo Mathe: Blitzblick repeat reveal works four times', async ({ authenti
   const question = page.getByRole('region', { name: 'Aufgabe' });
   await expect(firstGrade.or(roundStart).or(question).first()).toBeVisible({ timeout: 15000 });
   if (await privacyDialog.isVisible()) {
-    await privacyDialog.getByRole('button', { name: 'Verstanden' }).click();
+    // The plugin shell can intercept pointer events over the privacy dialog.\n    // Activate the actual button handler without relying on hit-testing.\n    await privacyDialog.getByRole('button', { name: 'Verstanden' }).evaluate((button: HTMLButtonElement) => button.click());\n    await expect(privacyDialog).toBeHidden({ timeout: 10000 });
   }
   if (await firstGrade.isVisible()) {
     await firstGrade.click();
