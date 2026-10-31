@@ -14,10 +14,10 @@ NEXT_PUBLIC_SQUARE_CAPABILITIES=courses,assessments
 ```
 
 Supported names: `feed`, `messages`, `events`, `courses`, `journal`,
-`assessments`, `testimonials`, `recordings`. An empty value disables all eight. Unset values enable all six,
+`assessments`, `testimonials`, `recordings`, `gamification`. An empty value disables all nine. Unset values enable all nine,
 preserving existing full-featured deployments. Unknown names fail startup/build.
 Each capability can be selected independently; there are currently no required
-dependencies between these eight core capabilities.
+dependencies between these nine capabilities.
 
 The API's global capability guard rejects matching disabled endpoints with 404,
 independent of authorization or whether the caller knows the URL. Next middleware
@@ -32,6 +32,8 @@ according to normal authorization. Feature disabling does not stop every
 background job or every cross-feature recommendation on the dashboard.
 A deployment accepting only identity/user administration should validate its
 actual browser and API flows before production rollout.
+
+`gamification` controls `/api/gamification/*`; disabled endpoints return 404. API and Web allowlists must match.
 
 `recordings` controls recording-specific routes under `/api/events/recordings/*` and
 `/api/events/:id/recordings` independently of the `events` switch. Operators can
