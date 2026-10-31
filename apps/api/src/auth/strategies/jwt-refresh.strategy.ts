@@ -37,6 +37,11 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     }
 
     if (storedToken.replacedBy) {
+      // Legacy refresh JWTs without a client fingerprint may rotate once,
+      // but cannot use the retry grace from an unbound client.
+      if (!payload.fhp) {
+        throw new UnauthorizedException('Unbound refresh token cannot be retried');
+      }
       const age = storedToken.rotatedAt
         ? Date.now() - storedToken.rotatedAt.getTime()
         : Infinity;
