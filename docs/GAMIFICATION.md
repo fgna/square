@@ -1,7 +1,8 @@
-# Gamification API (initial delivery of #3)
+# Gamification API (release integration candidate, #107)
 
-Requires #2 capabilities. Set `SQUARE_CAPABILITIES` to an allowlist containing
-`gamification`, or leave the variable unset (full-feature default).
+Requires #2 capabilities. When explicitly configuring capabilities, add `gamification` to **both**
+`SQUARE_CAPABILITIES` (API) and `NEXT_PUBLIC_SQUARE_CAPABILITIES` (Web), then rebuild the Web app.
+Leaving both variables unset enables all capabilities by default.
 Without it, all `/api/gamification/**` endpoints return 404.
 
 The ledger and inventory live in Square's database. Every balance change creates
@@ -30,9 +31,10 @@ Third-party applications need a trusted server-side integration that authenticat
 with appropriate admin privileges; **do not expose admin credentials to clients**.
 Application-specific reward eligibility stays outside Square.
 
-This first delivery does not include application-scoped service credentials,
-refunds, item quantities, or integration tests against PostgreSQL. It needs
-Prisma migration deployment and focused tests before acceptance.
+This candidate includes scoped application issuers and focused PostgreSQL test sources,
+but their successful execution on the exact release candidate has not yet been
+verified. Refunds and item quantities are not supported. Do not apply the
+migrations to a production database before isolated rehearsal and approval.
 
 ## Restricted application reward issuers (experimental)
 
