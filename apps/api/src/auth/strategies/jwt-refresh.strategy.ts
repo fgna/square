@@ -36,6 +36,24 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
+    if (storedToken.replacedBy) {
+      // Legacy refresh JWTs without a client fingerprint may rotate once,
+      // but cannot use the retry grace from an unbound client.
+      if (!payload.fhp) {
+        throw new UnauthorizedException('Unbound refresh token cannot be retried');
+      }
+      const age = storedToken.rotatedAt
+        ? Date.now() - storedToken.rotatedAt.getTime()
+        : Infinity;
+      const successor = await this.prisma.refreshToken.findUnique({
+        where: { token: storedToken.replacedBy },
+      });
+      if (age < 0 || age > 20_000 || !successor ||
+          successor.userId !== storedToken.userId || successor.expiresAt <= new Date()) {
+        throw new UnauthorizedException('Refresh token already used or revoked');
+      }
+    }
+
     if (!storedToken.user.isActive) {
       throw new UnauthorizedException('User is inactive');
     }
@@ -47,7 +65,15 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       const currentFhp = AuthService.computeFingerprint(userAgent, ip);
       if (currentFhp !== payload.fhp) {
         // Fingerprint mismatch — revoke the token to prevent replay
-        await this.prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+        // Revoke the active successor too if a rotated token is replayed
+        // from another fingerprint during the grace window.
+        let current: string | null = refreshToken;
+        for (let i = 0; current && i < 100; i++) {
+          const row = await this.prisma.refreshToken.findUnique({ where: { token: current } });
+          if (!row) break;
+          await this.prisma.refreshToken.deleteMany({ where: { token: current } });
+          current = row.replacedBy;
+        }
         throw new UnauthorizedException('Token fingerprint mismatch — session invalidated');
       }
     }

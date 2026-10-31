@@ -81,45 +81,48 @@ describe('AuthService — adversarial', () => {
 
   // ── INVARIANT: token refresh is non-duplicable ──────────────────────────
 
-  describe('FIXED SEC-005: refresh token rotation prevents ghost sessions', () => {
-    it('second concurrent refresh with same token is rejected with UnauthorizedException', async () => {
-      /**
-       * The DB deleteMany is atomic. The first call deletes the row (count=1);
-       * the second call finds nothing (count=0) and receives UnauthorizedException.
-       * This prevents ghost sessions — only one refresh exchange succeeds.
-       */
-      let deleteCallCount = 0;
-      prisma.refreshToken.deleteMany.mockImplementation(({ where }: any) => {
-        if (where.token === 'old-refresh-token') {
-          deleteCallCount++;
-          return Promise.resolve({ count: deleteCallCount === 1 ? 1 : 0 });
-        }
-        return Promise.resolve({ count: 1 }); // expired-token purge
+  describe('FIXED SEC-005: refresh token rotation preserves a single successor', () => {
+    it('two concurrent same-token requests cannot create separate successors', async () => {
+      const old = { token: 'old-refresh-token', userId: 'user-1',
+        expiresAt: new Date(Date.now() + 60_000), rotatedAt: null as Date | null,
+        replacedBy: null as string | null };
+      const tokens = new Map<string, any>([['old-refresh-token', old]]);
+      prisma.refreshToken.findUnique.mockImplementation(async ({ where }: any) => tokens.get(where.token) ?? null);
+      (prisma.refreshToken as any).updateMany = vi.fn(async ({ where, data }: any) => {
+        const row = tokens.get(where.token);
+        if (row.replacedBy || row.rotatedAt) return { count: 0 };
+        Object.assign(row, data);
+        return { count: 1 };
       });
-      mockJwt.sign.mockReturnValue('access-token-A');
-      prisma.refreshToken.create.mockResolvedValue({ id: 'rt-A' });
+      (prisma.refreshToken as any).update = vi.fn(async ({ where, data }: any) => {
+        Object.assign(tokens.get(where.token), data);
+      });
+      prisma.refreshToken.create.mockImplementation(async ({ data }: any) => {
+        tokens.set(data.token, { ...data, replacedBy: null, rotatedAt: null });
+        return { id: 'successor' };
+      });
+      (prisma as any).$transaction = async (callback: any) => callback(prisma);
+      mockJwt.sign.mockReturnValueOnce('access').mockReturnValueOnce('successor-token').mockReturnValue('retry-access');
 
-      const [resultA, resultB] = await Promise.allSettled([
+      const [a, b] = await Promise.allSettled([
         service.refresh('user-1', 'user@example.com', 'MEMBER', 'old-refresh-token'),
         service.refresh('user-1', 'user@example.com', 'MEMBER', 'old-refresh-token'),
       ]);
-
-      expect(resultA.status).toBe('fulfilled');
-      expect(resultB.status).toBe('rejected');
-      if (resultB.status === 'rejected') {
-        expect(resultB.reason).toBeInstanceOf(UnauthorizedException);
-      }
+      expect([a, b].filter(x => x.status === 'fulfilled').length).toBeGreaterThanOrEqual(1);
+      expect(prisma.refreshToken.create).toHaveBeenCalledTimes(1);
+      expect(old.replacedBy).toBe('successor-token');
     });
 
-    it('refresh deletes the OLD token before issuing new tokens', async () => {
-      prisma.refreshToken.create.mockResolvedValue({ id: 'new-rt' });
-
-      await service.refresh('user-1', 'user@example.com', 'MEMBER', 'captured-refresh-token');
-
-      // First deleteMany: old token consumed; second: expired-token purge (SEC-009)
-      const deletedTokenArg = prisma.refreshToken.deleteMany.mock.calls[0][0];
-      expect(deletedTokenArg.where.token).toBe('captured-refresh-token');
-      expect(prisma.refreshToken.deleteMany).toHaveBeenCalledTimes(2);
+    it('retry uses the existing successor without minting another', async () => {
+      const old = { token: 'captured-refresh-token', userId: 'user-1',
+        expiresAt: new Date(Date.now() + 60_000), rotatedAt: new Date(),
+        replacedBy: 'active-successor' };
+      prisma.refreshToken.findUnique.mockImplementation(async ({ where }: any) =>
+        where.token === old.token ? old :
+          where.token === old.replacedBy ? { userId: 'user-1', expiresAt: new Date(Date.now() + 60_000) } : null);
+      const result = await service.refresh('user-1', 'user@example.com', 'MEMBER', old.token);
+      expect(result.refreshToken).toBe('active-successor');
+      expect(prisma.refreshToken.create).not.toHaveBeenCalled();
     });
   });
 
@@ -331,6 +334,7 @@ describe('AuthService — adversarial', () => {
        * This means "logout" is not a security boundary for multi-session users.
        */
       prisma.refreshToken.deleteMany.mockResolvedValue({ count: 1 });
+      prisma.refreshToken.findUnique.mockResolvedValue({ token: 'rt-session-1', replacedBy: null });
 
       await service.logout('rt-session-1');
 

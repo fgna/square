@@ -1,0 +1,6 @@
+{
+  "title": "Keep members signed in after interrupted session refresh",
+  "category": "fixed",
+  "description": "A short, security-checked retry window prevents unexpected sign-outs when a session refresh response is interrupted by navigation or network loss.",
+  "pr": 114
+}
