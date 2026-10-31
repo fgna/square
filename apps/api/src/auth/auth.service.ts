@@ -229,7 +229,7 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  async generateTokens(userId: string, email: string, role: string, fingerprint?: string, db: Pick<PrismaService, 'refreshToken'> = this.prisma) {
+  async generateTokens(userId: string, email: string, role: string, fingerprint?: string, db: { refreshToken: any } = this.prisma) {
     const payload = { sub: userId, email, role };
 
     const accessToken = this.jwtService.sign(payload, {
