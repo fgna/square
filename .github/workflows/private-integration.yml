@@ -41,7 +41,7 @@ jobs:
       - name: Web tests
         run: pnpm --dir apps/web exec vitest run
       - name: Discover Playwright release scenario (no disposable runtime in this job)
-        run: pnpm --dir apps/web exec playwright test e2e/gamification.release.spec.ts --list
+        run: pnpm --dir apps/web exec playwright test e2e/gamification.release.spec.ts e2e/gamification.disabled.spec.ts --list
       - name: Report unvalidated deployment gate
         run: |
           if [ ! -f docker-compose.yml ]; then
