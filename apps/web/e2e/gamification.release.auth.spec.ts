@@ -80,6 +80,9 @@ test.describe('Square #107 browser sign-in and persistent gamification', () => {
     await page.locator('#password').fill(process.env.SQUARE_TEST_PASSWORD!);
     await page.locator('button[type="submit"]').click();
     await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
+    await expect.poll(async () => (await page.context().cookies(new URL(webUrl).origin))
+      .some(cookie => cookie.name === 'auth-session' && cookie.value === '1'),
+      { message: 'Second login did not restore the Square authenticated browser session' }).toBe(true);
     const secondAuth = await request.post(apiUrl + '/api/auth/login', {
       data:{email:process.env.SQUARE_TEST_EMAIL,password:process.env.SQUARE_TEST_PASSWORD},
     });
