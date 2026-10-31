@@ -167,27 +167,69 @@ export class AuthService {
     }
   }
 
-  async refresh(userId: string, email: string, role: string, oldRefreshToken: string, fingerprint?: string) {
-    const deleted = await this.prisma.refreshToken.deleteMany({
-      where: { token: oldRefreshToken },
-    });
+  private readonly REFRESH_GRACE_MS = 20_000;
 
-    // If the token was already consumed by a concurrent request, reject to prevent ghost sessions.
-    if (deleted.count === 0) {
+  async refresh(userId: string, email: string, role: string, oldRefreshToken: string, fingerprint?: string) {
+    const old = await this.prisma.refreshToken.findUnique({ where: { token: oldRefreshToken } });
+    if (!old || old.userId !== userId || old.expiresAt <= new Date()) {
       throw new UnauthorizedException('Refresh token already used or revoked');
     }
 
-    return this.generateTokens(userId, email, role, fingerprint);
+    // Exactly one concurrent request can rotate the token. The successor is
+    // recorded in the same transaction, so interrupted responses can be retried.
+    if (!old.replacedBy) {
+      const rotated = await this.prisma.$transaction(async (db) => {
+        const claimed = await db.refreshToken.updateMany({
+          where: { token: oldRefreshToken, replacedBy: null },
+          data: { rotatedAt: new Date() },
+        });
+        if (!claimed.count) return null;
+        const tokens = await this.generateTokens(userId, email, role, fingerprint, db);
+        await db.refreshToken.update({
+          where: { token: oldRefreshToken },
+          data: { replacedBy: tokens.refreshToken },
+        });
+        return tokens;
+      });
+      if (rotated) return rotated;
+    }
+
+    // Re-read after the competing transaction commits. Never mint a second
+    // successor for a consumed token.
+    const consumed = await this.prisma.refreshToken.findUnique({ where: { token: oldRefreshToken } });
+    if (!consumed?.replacedBy || !consumed.rotatedAt ||
+        Date.now() - consumed.rotatedAt.getTime() > this.REFRESH_GRACE_MS ||
+        consumed.rotatedAt.getTime() > Date.now()) {
+      throw new UnauthorizedException('Refresh token already used or revoked');
+    }
+    const successor = await this.prisma.refreshToken.findUnique({ where: { token: consumed.replacedBy } });
+    if (!successor || successor.userId !== userId || successor.expiresAt <= new Date()) {
+      throw new UnauthorizedException('Refresh token successor revoked');
+    }
+    return {
+      accessToken: this.jwtService.sign({ sub: userId, email, role }, {
+        expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+        secret: process.env.JWT_SECRET,
+      }),
+      refreshToken: consumed.replacedBy,
+    };
   }
 
   async logout(refreshToken: string) {
-    await this.prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
-    });
+    // Also revoke the active descendant when a response to a rotation was lost.
+    // Follow all successors (bounded by the token lifetime), so an old cookie
+    // cannot be used to reinstate the session after logout.
+    let token: string | null = refreshToken;
+    for (let i = 0; token && i < 100; i++) {
+      const record = await this.prisma.refreshToken.findUnique({ where: { token } });
+      if (!record) break;
+      await this.prisma.refreshToken.deleteMany({ where: { token } });
+      token = record.replacedBy;
+    }
     return { message: 'Logged out successfully' };
   }
 
-  async generateTokens(userId: string, email: string, role: string, fingerprint?: string) {
+  async generateTokens(userId: string, email: string, role: string, fingerprint?: string, db: PrismaService = this.prisma) {
     const payload = { sub: userId, email, role };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -213,14 +255,14 @@ export class AuthService {
     );
 
     // Purge expired tokens for this user to prevent unbounded token storage.
-    await this.prisma.refreshToken.deleteMany({
+    await db.refreshToken.deleteMany({
       where: { userId, expiresAt: { lt: new Date() } },
     });
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await this.prisma.refreshToken.create({
+    await db.refreshToken.create({
       data: {
         token: refreshToken,
         userId,
