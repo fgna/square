@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LessonEditor } from '@/components/courses/lesson-editor';
-import { ImageUploadField } from '@/components/common/image-upload-field';
+import { CoverPicker } from '@/components/events/cover-picker';
 import { CategoryPicker } from '@/components/common/category-picker';
 import { useCourseEditor } from '@/hooks/use-course-editor';
 import type { CourseReleaseMode, Lesson } from '@community/shared';
@@ -129,10 +129,10 @@ export default function CourseEditorPage() {
         <div className="space-y-1.5">
           <Label>{t('cover')}</Label>
           {/* Saved immediately: there is nothing else to confirm about a picture. */}
-          <ImageUploadField
-            label={t('cover')}
-            value={course.coverUrl}
-            onChange={(coverUrl) => editor.updateCourse.mutate({ coverUrl })}
+          <CoverPicker
+            api="/courses/covers"
+            url={course.coverUrl ?? null}
+            onChange={(coverUrl, coverCredit) => editor.updateCourse.mutate({ coverUrl, coverCredit: coverUrl ? coverCredit : null })}
           />
         </div>
         <CategoryPicker value={categoryIds} onChange={setCategoryIds} />

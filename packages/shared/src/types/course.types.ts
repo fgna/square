@@ -53,6 +53,8 @@ export interface Course {
   title: string;
   description: string;
   coverUrl?: string | null;
+  /** Photographer credit when the cover is an Unsplash photo. */
+  coverCredit?: { name: string; url: string; source?: string } | null;
   isPublished: boolean;
   releaseMode?: CourseReleaseMode;
   categories?: { category: { id: string; name: string; slug: string } }[];
