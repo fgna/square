@@ -6,6 +6,7 @@ const base = process.env.SQUARE_E2E_DISABLED_API_URL;
 test.describe('Square #107 disabled capability', () => {
   
   test('all public, member, admin and issuer routes remain unavailable', async ({request}) => {
+    expect(base, 'SQUARE_E2E_DISABLED_API_URL must identify a disposable capability-off API').toBeTruthy();
     for (const [method,path] of [
       ['GET','wallet'],['GET','items'],['GET','inventory'],
       ['GET','transactions'],['GET','equipment'],
