@@ -13,6 +13,13 @@ export class UpdatePlatformSettingsDto {
   @IsString()
   logoUrl?: string;
 
+  /** Square home-screen icon: an own upload ("/uploads/…"), or null/"" to remove it. */
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  appIconUrl?: string | null;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

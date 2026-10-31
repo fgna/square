@@ -7,22 +7,27 @@ import { QueryProvider } from '@/components/providers/query-provider';
 import { Toaster } from '@/components/ui/toast';
 import { CookieBanner } from '@/components/gdpr/cookie-banner';
 import { OfflineWorker } from '@/components/providers/offline-worker';
+import { getServerBranding } from '@/lib/server-branding';
 import './globals.css';
 
 // Self-hosted at build time: visitors' browsers never contact Google, so no
 // IP address goes to Google Fonts (LG München, 3 O 17493/20).
 const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'], display: 'swap', variable: '--font-inter' });
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Community Platform',
-    template: '%s | Community Platform',
-  },
-  description: 'A premium community and learning platform',
-  applicationName: 'Community Platform',
-  manifest: '/manifest.webmanifest',
-  appleWebApp: { capable: true, title: 'Community Platform', statusBarStyle: 'black-translucent' },
-};
+// Tab title and home-screen name follow the name set in Admin → Settings.
+export async function generateMetadata(): Promise<Metadata> {
+  const { platformName } = await getServerBranding();
+  return {
+    title: {
+      default: platformName,
+      template: `%s | ${platformName}`,
+    },
+    description: 'A premium community and learning platform',
+    applicationName: platformName,
+    manifest: '/manifest.webmanifest',
+    appleWebApp: { capable: true, title: platformName, statusBarStyle: 'black-translucent' },
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',

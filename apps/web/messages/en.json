@@ -1234,7 +1234,9 @@
     "publicSignup": "Allow public sign-ups",
     "publicSignupDescription": "New members can register without an invitation.",
     "save": "Save changes",
-    "logoHint": "Shown top left instead of the name. A wide logo on a transparent or dark background works best."
+    "logoHint": "Shown top left instead of the name. A wide logo on a transparent or dark background works best.",
+    "appIcon": "App icon",
+    "appIconHint": "Shown on the home screen when members add the site to it, and in the browser tab. Square image, at least 512 × 512 pixels. Without one, the first letter of the name is shown."
   },
   "adminJournalUI": {
     "title": "Journal Prompts",

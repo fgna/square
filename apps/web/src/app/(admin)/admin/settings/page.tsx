@@ -110,6 +110,19 @@ export default function PlatformSettingsPage() {
             </p>
           </div>
 
+          <div className="space-y-1.5">
+            <Label>{t('appIcon')}</Label>
+            <ImageUploadField
+              label={t('appIcon')}
+              value={form.appIconUrl ?? null}
+              onChange={url => setForm(f => ({ ...f, appIconUrl: url }))}
+              previewClassName="h-16 w-16"
+            />
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+              {t('appIconHint')}
+            </p>
+          </div>
+
           <div>
             <Label htmlFor="primaryColor">{t('primaryColor')}</Label>
             <div className="flex items-center gap-3 mt-1">
