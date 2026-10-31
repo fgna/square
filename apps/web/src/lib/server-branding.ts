@@ -7,9 +7,12 @@
 export interface ServerBranding {
   platformName: string;
   appIconUrl: string | null;
+  allowSignups: boolean;
+  /** Page for visitors without an invitation (https), from Admin → Settings. */
+  joinUrl: string | null;
 }
 
-export const DEFAULT_BRANDING: ServerBranding = { platformName: 'Community Platform', appIconUrl: null };
+export const DEFAULT_BRANDING: ServerBranding = { platformName: 'Community Platform', appIconUrl: null, allowSignups: true, joinUrl: null };
 
 /** The API as the web server reaches it (inside Docker: the internal address). */
 export function apiOrigin(): string {
@@ -26,7 +29,9 @@ export async function getServerBranding(): Promise<ServerBranding> {
     const data = (await res.json()) as Partial<ServerBranding>;
     const platformName = typeof data.platformName === 'string' && data.platformName.trim() ? data.platformName.trim() : DEFAULT_BRANDING.platformName;
     const appIconUrl = typeof data.appIconUrl === 'string' && data.appIconUrl.startsWith('/uploads/') ? data.appIconUrl : null;
-    return { platformName, appIconUrl };
+    const allowSignups = data.allowSignups !== false;
+    const joinUrl = typeof data.joinUrl === 'string' && data.joinUrl.startsWith('https://') ? data.joinUrl : null;
+    return { platformName, appIconUrl, allowSignups, joinUrl };
   } catch {
     return DEFAULT_BRANDING;
   }
@@ -35,4 +40,12 @@ export async function getServerBranding(): Promise<ServerBranding> {
 /** First letter of the name for the generated icon ("GrowthLeaders" → "G"). */
 export function iconLetter(platformName: string): string {
   return Array.from(platformName.trim())[0]?.toUpperCase() || 'C';
+}
+
+/**
+ * Where "join" and "register" lead: the sign-up form, or – while sign-ups need
+ * an invitation – the page set for visitors without one, if any.
+ */
+export function joinHref(branding: Pick<ServerBranding, 'allowSignups' | 'joinUrl'>): string {
+  return !branding.allowSignups && branding.joinUrl ? branding.joinUrl : '/register';
 }

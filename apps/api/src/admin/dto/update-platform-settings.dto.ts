@@ -13,6 +13,13 @@ export class UpdatePlatformSettingsDto {
   @IsString()
   logoUrl?: string;
 
+  /** Page for visitors without an invitation (https); null or "" removes it. */
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  joinUrl?: string | null;
+
   /** Square home-screen icon: an own upload ("/uploads/…"), or null/"" to remove it. */
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
