@@ -2,6 +2,8 @@ import { test, expect } from './authenticated.fixture';
 
 // Consumer regression: the plugin uses Square's shared browser login fixture.
 // Run only against an authorized instance with Turbo Mathe installed.
+// Some CI runners supply their own Playwright config, so gate at test definition too.
+test.skip(process.env.SQUARE_TEST_PLUGIN_TESTS !== '1', 'Requires an installed Turbo Mathe plugin and explicit plugin acceptance opt-in');
 test('Turbo Mathe: Blitzblick repeat reveal works four times', async ({ authenticatedPage: page }) => {
   const base = process.env.SQUARE_TEST_URL;
   if (!base) throw new Error('SQUARE_TEST_URL is required');
