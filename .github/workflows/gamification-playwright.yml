@@ -72,6 +72,12 @@ jobs:
           TURBO_SHA: ${{ inputs.turbo_sha }}
         run: |
           [[ "$TURBO_SHA" =~ ^[a-fA-F0-9]{40}$ ]] || { echo "Expected exact Turbo Mathe SHA"; exit 1; }
+      - name: Require authorized read-only consumer repository access
+        if: ${{ inputs.turbo_sha != '' }}
+        env:
+          ACCESS_TOKEN: ${{ secrets.TURBO_MATHE_READ_TOKEN }}
+        run: |
+          test -n "$ACCESS_TOKEN" || { echo 'Missing Square Actions secret TURBO_MATHE_READ_TOKEN'; exit 1; }
       - name: Fetch pinned external Turbo Mathe source for disposable test only
         if: ${{ inputs.turbo_sha != '' }}
         uses: actions/checkout@v4
@@ -81,6 +87,14 @@ jobs:
           token: ${{ secrets.TURBO_MATHE_READ_TOKEN }}
           path: .external/turbo-mathe
           persist-credentials: false
+      - name: Verify exact Turbo Mathe checkout revision
+        if: ${{ inputs.turbo_sha != '' }}
+        env:
+          TURBO_SHA: ${{ inputs.turbo_sha }}
+        run: |
+          actual=$(git -C .external/turbo-mathe rev-parse HEAD)
+          test "$actual" = "$TURBO_SHA" || { echo 'External consumer revision mismatch'; exit 1; }
+          echo "External consumer revision: $actual"
       - name: Install external plugin into disposable Square build
         if: ${{ inputs.turbo_sha != '' }}
         run: |
