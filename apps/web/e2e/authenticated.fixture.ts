@@ -40,9 +40,9 @@ export const test = base.extend<{ authenticatedPage: Page }>({
         return cookies.some((cookie) => cookie.name === 'auth-session' && cookie.value === '1');
       }, { timeout: 15000, message: 'Square sign-in did not establish an authenticated session' }).toBe(true);
       await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/, { timeout: 15000 });
-    } catch (error) {
-      // Avoid printing Playwright action errors with input values or request details.
-      throw new Error(`Authenticated Square browser fixture failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+    } catch {
+      // Do not propagate third-party login messages, URLs or form values to logs.
+      throw new Error('Square authentication failed. Check instance reachability, test member credentials, login frame, TLS trust and browser installation.');
     }
     await use(page);
   },
