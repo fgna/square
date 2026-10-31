@@ -26,8 +26,13 @@ export const test = base.extend<{ authenticatedPage: Page }>({
     }
     // Never use ignoreHTTPSErrors: an authorized executor must trust its test CA.
     const target = new URL('/dashboard', origin);
-    const login = new URL('/login', origin);
-    login.searchParams.set('from', target.pathname);
+    const loginPath = process.env.SQUARE_TEST_LOGIN_PATH?.trim() || '/login';
+    if (!loginPath.startsWith('/') || loginPath.startsWith('//') || loginPath.includes('\\\\')) {
+      throw new Error('SQUARE_TEST_LOGIN_PATH must be a same-origin absolute path');
+    }
+    const login = new URL(loginPath, origin);
+    if (login.origin !== origin.origin) throw new Error('SQUARE_TEST_LOGIN_PATH must remain on the Square instance');
+    if (loginPath === '/login') login.searchParams.set('from', target.pathname);
     try {
       await page.goto(login.href, { waitUntil: 'domcontentloaded' });
       const frameSelector = process.env.SQUARE_TEST_LOGIN_FRAME?.trim();
