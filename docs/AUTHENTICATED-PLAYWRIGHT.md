@@ -8,7 +8,7 @@ This test-only fixture signs in a dedicated synthetic member using the **real Sq
 2. Confirm that the test executor can reach the verified candidate instance over HTTPS and trusts any private Caddy test CA at the OS/browser level. An SSH tunnel or a headed browser is unnecessary when the instance is reachable by the executor.
 3. Store the instance origin, account email and password in private runner environment/secrets. Never commit them, paste them into Issues, or include them in traces/artifacts.
 
-Required environment variables: `SQUARE_TEST_URL` (origin, e.g. `https://test.example.invalid`), `SQUARE_TEST_EMAIL`, `SQUARE_TEST_PASSWORD`. Optional `SQUARE_TEST_LOGIN_FRAME` is the CSS selector of a same-origin or cross-origin iframe containing Square's normal email/password login form. Omit it for Square-hosted login. Frame navigation and cookies remain subject to the actual browser security model.
+Required environment variables: `SQUARE_TEST_URL` (origin, e.g. `https://test.example.invalid`), `SQUARE_TEST_EMAIL`, `SQUARE_TEST_PASSWORD`. Optional `SQUARE_TEST_LOGIN_PATH` selects a same-origin plugin login entry page (default `/login`); `SQUARE_TEST_LOGIN_FRAME` is the CSS selector of a same-origin or cross-origin iframe containing Square's normal email/password login form. Omit it for Square-hosted login. Frame navigation and cookies remain subject to the actual browser security model.
 
 ## One-command invocation
 
@@ -36,7 +36,7 @@ test('plugin screen is reachable for the synthetic member', async ({ authenticat
 });
 ```
 
-Plugins own their own behavioral assertions. If a plugin renders a login form in an iframe, set `SQUARE_TEST_LOGIN_FRAME` to that frame selector. If login is Square-hosted, leave it unset. A plugin may import this fixture in its own Playwright project if its tooling resolves `@playwright/test`.
+Plugins own their own behavioral assertions. If a plugin renders a Square login form in an iframe, set `SQUARE_TEST_LOGIN_PATH` to that plugin's login page and `SQUARE_TEST_LOGIN_FRAME` to its iframe selector. If login is Square-hosted, leave it unset. A plugin may import this fixture in its own Playwright project if its tooling resolves `@playwright/test`.
 
 Before merging a behavior fix to `main`, deploy its **exact candidate SHA** to an authorized isolated test instance, independently verify the served revision, then run the generic smoke and the plugin-specific regression together. Record the SHA and the results on the relevant PR. This issue does **not** authorize deployment, instance mutation, synthetic account creation in production, or automatic destructive cleanup.
 
