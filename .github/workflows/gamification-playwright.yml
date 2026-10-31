@@ -9,11 +9,6 @@ on:
       - 'apps/api/scripts/seed-playwright-disposable.cjs'
       - '.github/workflows/gamification-playwright.yml'
   workflow_dispatch:
-    inputs:
-      turbo_sha:
-        description: 'Optional exact 40-char Turbo Mathe commit to test as external consumer (requires Square secret TURBO_MATHE_READ_TOKEN)'
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -66,40 +61,6 @@ jobs:
           node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Validate optional external consumer pin
-        if: ${{ inputs.turbo_sha != '' }}
-        env:
-          TURBO_SHA: ${{ inputs.turbo_sha }}
-        run: |
-          [[ "$TURBO_SHA" =~ ^[a-fA-F0-9]{40}$ ]] || { echo "Expected exact Turbo Mathe SHA"; exit 1; }
-      - name: Require authorized read-only consumer repository access
-        if: ${{ inputs.turbo_sha != '' }}
-        env:
-          ACCESS_TOKEN: ${{ secrets.TURBO_MATHE_READ_TOKEN }}
-        run: |
-          test -n "$ACCESS_TOKEN" || { echo 'Missing Square Actions secret TURBO_MATHE_READ_TOKEN'; exit 1; }
-      - name: Fetch pinned external Turbo Mathe source for disposable test only
-        if: ${{ inputs.turbo_sha != '' }}
-        uses: actions/checkout@v4
-        with:
-          repository: fgna/turbo-mathe
-          ref: ${{ inputs.turbo_sha }}
-          token: ${{ secrets.TURBO_MATHE_READ_TOKEN }}
-          path: .external/turbo-mathe
-          persist-credentials: false
-      - name: Verify exact Turbo Mathe checkout revision
-        if: ${{ inputs.turbo_sha != '' }}
-        env:
-          TURBO_SHA: ${{ inputs.turbo_sha }}
-        run: |
-          actual=$(git -C .external/turbo-mathe rev-parse HEAD)
-          test "$actual" = "$TURBO_SHA" || { echo 'External consumer revision mismatch'; exit 1; }
-          echo "External consumer revision: $actual"
-      - name: Install external plugin into disposable Square build
-        if: ${{ inputs.turbo_sha != '' }}
-        run: |
-          node -e "require('node:fs').writeFileSync('community.plugins.json',JSON.stringify({plugins:[{path:'.external/turbo-mathe/plugins/turbo-mathe'}]}))"
-          node scripts/plugins.mjs
       - name: Generate private ephemeral credentials
         shell: bash
         run: |
@@ -113,8 +74,7 @@ jobs:
             ['JWT_SECRET',secret()],['JWT_REFRESH_SECRET',secret()],
             ['SQUARE_TEST_PASSWORD',secret()],['SQUARE_E2E_ADMIN_PASSWORD',secret()],
             ['SQUARE_E2E_ISSUER_TOKEN',issuer],
-            ['SQUARE_REWARD_ISSUERS',JSON.stringify([{id:'playwright',tokenSha256:crypto.createHash('sha256').update(issuer).digest('hex'),rewardCodes:['playwright-completed','turbo_math_correct']}])],
-            ['TURBO_MATHE_REWARD_ISSUER_TOKEN',issuer],
+            ['SQUARE_REWARD_ISSUERS',JSON.stringify([{id:'playwright',tokenSha256:crypto.createHash('sha256').update(issuer).digest('hex'),rewardCodes:['playwright-completed']}])],
           ];
           for(const [,value] of output) process.stdout.write('::add-mask::'+value+'\n');
           fs.appendFileSync(process.env.GITHUB_ENV,output.map(([k,v])=>k+'='+v+'\n').join(''));
@@ -161,6 +121,3 @@ jobs:
           NODE
       - name: Run shared #102 Chromium smoke and #107 gamification flows
         run: pnpm --dir apps/web exec playwright test --config=e2e/playwright.auth.config.ts
-      - name: Exercise external Turbo Mathe correct task and coin contract
-        if: ${{ inputs.turbo_sha != '' }}
-        run: node scripts/test-turbo-mathe-consumer.mjs
