@@ -25,7 +25,12 @@ export const test = base.extend<{ authenticatedPage: Page }>({
       throw new Error('SQUARE_TEST_URL must be an http(s) instance origin without credentials or query parameters');
     }
     // Never use ignoreHTTPSErrors: an authorized executor must trust its test CA.
-    const target = new URL('/dashboard', origin);
+    const protectedPath = process.env.SQUARE_TEST_PROTECTED_PATH?.trim() || '/dashboard';
+    if (!protectedPath.startsWith('/') || protectedPath.startsWith('//')) {
+      throw new Error('SQUARE_TEST_PROTECTED_PATH must be an absolute path on the instance');
+    }
+    const target = new URL(protectedPath, origin);
+    if (target.origin !== origin.origin) throw new Error('SQUARE_TEST_PROTECTED_PATH must remain on the Square instance');
     const loginPath = process.env.SQUARE_TEST_LOGIN_PATH?.trim() || '/login';
     if (!loginPath.startsWith('/') || loginPath.startsWith('//') || loginPath.includes('\\\\')) {
       throw new Error('SQUARE_TEST_LOGIN_PATH must be a same-origin absolute path');
