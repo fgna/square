@@ -145,6 +145,7 @@ export function LessonEditor({
               onChange={setContent}
               placeholder={t('contentPlaceholder')}
               onUploadImage={uploadLessonImage}
+              photoSearchApi="/courses/covers"
             />
           </div>
 
