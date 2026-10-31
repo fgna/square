@@ -4,6 +4,7 @@ import { EmailService } from '../email/email.service';
 import { eventCalendarDescription, generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
 import { Prisma } from '@prisma/client';
+import { coverCreditValue } from './cover-image';
 import type { Event } from '@prisma/client';
 
 export interface EventListFilter {
@@ -197,11 +198,6 @@ function withRecordingLinks<T extends { url: string; createdAt: Date; attachment
     availableUntil: days ? new Date(recording.createdAt.getTime() + days * 86_400_000) : null,
     attachments: (recording.attachments ?? []).map((a) => ({ ...a, url: absoluteUploadUrl(signUploadPath(a.url)) })),
   };
-}
-
-/** A photo credit as stored (JSON); null removes it. */
-function coverCreditValue(credit: { name: string; url: string; source?: string } | null) {
-  return credit ? { name: credit.name, url: credit.url, source: credit.source ?? 'unsplash' } : Prisma.DbNull;
 }
 
 @Injectable()

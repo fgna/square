@@ -165,6 +165,8 @@ model Course {
   title       String
   description String
   coverUrl    String?
+  /// Photographer credit when the cover is an Unsplash photo ({ name, url, source }).
+  coverCredit Json?
   isPublished Boolean          @default(false)
   releaseMode CourseReleaseMode @default(ALL_AT_ONCE)
   modules     Module[]
@@ -819,6 +821,10 @@ model DigestTemplate {
   sections   Json     @default("[]")
   accentColor String  @default("#c5a880")
   logoUrl    String?
+  /// Picture at the top of the e-mail: an upload or an Unsplash photo.
+  coverUrl    String?
+  /// Photographer credit when the cover is an Unsplash photo ({ name, url, source }).
+  coverCredit Json?
   isActive   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

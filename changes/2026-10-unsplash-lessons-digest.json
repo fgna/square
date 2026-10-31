@@ -1,0 +1,7 @@
+{
+  "title": "Unsplash photos in lessons and a cover picture for the digest",
+  "category": "new",
+  "audience": "admins and members",
+  "description": "In the lesson text editor, admins can insert a photo from Unsplash with the photographer named below it. Digest templates get a cover picture across the top of the e-mail, uploaded or from Unsplash, and the logo is uploaded instead of typed as an address. Editing a digest template shows its saved values again.",
+  "pr": 106
+}
