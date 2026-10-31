@@ -8,6 +8,12 @@ datasource db {
 }
 
 model User {
+  gameEquipment GameEquipment[]
+  gameWallet           GameWallet?
+  gameTransactions     GameTransaction[]
+  gameInventory        GameInventory[]
+  gameRewardEvents     GameRewardEvent[]
+  gamePurchases        GamePurchase[]
   id            String         @id @default(cuid())
   email         String         @unique
   passwordHash  String?
@@ -929,4 +935,86 @@ model TaskHintSession {
 
   @@unique([userId, idempotencyKey])
   @@index([userId, taskId])
+}
+
+model GameWallet {
+  userId    String @id
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Int    @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model GameRewardDefinition {
+  code      String @id
+  amount    Int
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GameRewardEvent {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventKey  String
+  rewardCode String
+  amount    Int
+  createdAt DateTime @default(now())
+  @@unique([userId, eventKey])
+}
+
+model GameTransaction {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int
+  kind      String
+  reference String
+  createdAt DateTime @default(now())
+  @@unique([kind, reference])
+  @@index([userId, createdAt])
+}
+
+model GameItem {
+  id        String @id @default(cuid())
+  name      String
+  price     Int
+  cosmetic  Boolean @default(false)
+  active    Boolean @default(true)
+  createdAt DateTime @default(now())
+  equipment GameEquipment[]
+  inventory GameInventory[]
+  purchases GamePurchase[]
+}
+
+model GameInventory {
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId String
+  item   GameItem @relation(fields: [itemId], references: [id])
+  acquiredAt DateTime @default(now())
+  @@id([userId, itemId])
+}
+
+model GamePurchase {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId String
+  item GameItem @relation(fields: [itemId], references: [id])
+  requestKey String
+  price Int
+  createdAt DateTime @default(now())
+  @@unique([userId, requestKey])
+}
+
+// One chosen cosmetic per named application slot; null itemId denotes a free default.
+model GameEquipment {
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slot String
+  itemId String?
+  item GameItem? @relation(fields: [itemId], references: [id])
+  variant String @default("red")
+  updatedAt DateTime @updatedAt
+  @@id([userId, slot])
 }

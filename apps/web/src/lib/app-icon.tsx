@@ -3,15 +3,44 @@ import { apiOrigin, getServerBranding, iconLetter } from './server-branding';
 
 const MAX_ICON_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Reads a response body up to `limit` bytes; null if it is (or announces to
+ * be) larger, so a huge upload never ends up in the web server's memory.
+ */
+export async function readLimited(res: Response, limit: number): Promise<Buffer | null> {
+  const announced = Number(res.headers.get('content-length'));
+  if (Number.isFinite(announced) && announced > limit) {
+    await res.body?.cancel().catch(() => undefined);
+    return null;
+  }
+  if (!res.body) return null;
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > limit) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks);
+}
+
 /** The uploaded app icon as a data URL, or null (missing, too large, not an image). */
 async function uploadedIcon(path: string): Promise<string | null> {
   try {
     const res = await fetch(`${apiOrigin()}${path}`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(5000) });
     const type = res.headers.get('content-type')?.split(';')[0].trim() ?? '';
-    if (!res.ok || !/^image\/(png|jpeg|webp|gif)$/.test(type)) return null;
-    const bytes = Buffer.from(await res.arrayBuffer());
-    if (bytes.length > MAX_ICON_BYTES) return null;
-    return `data:${type};base64,${bytes.toString('base64')}`;
+    if (!res.ok || !/^image\/(png|jpeg|webp|gif)$/.test(type)) {
+      await res.body?.cancel().catch(() => undefined);
+      return null;
+    }
+    const bytes = await readLimited(res, MAX_ICON_BYTES);
+    return bytes ? `data:${type};base64,${bytes.toString('base64')}` : null;
   } catch {
     return null;
   }

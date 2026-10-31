@@ -129,8 +129,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SidebarContent onClose={() => setSidebarOpen(false)} />
       </aside>
 
-      {/* Content */}
-      <main className="flex-1 lg:pl-64 min-h-screen">
+      {/* Content. min-w-0: a flex item otherwise grows to its widest child, so one
+          wide table (e.g. course participation) made every admin page wider than
+          a phone screen instead of scrolling inside its own box. */}
+      <main className="flex-1 min-w-0 lg:pl-64 min-h-screen">
         {/* Mobile top bar */}
         <div
           className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
