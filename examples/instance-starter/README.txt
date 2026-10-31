@@ -37,7 +37,16 @@ Use only reviewed material that you own or are licensed to use.
    without these variables keep all capabilities enabled. Review the complete
    list in docs/CAPABILITIES.md and rebuild the web app after a change.
 
-6. Pin a reviewed core commit or release. Run core unit tests, Prisma
+6. Give the web container a server-reachable API address, e.g. in Docker
+   Compose:
+   API_INTERNAL_URL=http://api:3001
+   The web server reads the platform name and app icon from Admin -> Settings
+   through it (web app manifest, home-screen icons, browser tab title). Without
+   it, the public NEXT_PUBLIC_API_URL is used; if neither is reachable from the
+   web server, these fall back to "Community Platform". After deploying, check
+   /manifest.webmanifest shows the configured name.
+
+7. Pin a reviewed core commit or release. Run core unit tests, Prisma
    generate, API/Web typechecks and builds, then complete an isolated
    runtime smoke test with temporary data. Do not deploy the example
    pack, use development signing keys, or treat a green build as an
