@@ -58,7 +58,8 @@ export const test = base.extend<{ authenticatedPage: Page }>({
       // server-rendered controls before hydration can silently reload the form.
       await page.waitForFunction(() => {
         const form = document.querySelector('form');
-        return !!form && Object.keys(form).some(key => key.startsWith('__reactProps
+        return !!form && Object.keys(form).some(key => key.startsWith('__reactProps' + '$'));
+      }, undefined, { timeout: 15000 });
       const frameSelector = process.env.SQUARE_TEST_LOGIN_FRAME?.trim();
       const form = frameSelector ? page.frameLocator(frameSelector) : page;
       await form.locator('input[type="email"]').fill(email);
