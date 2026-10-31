@@ -37,7 +37,7 @@ describe('RichTextEditor with Unsplash photos', () => {
     expect(html).toContain('src="https://images.unsplash.com/p1"');
     expect(html).toContain('href="https://unsplash.com/@jane?utm_source=square&amp;utm_medium=referral"');
     expect(html).toContain('Jane &lt;Doe&gt;');
-    expect(html).toMatch(/<img[^>]*>.*Unsplash/s);
+    expect(html).toMatch(/<img[^>]*>[\s\S]*Unsplash/);
     expect(api.post).toHaveBeenCalledWith('/courses/covers/chosen', { downloadLocation: photo.downloadLocation });
   });
 
