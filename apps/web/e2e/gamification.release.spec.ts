@@ -72,8 +72,13 @@ test.describe('Square #107 browser sign-in and persistent gamification', () => {
     const before = await request.get(apiUrl + '/api/gamification/wallet',{headers:memberHeaders});
     expect((await before.json()).balance).toBeGreaterThanOrEqual(rewardAmount - 7);
 
-    // Invalidate the browser's login state via its actual auth UI/session,
-    // then verify a fresh sign-in and API data persistence.
+    // End the API refresh session and clear the browser's local auth state
+    // before exercising a new UI login.
+    const logout = await request.post(apiUrl + '/api/auth/logout', {
+      data: {refreshToken: session.refreshToken},
+    });
+    expect(logout.ok()).toBeTruthy();
+    await page.evaluate(() => {localStorage.clear(); sessionStorage.clear();});
     await page.context().clearCookies();
     await page.goto(new URL('/login',webUrl).toString());
     await page.locator('#email').fill(process.env.SQUARE_E2E_EMAIL!);
