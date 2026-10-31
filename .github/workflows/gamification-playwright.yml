@@ -1,0 +1,123 @@
+name: Gamification isolated headless Playwright (#102)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web/e2e/**'
+      - 'apps/api/src/gamification/**'
+      - 'apps/api/scripts/seed-playwright-disposable.cjs'
+      - '.github/workflows/gamification-playwright.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: square_pw
+          POSTGRES_PASSWORD: disposable_only
+          POSTGRES_DB: square_playwright_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U square_pw -d square_playwright_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      SQUARE_E2E_DISPOSABLE: '1'
+      DATABASE_URL: postgresql://square_pw:disposable_only@127.0.0.1:5432/square_playwright_test?schema=public
+      REDIS_URL: redis://127.0.0.1:6379
+      API_PORT: '4311'
+      API_HOST: 127.0.0.1
+      CORS_ORIGINS: http://127.0.0.1:4310
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:4311
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:4310
+      SQUARE_TEST_URL: http://127.0.0.1:4310
+      SQUARE_E2E_API_URL: http://127.0.0.1:4311
+      SQUARE_E2E_DISABLED_API_URL: http://127.0.0.1:4312
+      SQUARE_TEST_EMAIL: square-playwright-member@example.invalid
+      SQUARE_E2E_REWARD_CODE: playwright-completed
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate private ephemeral credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const crypto=require('node:crypto');
+          const fs=require('node:fs');
+          const secret=()=>crypto.randomBytes(40).toString('hex');
+          const issuer=secret();
+          const output=[
+            ['JWT_SECRET',secret()],['JWT_REFRESH_SECRET',secret()],
+            ['SQUARE_TEST_PASSWORD',secret()],['SQUARE_E2E_ADMIN_PASSWORD',secret()],
+            ['SQUARE_E2E_ISSUER_TOKEN',issuer],
+            ['SQUARE_REWARD_ISSUERS',JSON.stringify([{id:'playwright',tokenSha256:crypto.createHash('sha256').update(issuer).digest('hex'),rewardCodes:['playwright-completed']}])],
+          ];
+          for(const [,value] of output) process.stdout.write('::add-mask::'+value+'\n');
+          fs.appendFileSync(process.env.GITHUB_ENV,output.map(([k,v])=>k+'='+v+'\n').join(''));
+          NODE
+      - name: Migrate disposable PostgreSQL and seed accounts
+        run: |
+          pnpm --dir apps/api exec prisma migrate deploy
+          pnpm --dir apps/api exec prisma generate
+          node apps/api/scripts/seed-playwright-disposable.cjs
+      - name: Install headless Chromium
+        run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - name: Build Square API
+        run: pnpm --dir apps/api build
+      - name: Start isolated API, disabled API, and Web
+        shell: bash
+        run: |
+          set -euo pipefail
+          API_ENTRY=$(find apps/api/dist -name main.js -type f -print -quit)
+          test -n "$API_ENTRY"
+          (cd apps/api; node "${GITHUB_WORKSPACE}/$API_ENTRY" > /tmp/square-pw-api.log 2>&1) &
+          (cd apps/api; API_PORT=4312 SQUARE_CAPABILITIES=feed,events node "${GITHUB_WORKSPACE}/$API_ENTRY" > /tmp/square-pw-api-disabled.log 2>&1) &
+          pnpm --dir apps/web exec next dev --hostname 127.0.0.1 --port 4310 > /tmp/square-pw-web.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:4311/health > /dev/null &&
+               curl -fsS http://127.0.0.1:4312/health > /dev/null &&
+               curl -fsS http://127.0.0.1:4310/login > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo 'Isolated startup failed'; tail -50 /tmp/square-pw-api.log /tmp/square-pw-api-disabled.log /tmp/square-pw-web.log
+          exit 1
+      - name: Obtain disposable admin API JWT
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          (async()=>{
+            const r=await fetch('http://127.0.0.1:4311/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'square-playwright-admin@example.invalid',password:process.env.SQUARE_E2E_ADMIN_PASSWORD})});
+            if(!r.ok) throw new Error('Synthetic admin login failed with '+r.status);
+            const body=await r.json();
+            if(!body.accessToken) throw new Error('Admin JWT missing');
+            process.stdout.write('::add-mask::'+body.accessToken+'\n');
+            fs.appendFileSync(process.env.GITHUB_ENV,'SQUARE_E2E_ADMIN_TOKEN='+body.accessToken+'\n');
+          })().catch(e=>{console.error(e.message);process.exitCode=1});
+          NODE
+      - name: Run shared #102 Chromium smoke and #107 gamification flows
+        run: pnpm --dir apps/web exec playwright test --config=e2e/playwright.auth.config.ts
