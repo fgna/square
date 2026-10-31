@@ -79,24 +79,3 @@ export const test = base.extend<{ authenticatedPage: Page }>({
 });
 
 export { expect };
-));
-      }, { timeout: 15000 });
-      const frameSelector = process.env.SQUARE_TEST_LOGIN_FRAME?.trim();
-      const form = frameSelector ? page.frameLocator(frameSelector) : page;
-      await form.locator('input[type="email"]').fill(email);
-      await form.locator('input[type="password"]').fill(password);
-      await form.locator('button[type="submit"]').click();
-      await expect.poll(async () => {
-        const cookies = await page.context().cookies(origin.origin);
-        return cookies.some((cookie) => cookie.name === 'auth-session' && cookie.value === '1');
-      }, { timeout: 15000, message: 'Square sign-in did not establish an authenticated session' }).toBe(true);
-      await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/, { timeout: 15000 });
-    } catch {
-      // Do not propagate third-party login messages, URLs or form values to logs.
-      throw new Error('Square authentication failed (login HTTP status: ' + (loginHttpStatus ?? 'no request') + '). Check instance reachability, test member credentials, login frame, TLS trust and browser installation.');
-    }
-    await use(page);
-  },
-});
-
-export { expect };
