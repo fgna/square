@@ -38,6 +38,7 @@ import { AiCoachModule } from './ai-coach/ai-coach.module';
 import { RedisModule } from './redis/redis.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { PluginsModule } from './plugins/plugins.module';
+import { GamificationModule } from './gamification/gamification.module';
 
 @Module({
   imports: [
@@ -108,6 +109,7 @@ import { PluginsModule } from './plugins/plugins.module';
     BillingModule,
     AiCoachModule,
     PluginsModule.register(),
+    GamificationModule,
   ],
   providers: [
     // UserThrottlerGuard uses authenticated userId as throttle key (falls back to IP),
