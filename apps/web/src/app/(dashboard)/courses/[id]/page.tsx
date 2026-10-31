@@ -15,6 +15,7 @@ import { CourseProgress } from '@/components/courses/course-progress';
 import { LessonNotes } from '@/components/courses/lesson-notes';
 import { LessonView } from '@/components/courses/lesson-view';
 import { nextOpenLesson } from '@/lib/next-lesson';
+import { CoverCredit } from '@/components/common/cover-credit';
 
 function useCourseDetail(id: string) {
   return useQuery({
@@ -103,12 +104,15 @@ export default function CourseDetailPage() {
       </Link>
 
       {course.coverUrl && (
-        <img
-          src={course.coverUrl}
-          alt=""
-          className="w-full rounded-xl object-cover"
-          style={{ maxHeight: 220, border: '1px solid var(--theme-border)' }}
-        />
+        <figure className="relative">
+          <img
+            src={course.coverUrl}
+            alt=""
+            className="w-full rounded-xl object-cover"
+            style={{ maxHeight: 220, border: '1px solid var(--theme-border)' }}
+          />
+          {course.coverCredit && <CoverCredit credit={course.coverCredit} />}
+        </figure>
       )}
       <PageHeader title={course.title} description={course.description} icon={BookOpen} />
 
