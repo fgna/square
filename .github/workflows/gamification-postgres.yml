@@ -1,0 +1,48 @@
+name: Gamification disposable PostgreSQL gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: square_test
+          POSTGRES_PASSWORD: disposable_test_only
+          POSTGRES_DB: square_gamification_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U square_test -d square_gamification_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://square_test:disposable_test_only@localhost:5432/square_gamification_test?schema=public
+      GAMIFICATION_INTEGRATION_TEST: '1'
+      TURBO_EQUIPMENT_DISPOSABLE_DB: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply migrations to disposable PostgreSQL
+        run: pnpm --dir apps/api exec prisma migrate deploy
+      - name: Generate Prisma client
+        run: pnpm --dir apps/api exec prisma generate
+      - name: Test concurrent ledger operations and equipment ownership
+        run: pnpm --dir apps/api exec vitest run src/gamification/gamification.postgres.spec.ts src/gamification/gamification.equipment-postgres.spec.ts
