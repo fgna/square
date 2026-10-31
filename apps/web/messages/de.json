@@ -264,7 +264,8 @@
     "haveAccount": "Bereits ein Konto?",
     "registrationFailed": "Registrierung fehlgeschlagen",
     "inviteOnlyTitle": "Nur mit Einladung",
-    "inviteOnlyMessage": "Neue Konten gibt es zurzeit nur mit einer Einladung. Bitte nutze den Link aus deiner Einladung."
+    "inviteOnlyMessage": "Neue Konten gibt es zurzeit nur mit einer Einladung. Bitte nutze den Link aus deiner Einladung.",
+    "joinPage": "Mehr erfahren und Mitglied werden"
   },
   "bookmarks": {
     "title": "Gespeicherte Beiträge",
@@ -1233,6 +1234,8 @@
     "accessDescription": "Festlegen, wer der Plattform beitreten kann.",
     "publicSignup": "Öffentliche Registrierung erlauben",
     "publicSignupDescription": "Neue Mitglieder können sich ohne Einladung registrieren.",
+    "joinUrl": "Seite für Interessierte",
+    "joinUrlHint": "Solange Registrierung nur mit Einladung möglich ist, führen „Beitreten“ und „Registrieren“ auf der Startseite hierhin, z. B. auf deine Verkaufs- oder Infoseite. Leer lassen, um den Einladungshinweis zu zeigen.",
     "save": "Änderungen speichern",
     "logoHint": "Erscheint oben links anstelle des Namens. Am besten wirkt ein breites Logo auf transparentem oder dunklem Hintergrund.",
     "appIcon": "App-Icon",

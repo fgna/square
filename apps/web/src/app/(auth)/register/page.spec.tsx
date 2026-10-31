@@ -34,6 +34,18 @@ describe('RegisterPage', () => {
     expect(screen.queryByRole('button', { name: 'Create account' })).not.toBeInTheDocument();
   });
 
+  it('links visitors without an invitation to the join page, when one is set', async () => {
+    params.value = new URLSearchParams('');
+    api.get.mockResolvedValue({ data: { platformName: 'Community', logoUrl: null, allowSignups: false, joinUrl: 'https://go.example.com/join' } });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <RegisterPage />
+      </QueryClientProvider>,
+    );
+    const link = await screen.findByRole('link', { name: 'Find out more and become a member' });
+    expect(link.getAttribute('href')).toBe('https://go.example.com/join');
+  });
+
   it('shows the form for invited people even when sign-ups are off', async () => {
     renderPage('invite=abc', false);
 
