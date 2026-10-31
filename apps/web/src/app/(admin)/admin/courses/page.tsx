@@ -150,7 +150,7 @@ export default function AdminCoursesPage() {
       </div>
 
       <div
-        className="rounded-xl overflow-hidden"
+        className="rounded-xl overflow-x-auto"
         style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}
       >
         <table className="w-full text-sm">
@@ -176,7 +176,10 @@ export default function AdminCoursesPage() {
                   <tr key={course.id} style={{ borderBottom: '1px solid var(--theme-border)' }}>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium" style={{ color: 'var(--theme-text)' }}>{course.title}</p>
+                        {/* The title opens the editor too: on a phone the actions column is off-screen. */}
+                        <Link href={`/admin/courses/${course.id}`} className="font-medium hover:underline" style={{ color: 'var(--theme-text)' }}>
+                          {course.title}
+                        </Link>
                         <p className="text-xs line-clamp-1" style={{ color: 'var(--theme-text-muted)' }}>{course.description}</p>
                       </div>
                     </td>

@@ -159,85 +159,88 @@ export default function AdminInvitesPage() {
           </span>
         </div>
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--theme-border)' }}>
-              {[t('email'), t('status'), t('invitedBy'), t('expires'), t('actions')].map((h) => (
-                <th
-                  key={h}
-                  className="text-left px-4 py-3 font-semibold"
-                  style={{ color: 'var(--theme-text-muted)' }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--theme-border)' }}>
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <Skeleton className="h-4 w-28" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : invites.length === 0
-              ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-                      {t('none')}
-                    </td>
-                  </tr>
-                )
-              : invites.map((invite) => {
-                  const canRevoke = !invite.usedAt;
-                  return (
-                    <tr
-                      key={invite.id}
-                      style={{ borderBottom: '1px solid var(--theme-border)' }}
-                    >
-                      <td className="px-4 py-3 font-medium" style={{ color: 'var(--theme-text)' }}>
-                        {invite.email}
-                      </td>
-                      <td className="px-4 py-3">
-                        <InviteStatusBadge invite={invite} />
-                      </td>
-                      <td className="px-4 py-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-                        {invite.invitedBy?.name ?? '—'}
-                      </td>
-                      <td className="px-4 py-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-                        {formatDate(invite.expiresAt)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          {canRevoke && <CopyButton token={invite.token} />}
-                          {canRevoke && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 text-xs text-red-400 hover:text-red-300"
-                              onClick={() => revokeInvite.mutate(invite.id)}
-                              disabled={revokeInvite.isPending}
-                            >
-                              <Trash2 size={12} className="mr-1" />
-                              {t('revoke')}
-                            </Button>
-                          )}
-                          {!canRevoke && (
-                            <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-                              {invite.usedAt ? t('usedDate', {date: formatDate(invite.usedAt)}) : t('expired')}
-                            </span>
-                          )}
-                        </div>
+        {/* Scrolls sideways on phones instead of being cut off. */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--theme-border)' }}>
+                {[t('email'), t('status'), t('invitedBy'), t('expires'), t('actions')].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left px-4 py-3 font-semibold"
+                    style={{ color: 'var(--theme-text-muted)' }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading
+                ? Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--theme-border)' }}>
+                      {Array.from({ length: 5 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <Skeleton className="h-4 w-28" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : invites.length === 0
+                ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
+                        {t('none')}
                       </td>
                     </tr>
-                  );
-                })}
-          </tbody>
-        </table>
+                  )
+                : invites.map((invite) => {
+                    const canRevoke = !invite.usedAt;
+                    return (
+                      <tr
+                        key={invite.id}
+                        style={{ borderBottom: '1px solid var(--theme-border)' }}
+                      >
+                        <td className="px-4 py-3 font-medium" style={{ color: 'var(--theme-text)' }}>
+                          {invite.email}
+                        </td>
+                        <td className="px-4 py-3">
+                          <InviteStatusBadge invite={invite} />
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                          {invite.invitedBy?.name ?? '—'}
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                          {formatDate(invite.expiresAt)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            {canRevoke && <CopyButton token={invite.token} />}
+                            {canRevoke && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs text-red-400 hover:text-red-300"
+                                onClick={() => revokeInvite.mutate(invite.id)}
+                                disabled={revokeInvite.isPending}
+                              >
+                                <Trash2 size={12} className="mr-1" />
+                                {t('revoke')}
+                              </Button>
+                            )}
+                            {!canRevoke && (
+                              <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                                {invite.usedAt ? t('usedDate', {date: formatDate(invite.usedAt)}) : t('expired')}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
