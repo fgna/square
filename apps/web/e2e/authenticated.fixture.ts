@@ -38,6 +38,12 @@ export const test = base.extend<{ authenticatedPage: Page }>({
     const login = new URL(loginPath, origin);
     if (login.origin !== origin.origin) throw new Error('SQUARE_TEST_LOGIN_PATH must remain on the Square instance');
     if (loginPath === '/login') login.searchParams.set('from', target.pathname);
+    let loginHttpStatus: number | undefined;
+    page.on('response', response => {
+      if (response.url().endsWith('/api/auth/login') && response.request().method() === 'POST') {
+        loginHttpStatus = response.status();
+      }
+    });
     try {
       await page.goto(login.href, { waitUntil: 'domcontentloaded' });
       const frameSelector = process.env.SQUARE_TEST_LOGIN_FRAME?.trim();
@@ -52,7 +58,7 @@ export const test = base.extend<{ authenticatedPage: Page }>({
       await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/, { timeout: 15000 });
     } catch {
       // Do not propagate third-party login messages, URLs or form values to logs.
-      throw new Error('Square authentication failed. Check instance reachability, test member credentials, login frame, TLS trust and browser installation.');
+      throw new Error('Square authentication failed (login HTTP status: ' + (loginHttpStatus ?? 'no request') + '). Check instance reachability, test member credentials, login frame, TLS trust and browser installation.');
     }
     await use(page);
   },
