@@ -20,13 +20,35 @@ export function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(SEEN_KEY)) return;
-    } catch {
-      return;
-    }
-    const timer = setTimeout(() => setShow(true), 800);
-    return () => clearTimeout(timer);
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    // Per-instance setting is public and defaults to off when unavailable.
+    fetch('/api/platform/branding', { credentials: 'same-origin' })
+      .then(response => {
+        if (!response.ok) throw new Error('Branding unavailable');
+        return response.json();
+      })
+      .then(settings => {
+        if (!active || settings.privacyNoticeEnabled !== true) return;
+        timer = setTimeout(() => {
+          // Recheck at display time: a different route/tab may have already
+          // acknowledged the banner while this timer was pending.
+          try {
+            if (localStorage.getItem(SEEN_KEY) !== null) return;
+          } catch { return; }
+          if (active) setShow(true);
+        }, 800);
+      })
+      .catch(() => { /* Fail closed: do not display optional notice on API errors. */ });
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === SEEN_KEY && event.newValue !== null) setShow(false);
+    };
+    globalThis.addEventListener('storage', onStorage);
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      globalThis.removeEventListener('storage', onStorage);
+    };
   }, []);
 
   const close = () => {
