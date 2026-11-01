@@ -1,0 +1,6 @@
+{
+  "title": "Optional informational privacy notice",
+  "category": "improved",
+  "description": "Community administrators can turn the extra privacy notice on or off. Existing communities keep their previous behavior, and dismissing the notice remains stable across navigation.",
+  "pr": 118
+}
