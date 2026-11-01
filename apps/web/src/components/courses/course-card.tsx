@@ -6,6 +6,7 @@ import { BookOpen, Users, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CourseProgress } from './course-progress';
+import { CoverCredit } from '@/components/common/cover-credit';
 import type { Course, Progress } from '@community/shared';
 
 interface CourseCardProps {
@@ -30,7 +31,10 @@ export function CourseCard({ course }: CourseCardProps) {
         >
           {/* The cover could be set but was never shown; the placeholder stays for courses without one. */}
           {course.coverUrl ? (
-            <img src={course.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <figure>
+              <img src={course.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              {course.coverCredit && <CoverCredit credit={course.coverCredit} links={false} />}
+            </figure>
           ) : (
             <BookOpen size={40} style={{ color: 'var(--theme-primary)', opacity: 0.4 }} />
           )}
