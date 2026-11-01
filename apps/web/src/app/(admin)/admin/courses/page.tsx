@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ImageUploadField } from '@/components/common/image-upload-field';
+import { CoverPicker, type CoverCredit } from '@/components/events/cover-picker';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Globe, Lock } from 'lucide-react';
 import apiClient from '@/lib/api-client';
@@ -36,6 +36,7 @@ function CreateCourseDialog({ open, onClose }: { open: boolean; onClose: () => v
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [coverCredit, setCoverCredit] = useState<CoverCredit>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Mirrors CreateCourseDto so the form fails before the request does, with a
@@ -53,10 +54,10 @@ function CreateCourseDialog({ open, onClose }: { open: boolean; onClose: () => v
   };
 
   const create = useMutation({
-    mutationFn: () => apiClient.post('/courses', { title, description, coverUrl: coverUrl || undefined }),
+    mutationFn: () => apiClient.post('/courses', { title, description, coverUrl: coverUrl || undefined, coverCredit: coverUrl ? coverCredit : undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'courses'] });
-      setTitle(''); setDescription(''); setCoverUrl(null); setError(null);
+      setTitle(''); setDescription(''); setCoverUrl(null); setCoverCredit(null); setError(null);
       onClose();
     },
   });
@@ -91,7 +92,7 @@ function CreateCourseDialog({ open, onClose }: { open: boolean; onClose: () => v
           </div>
           <div className="space-y-1.5">
             <Label>{t('coverImage')}</Label>
-            <ImageUploadField label={t('coverImage')} value={coverUrl} onChange={setCoverUrl} />
+            <CoverPicker api="/courses/covers" url={coverUrl} onChange={(url, credit) => { setCoverUrl(url); setCoverCredit(credit); }} />
           </div>
         </div>
         <DialogFooter>

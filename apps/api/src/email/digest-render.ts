@@ -1,4 +1,5 @@
 import { countLabel, firstName, mailDate } from './mail-format';
+import { absoluteUploadUrl } from '../uploads/public-url';
 
 /** The parts of the admin's digest template that shape the e-mail (Admin → Digest). */
 export interface DigestLook {
@@ -10,6 +11,20 @@ export interface DigestLook {
   sections?: string[] | null;
   accentColor?: string | null;
   logoUrl?: string | null;
+  /** Picture at the top, as a full address; with a credit for an Unsplash photo. */
+  coverUrl?: string | null;
+  coverCredit?: { name: string; url: string } | null;
+}
+
+/** The template's cover for the e-mail: uploads get a full address, Unsplash photos stay hotlinked. */
+export function digestCover(template: { coverUrl?: string | null; coverCredit?: unknown }): Pick<DigestLook, 'coverUrl' | 'coverCredit'> {
+  if (!template.coverUrl) return { coverUrl: null, coverCredit: null };
+  const credit = template.coverCredit as { name?: unknown; url?: unknown } | null | undefined;
+  const valid = credit && typeof credit.name === 'string' && typeof credit.url === 'string' && credit.url.startsWith('https://unsplash.com/');
+  return {
+    coverUrl: absoluteUploadUrl(template.coverUrl),
+    coverCredit: valid ? { name: credit.name as string, url: credit.url as string } : null,
+  };
 }
 
 export interface DigestContent {
@@ -30,6 +45,15 @@ const DEFAULT_ACCENT = '#c5a880';
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** The cover row on top of the e-mail; an Unsplash photo names its photographer, as Unsplash requires. */
+function cover(url: string, credit: { name: string; url: string } | null): string {
+  const library = credit ? `https://unsplash.com/?${credit.url.split('?')[1] ?? ''}` : '';
+  return `<tr><td style="padding: 0; background: rgba(17,24,39,0.9); border-radius: 12px 12px 0 0; overflow: hidden;">
+          <img src="${escapeHtml(url)}" alt="" width="600" style="display: block; width: 100%; max-width: 600px; height: auto; border-radius: 12px 12px 0 0;" />
+          ${credit ? `<div style="font-size: 11px; color: #9ca3af; padding: 6px 32px 0;">Foto: <a href="${escapeHtml(credit.url)}" style="color: #9ca3af;">${escapeHtml(credit.name)}</a> auf <a href="${escapeHtml(library)}" style="color: #9ca3af;">Unsplash</a></div>` : ''}
+        </td></tr>`;
 }
 
 /** Plain text with line breaks, as typed by the admin. */
@@ -123,7 +147,8 @@ export function renderDigest(look: DigestLook | null, c: DigestContent): { subje
   <table width="100%" cellpadding="0" cellspacing="0" style="background: #090d16; padding: 24px 0;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
-        <tr><td style="padding: 24px 32px; background: rgba(17,24,39,0.9); border-radius: 12px 12px 0 0; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        ${look?.coverUrl ? cover(look.coverUrl, look.coverCredit ?? null) : ''}
+        <tr><td style="padding: 24px 32px; background: rgba(17,24,39,0.9); ${look?.coverUrl ? '' : 'border-radius: 12px 12px 0 0; '}border-bottom: 1px solid rgba(255,255,255,0.08);">
           ${look?.logoUrl ? `<img src="${escapeHtml(look.logoUrl)}" alt="${escapeHtml(c.platformName)}" style="max-height: 40px; margin-bottom: 12px; display: block;" />` : ''}
           <div style="font-size: 20px; font-weight: 600; color: ${accent};">${escapeHtml(c.platformName)}</div>
           <div style="font-size: 13px; color: #9ca3af; margin-top: 4px;">${heading}</div>

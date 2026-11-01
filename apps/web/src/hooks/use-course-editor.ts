@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { readLocalFile, UnreadableFileError, UNREADABLE_FILE_HINT } from '@/lib/read-local-file';
 import type { Course, CourseReleaseMode } from '@community/shared';
+import type { CoverCredit } from '@/components/events/cover-picker';
 
 /** A change to the course that reloads it, and the admin list, once saved. */
 function useCourseMutation<T>(courseId: string, fn: (vars: T) => Promise<unknown>) {
@@ -23,7 +24,7 @@ export function useCourseEditor(courseId: string) {
   });
   return {
     course,
-    updateCourse: useCourseMutation(courseId, (data: Partial<{ title: string; description: string; releaseMode: CourseReleaseMode; coverUrl: string | null; categoryIds: string[] }>) =>
+    updateCourse: useCourseMutation(courseId, (data: Partial<{ title: string; description: string; releaseMode: CourseReleaseMode; coverUrl: string | null; coverCredit: CoverCredit; categoryIds: string[] }>) =>
       apiClient.patch(`/courses/${courseId}`, data),
     ),
     addModule: useCourseMutation(courseId, (title: string) => apiClient.post(`/courses/${courseId}/modules`, { title })),

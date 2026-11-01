@@ -20,11 +20,14 @@ import { PartialType } from '@nestjs/swagger';
 class UpdateCourseDto extends PartialType(CreateCourseDto) {}
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UnsplashCovers } from '../events/cover-image';
 
 @ApiTags('courses')
 @ApiBearerAuth()
 @Controller('courses')
 export class CoursesController {
+  private readonly covers = new UnsplashCovers();
+
   constructor(private coursesService: CoursesService) {}
 
   @Get()
@@ -35,6 +38,31 @@ export class CoursesController {
     @CurrentUser() user: any,
   ) {
     return this.coursesService.findAll(Number(page), Number(limit), user?.id, user?.role);
+  }
+
+  // ── Cover photos from Unsplash (only with UNSPLASH_ACCESS_KEY) ──────────
+  // Declared before ':id' so "covers" is not read as a course id. Same
+  // library as event covers, under /courses so it works without events.
+
+  @Get('covers/status')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Whether a photo library is configured for course covers' })
+  coverStatus() {
+    return { unsplash: this.covers.enabled() };
+  }
+
+  @Get('covers/search')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Search photos for a course cover (Admin only)' })
+  searchCovers(@Query('q') q = '') {
+    return this.covers.search(q);
+  }
+
+  @Post('covers/chosen')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Report a chosen library photo, as the library requires (Admin only)' })
+  coverChosen(@Body() body: { downloadLocation: string }) {
+    return this.covers.markChosen(String(body?.downloadLocation ?? ''));
   }
 
   @Get(':id')

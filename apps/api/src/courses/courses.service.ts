@@ -7,6 +7,7 @@ import { toVideoEmbed, videoDownloadPage } from './video-url';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
 import { lessonAvailableAt } from './lesson-release';
+import { coverCreditValue } from '../events/cover-image';
 import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
 
 const lessonInclude = {
@@ -168,9 +169,9 @@ export class CoursesService {
   }
 
   async create(dto: CreateCourseDto) {
-    const { categoryIds, ...data } = dto;
+    const { categoryIds, coverCredit, ...data } = dto;
     const course = await this.prisma.course.create({
-      data,
+      data: { ...data, ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }) },
       include: {
         modules: { include: { lessons: true } },
         _count: { select: { modules: true } },
@@ -184,10 +185,10 @@ export class CoursesService {
     const course = await this.prisma.course.findUnique({ where: { id } });
     if (!course) throw new NotFoundException('Course not found');
 
-    const { categoryIds, ...data } = dto;
+    const { categoryIds, coverCredit, ...data } = dto;
     const updated = await this.prisma.course.update({
       where: { id },
-      data,
+      data: { ...data, ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }) },
     });
     await this.setCategories(id, categoryIds);
     return updated;
