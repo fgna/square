@@ -122,10 +122,13 @@ model Post {
   attachments PostAttachment[]
   isPinned   Boolean    @default(false)
   isHidden   Boolean    @default(false)
+  /// Scheduled by an admin: invisible to members until then; null once published.
+  publishAt  DateTime?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
   @@index([type])
+  @@index([publishAt])
 }
 
 model Comment {

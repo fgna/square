@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Send, Loader2, BarChart3, Plus, X, Type, PenLine, HelpCircle, Megaphone, Hand, MessageSquare, Tag, Trophy, MoreHorizontal, AlertCircle, Lightbulb } from 'lucide-react';
+import { Send, Loader2, BarChart3, Plus, X, Type, PenLine, HelpCircle, Megaphone, Hand, MessageSquare, Tag, Trophy, MoreHorizontal, AlertCircle, Lightbulb, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -64,6 +64,8 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  // Admins may publish later (datetime-local value in the browser's time zone).
+  const [publishAt, setPublishAt] = useState('');
   const queryClient = useQueryClient();
   const createPost = useCreatePost();
 
@@ -92,6 +94,7 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
     setShowMobileMore(false);
     setMobileFormat(false);
     setAttachments([]);
+    setPublishAt('');
     setEditorMode(window.matchMedia('(max-width: 767px)').matches ? 'plain' : 'rich');
     setPoll({ question: '', options: ['', ''] });
   };
@@ -128,6 +131,12 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
       }
     }
 
+    const scheduledAt = publishAt ? new Date(publishAt) : null;
+    if (scheduledAt && !(scheduledAt.getTime() > Date.now())) {
+      setSubmitError(t('schedule.inPast'));
+      return;
+    }
+
     const pollPayload =
       showPoll && poll.question.trim() && poll.options.filter((o) => o.trim()).length >= 2
         ? {
@@ -142,12 +151,14 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
         type: postType,
         categoryIds: selectedCategories.length ? selectedCategories : undefined,
         poll: pollPayload,
+        publishAt: scheduledAt ? scheduledAt.toISOString() : undefined,
       });
       // Attachments (admins only) are linked once the post exists.
       for (const a of attachments) {
         await apiClient.post(`/posts/${created.id}/attachments`, { uploadId: a.uploadId, videoUrl: a.videoUrl });
       }
       if (attachments.length) queryClient.invalidateQueries({ queryKey: ['feed'] });
+      if (scheduledAt) queryClient.invalidateQueries({ queryKey: ['posts', 'scheduled'] });
       resetForm();
     } catch (err: any) {
       const serverMessage = err?.response?.data?.message;
@@ -250,6 +261,22 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
           )}
 
           {focused && isAdmin && <PostAttachmentsPicker value={attachments} onChange={setAttachments} />}
+          {focused && isAdmin && (
+            <label className="flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+              <Clock size={13} />
+              {t('schedule.label')}
+              <Input
+                type="datetime-local"
+                value={publishAt}
+                onChange={(e) => setPublishAt(e.target.value)}
+                className="h-8 w-auto text-xs"
+                aria-label={t('schedule.label')}
+              />
+              {publishAt && (
+                <button type="button" onClick={() => setPublishAt('')} className="underline">{t('schedule.clear')}</button>
+              )}
+            </label>
+          )}
           {focused && showPoll && (
             <div
               className="rounded-lg p-3 space-y-2"
@@ -409,8 +436,8 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
                 <div className="flex items-center gap-1">
                   <Button type="button" variant="ghost" size="sm" onClick={resetForm}>{t('cancel')}</Button>
                   <Button type="submit" size="sm" disabled={!hasContent || createPost.isPending}>
-                    {createPost.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} className="mr-1" />}
-                    {t('post')}
+                    {createPost.isPending ? <Loader2 size={14} className="animate-spin" /> : publishAt ? <Clock size={14} className="mr-1" /> : <Send size={14} className="mr-1" />}
+                    {publishAt ? t('schedule.submit') : t('post')}
                   </Button>
                 </div>
               </div>
@@ -478,7 +505,9 @@ export function CreatePost({ initialType, initialFocused }: CreatePostProps = {}
                   {createPost.isPending ? (
                     <><Loader2 size={14} className="mr-1.5 animate-spin" />{t('posting')}</>
                   ) : (
-                    <><Send size={14} className="mr-1.5" />{t('post')}</>
+                    publishAt
+                      ? <><Clock size={14} className="mr-1.5" />{t('schedule.submit')}</>
+                      : <><Send size={14} className="mr-1.5" />{t('post')}</>
                   )}
                 </Button>
               </div>

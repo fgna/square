@@ -597,7 +597,20 @@
       "topicsHint": "Suggest a topic for an event, a masterclass or new content. Everyone can join the discussion; show your support with a reaction. The team picks up popular suggestions for planning."
     },
     "shareSuccess": "Share a success",
-    "topicSuggestion": "Topic suggestion"
+    "topicSuggestion": "Topic suggestion",
+    "schedule": {
+      "label": "Publish later",
+      "clear": "Publish now instead",
+      "submit": "Schedule",
+      "inPast": "Choose a time in the future.",
+      "heading": "Scheduled posts",
+      "for": "Scheduled for {date}",
+      "publishNow": "Publish now",
+      "move": "Move",
+      "moveSave": "Save time",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this scheduled post? This cannot be undone."
+    }
   },
   "groups": {
     "title": "My Learning Groups",
