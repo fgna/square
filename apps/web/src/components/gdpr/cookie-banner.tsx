@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PRIVACY_URL } from '@/lib/legal';
@@ -17,9 +18,15 @@ const SEEN_KEY = 'privacy-notice-seen';
  */
 export function CookieBanner() {
   const t = useTranslations('privacyNotice');
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // Client route changes can keep more than one notice instance mounted.
+    // Reconcile each instance with the shared persisted acknowledgement.
+    try {
+      if (localStorage.getItem(SEEN_KEY) !== null) setShow(false);
+    } catch { /* Storage is optional for this informational notice. */ }
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     // Per-instance setting is public and defaults to off when unavailable.
@@ -40,16 +47,19 @@ export function CookieBanner() {
         }, 800);
       })
       .catch(() => { /* Fail closed: do not display optional notice on API errors. */ });
+    const onAcknowledged = () => setShow(false);
     const onStorage = (event: StorageEvent) => {
       if (event.key === SEEN_KEY && event.newValue !== null) setShow(false);
     };
     globalThis.addEventListener('storage', onStorage);
+    globalThis.addEventListener('privacy-notice-acknowledged', onAcknowledged);
     return () => {
       active = false;
       if (timer) clearTimeout(timer);
       globalThis.removeEventListener('storage', onStorage);
+      globalThis.removeEventListener('privacy-notice-acknowledged', onAcknowledged);
     };
-  }, []);
+  }, [pathname]);
 
   const close = () => {
     try {
@@ -57,6 +67,7 @@ export function CookieBanner() {
     } catch {
       // Storage blocked: the notice simply shows again next time.
     }
+    globalThis.dispatchEvent(new Event('privacy-notice-acknowledged'));
     setShow(false);
   };
 
