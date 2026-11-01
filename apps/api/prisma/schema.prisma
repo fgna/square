@@ -485,6 +485,7 @@ model PlatformSettings {
   primaryColor String   @default("#c5a880")
   accentColor  String   @default("#6366f1")
   allowSignups Boolean  @default(true)
+  privacyNoticeEnabled Boolean @default(false)
   /// Public Android APK download, controlled by this instance's administrators.
   androidAppDownloadEnabled Boolean @default(false)
   androidAppDownloadUrl     String?
