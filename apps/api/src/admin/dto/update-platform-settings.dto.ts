@@ -37,6 +37,11 @@ export class UpdatePlatformSettingsDto {
   @IsBoolean()
   allowSignups?: boolean;
 
+  @ApiPropertyOptional({ description: 'Show an optional informational privacy notice; not a consent mechanism' })
+  @IsOptional()
+  @IsBoolean()
+  privacyNoticeEnabled?: boolean;
+
   @ApiPropertyOptional({ description: 'Show the public Android app download entry (off by default)' })
   @IsOptional()
   @IsBoolean()
