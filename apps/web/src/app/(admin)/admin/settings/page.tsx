@@ -176,6 +176,19 @@ export default function PlatformSettingsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">Privacy notice</CardTitle>
+          <CardDescription>The privacy policy remains accessible regardless of this optional notice. This is not a cookie consent setting.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="privacy-notice-toggle">Show informational privacy notice</Label>
+            <Switch id="privacy-notice-toggle" checked={form.privacyNoticeEnabled ?? false} onCheckedChange={v => set('privacyNoticeEnabled', v)} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">Welcome video</CardTitle>
           <CardDescription>
             New members see it in the first onboarding step, and on their dashboard until they hide it.
