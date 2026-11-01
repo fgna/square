@@ -171,6 +171,18 @@ export default function PlatformSettingsPage() {
               onCheckedChange={v => set('allowSignups', v)}
             />
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="joinUrl">{t('joinUrl')}</Label>
+            <Input
+              id="joinUrl"
+              type="url"
+              placeholder="https://"
+              value={form.joinUrl ?? ''}
+              onChange={e => set('joinUrl', e.target.value)}
+              maxLength={2048}
+            />
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('joinUrlHint')}</p>
+          </div>
         </CardContent>
       </Card>
 

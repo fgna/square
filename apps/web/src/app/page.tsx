@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { AndroidAppLink } from '@/components/common/android-app-link';
-import { getServerBranding } from '@/lib/server-branding';
+import { getServerBranding, joinHref } from '@/lib/server-branding';
 import { Users, BookOpen, Calendar, MessageSquare, Shield, Zap } from 'lucide-react';
 
 const features = [
@@ -33,7 +33,10 @@ const features = [
 
 export default async function LandingPage() {
   const t = await getTranslations('landingUI');
-  const { platformName } = await getServerBranding();
+  const branding = await getServerBranding();
+  const { platformName } = branding;
+  // Invitation-only communities send visitors to their own page instead of a closed form.
+  const join = joinHref(branding);
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -71,7 +74,7 @@ export default async function LandingPage() {
               {t('signin')}
             </Link>
             <Link
-              href="/register"
+              href={join}
               className="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors"
               style={{ background: 'var(--theme-primary)', color: 'var(--theme-background)' }}
             >
@@ -97,7 +100,7 @@ export default async function LandingPage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/register"
+              href={join}
               className="px-8 py-3 text-base font-semibold rounded-xl transition-all hover:scale-105"
               style={{ background: 'var(--theme-primary)', color: 'var(--theme-background)' }}
             >
@@ -158,7 +161,7 @@ export default async function LandingPage() {
               {t('readyDescription')}
             </p>
             <Link
-              href="/register"
+              href={join}
               className="inline-block px-8 py-3 text-base font-semibold rounded-xl transition-all hover:scale-105"
               style={{ background: 'var(--theme-primary)', color: 'var(--theme-background)' }}
             >
@@ -174,7 +177,7 @@ export default async function LandingPage() {
           <span>&copy; {new Date().getFullYear()} {platformName}</span>
           <div className="flex gap-6">
             <Link href="/login" className="hover:opacity-80 transition-opacity">{t('signInTitle')}</Link>
-            <Link href="/register" className="hover:opacity-80 transition-opacity">{t('register')}</Link>
+            <Link href={join} className="hover:opacity-80 transition-opacity">{t('register')}</Link>
           </div>
         </div>
       </footer>

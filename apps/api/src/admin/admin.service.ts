@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { toVideoEmbed } from '../courses/video-url';
 import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
 import { GdprService } from '../gdpr/gdpr.service';
-import { normalizeAndroidAppDownloadSettings } from '@community/shared/android-app-download';
+import { normalizeAndroidAppDownloadSettings, isAndroidAppDownloadUrl } from '@community/shared/android-app-download';
 
 /** Accounts deleted by their owner keep a placeholder row (see GdprService.deleteAccount). */
 export function isDeletedAccount(email: string | null | undefined): boolean {
@@ -358,6 +358,12 @@ export class AdminService {
       } catch (error) {
         throw new BadRequestException((error as Error).message);
       }
+    }
+    if (data.joinUrl !== undefined) {
+      const url = data.joinUrl?.trim() || null;
+      // Same rules as the Android download link: https, no credentials or fragment.
+      if (url && !isAndroidAppDownloadUrl(url)) throw new BadRequestException('Join page must be an https address');
+      data.joinUrl = url;
     }
     if (data.appIconUrl !== undefined) {
       const icon = data.appIconUrl?.trim() || null;
