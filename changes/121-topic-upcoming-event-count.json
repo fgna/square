@@ -1,0 +1,7 @@
+{
+  "title": "Topic counts match upcoming events",
+  "category": "fixed",
+  "audience": "members",
+  "description": "Topic index and detail counts exclude past events, matching the upcoming event list.",
+  "pr": 121
+}
