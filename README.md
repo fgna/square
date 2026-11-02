@@ -74,6 +74,7 @@ Square's application source is public. Real community branding, domain-specific 
 - [Independent instance contract](docs/THIRD-PARTY-INSTANCE-CONTRACT.md)
 - [Guide for separate instance repositories](docs/THIRD-PARTY-REPOSITORY-README.md)
 - [Deployment boundaries](docs/DEPLOYMENT-BOUNDARY.md)
+- [API health checks and loopback addresses](docs/HEALTH-CHECKS.md)
 
 Do not use the isolated demo launcher against a live database.
 
