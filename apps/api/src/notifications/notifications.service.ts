@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -21,9 +22,10 @@ export class NotificationsService {
 
   async findAll(userId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
+    const where = await this.visibleWhere(userId);
     const [data, total] = await Promise.all([
       this.prisma.notification.findMany({
-        where: { userId },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -31,7 +33,7 @@ export class NotificationsService {
           actor: { select: { id: true, name: true, avatarUrl: true } },
         },
       }),
-      this.prisma.notification.count({ where: { userId } }),
+      this.prisma.notification.count({ where }),
     ]);
 
     return {
@@ -74,9 +76,31 @@ export class NotificationsService {
 
   async getUnreadCount(userId: string) {
     const count = await this.prisma.notification.count({
-      where: { userId, read: false },
+      where: { ...await this.visibleWhere(userId), read: false },
     });
     return { count };
+  }
+
+  // Filter before pagination and counting. Entities are polymorphic, so resolve
+  // only this member's reminder targets, without changing historical records.
+  private async visibleWhere(userId: string): Promise<Prisma.NotificationWhereInput> {
+    const now = new Date();
+    const reminders = await this.prisma.notification.findMany({
+      where: { userId, type: 'EVENT_REMINDER', entityType: 'event', entityId: { not: null } },
+      select: { entityId: true },
+      distinct: ['entityId'],
+    });
+    const events = reminders.length ? await this.prisma.event.findMany({
+      where: { id: { in: reminders.map(n => n.entityId as string) }, startsAt: { gt: now } },
+      select: { id: true },
+    }) : [];
+    return {
+      userId,
+      OR: [
+        { type: { not: 'EVENT_REMINDER' } },
+        { type: 'EVENT_REMINDER', entityType: 'event', entityId: { in: events.map(e => e.id) } },
+      ],
+    };
   }
 
   async markRead(id: string, userId: string) {
