@@ -14,7 +14,7 @@ export class CategoriesService {
           select: {
             posts: true,
             courses: true,
-            events: true,
+            events: { where: { event: { startsAt: { gte: new Date() } } } },
           },
         },
       },
@@ -29,7 +29,7 @@ export class CategoriesService {
           select: {
             posts: true,
             courses: true,
-            events: true,
+            events: { where: { event: { startsAt: { gte: new Date() } } } },
           },
         },
       },
