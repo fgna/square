@@ -1,0 +1,7 @@
+{
+  "title": "Sign-in responds promptly when Redis is unavailable",
+  "category": "fixed",
+  "audience": "members",
+  "description": "Offline rate-limit cache commands fail promptly, with bounded connection and command waits, preserving normal credential checks.",
+  "pr": 124
+}
