@@ -147,6 +147,29 @@ describe('AuthService', () => {
       expect(result.user.email).toBe('test@example.com');
     });
 
+    it('still authenticates a valid member when the rate-limit cache is unavailable', async () => {
+      const passwordHash = await argon2.hash('correct-password');
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1', email: 'test@example.com', name: 'Test', role: 'MEMBER',
+        isActive: true, passwordHash, avatarUrl: null,
+      });
+      mockPrisma.refreshToken.create.mockResolvedValue({ id: 'token-1' });
+      mockRedis.get.mockRejectedValueOnce(new Error('Redis unavailable'));
+      mockRedis.del.mockRejectedValueOnce(new Error('Redis unavailable'));
+      const result = await service.login({ email: 'test@example.com', password: 'correct-password' });
+      expect(result.user.id).toBe('user-1');
+      expect(result.accessToken).toBe('mock-jwt-token');
+    });
+
+    it('still refuses invalid credentials when Redis cannot record attempts', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockRedis.get.mockRejectedValueOnce(new Error('Redis unavailable'));
+      mockRedis.incr.mockRejectedValueOnce(new Error('Redis unavailable'));
+      await expect(service.login({ email: 'wrong@example.com', password: 'wrong' }))
+        .rejects.toThrow('Invalid credentials');
+      expect(mockPrisma.refreshToken.create).not.toHaveBeenCalled();
+    });
+
     it('should throw UnauthorizedException for invalid credentials', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 

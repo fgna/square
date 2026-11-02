@@ -11,7 +11,15 @@ export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
       useFactory: () => {
         const client = new Redis(
           process.env.REDIS_URL || 'redis://redis:6379',
-          { lazyConnect: true },
+          {
+            // Connect in the background; auth's best-effort rate-limit cache
+            // must not queue commands through an outage or stall sign-in.
+            lazyConnect: false,
+            enableOfflineQueue: false,
+            connectTimeout: 2_000,
+            commandTimeout: 2_000,
+            maxRetriesPerRequest: 1,
+          },
         );
         client.on('error', (err: Error) =>
           console.warn(`[RedisModule] ${err.message}`),
