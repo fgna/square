@@ -21,7 +21,7 @@ export class PlatformController {
   async branding() {
     const settings = await this.prisma.platformSettings.findUnique({
       where: { id: 'default' },
-      select: { platformName: true, logoUrl: true, appIconUrl: true, allowSignups: true, joinUrl: true,
+      select: { platformName: true, logoUrl: true, appIconUrl: true, allowSignups: true, joinUrl: true, privacyNoticeEnabled: true,
         androidAppDownloadEnabled: true, androidAppDownloadUrl: true },
     });
     return {
@@ -30,6 +30,7 @@ export class PlatformController {
       appIconUrl: settings?.appIconUrl ?? null,
       allowSignups: settings?.allowSignups ?? true,
       joinUrl: settings?.joinUrl ?? null,
+      privacyNoticeEnabled: settings?.privacyNoticeEnabled ?? false,
       androidAppDownloadEnabled: androidAppDownloadUrl(settings) !== null,
       androidAppDownloadUrl: androidAppDownloadUrl(settings),
     };

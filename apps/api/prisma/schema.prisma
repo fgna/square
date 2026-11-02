@@ -366,8 +366,10 @@ model RefreshToken {
   token     String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  rotatedAt  DateTime?
+  replacedBy String?
 }
 
 model OAuthAccount {
@@ -485,6 +487,7 @@ model PlatformSettings {
   allowSignups Boolean  @default(true)
   /// Where visitors without an invitation can find out more and join (e.g. a sales page); used while sign-ups are closed.
   joinUrl      String?
+  privacyNoticeEnabled Boolean @default(false)
   /// Public Android APK download, controlled by this instance's administrators.
   androidAppDownloadEnabled Boolean @default(false)
   androidAppDownloadUrl     String?
