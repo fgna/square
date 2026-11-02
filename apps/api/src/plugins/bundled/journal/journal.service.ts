@@ -221,10 +221,12 @@ export class JournalService {
 
     const totalEntries = entries.length;
 
-    // Calculate last 30 days count
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    // Entry dates are stored as UTC calendar days. Use the same boundary for
+    // all statistics, independently of the server time zone (including DST).
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
     const last30DaysCount = entries.filter(
       (e) => e.date >= thirtyDaysAgo,
     ).length;
@@ -239,22 +241,19 @@ export class JournalService {
 
     // Calculate current streak (consecutive days ending today or yesterday)
     let currentStreak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const checkDate = new Date(today);
     // Start from today; if no entry today, check if yesterday has one
     const todayStr = `${checkDate.getUTCFullYear()}-${String(checkDate.getUTCMonth() + 1).padStart(2, '0')}-${String(checkDate.getUTCDate()).padStart(2, '0')}`;
     if (!dateSet.has(todayStr)) {
       // Allow streak to start from yesterday
-      checkDate.setDate(checkDate.getDate() - 1);
+      checkDate.setUTCDate(checkDate.getUTCDate() - 1);
     }
 
     while (true) {
       const dateStr = `${checkDate.getUTCFullYear()}-${String(checkDate.getUTCMonth() + 1).padStart(2, '0')}-${String(checkDate.getUTCDate()).padStart(2, '0')}`;
       if (dateSet.has(dateStr)) {
         currentStreak++;
-        checkDate.setDate(checkDate.getDate() - 1);
+        checkDate.setUTCDate(checkDate.getUTCDate() - 1);
       } else {
         break;
       }
@@ -283,9 +282,8 @@ export class JournalService {
     }
 
     // Build entries by date map for heatmap (last 90 days)
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    ninetyDaysAgo.setHours(0, 0, 0, 0);
+    const ninetyDaysAgo = new Date(today);
+    ninetyDaysAgo.setUTCDate(ninetyDaysAgo.getUTCDate() - 90);
 
     const entriesByDate: Record<string, boolean> = {};
     entries.forEach((e) => {
