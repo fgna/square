@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { EventsService, recordingRetentionDays } from './events.service';
+import { EventsService, EventListFilter, recordingRetentionDays } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateRecordingDto } from './dto/create-recording.dto';
+import { UnsplashCovers } from './cover-image';
 import { RsvpDto } from './dto/rsvp.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -13,16 +14,36 @@ import { AddAttachmentDto } from '../courses/dto/course-content.dto';
 @ApiBearerAuth()
 @Controller('events')
 export class EventsController {
+  private readonly covers = new UnsplashCovers();
+
   constructor(private eventsService: EventsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all events' })
+  @ApiOperation({ summary: 'List events: upcoming by default; when=past|all, from/to (ISO dates), mine=true' })
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @CurrentUser() user: any,
+    @Query('when') when?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('mine') mine?: string,
   ) {
-    return this.eventsService.findAll(Number(page), Number(limit), user?.id);
+    const date = (value?: string) => {
+      if (!value) return undefined;
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) throw new BadRequestException(`Invalid date: ${value}`);
+      return d;
+    };
+    if (when !== undefined && !['upcoming', 'past', 'all'].includes(when)) {
+      throw new BadRequestException('when must be upcoming, past or all');
+    }
+    return this.eventsService.findAll(Number(page), Number(limit), user?.id, {
+      when: when as EventListFilter['when'],
+      from: date(from),
+      to: date(to),
+      mine: mine === 'true',
+    });
   }
 
   @Get(':id')
@@ -87,6 +108,29 @@ export class EventsController {
     return this.eventsService.cancelRsvp(id, user.id);
   }
 
+  // ── Cover images from an image library (only with UNSPLASH_ACCESS_KEY) ──
+
+  @Get('covers/status')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Whether a photo library is configured for event covers' })
+  coverStatus() {
+    return { unsplash: this.covers.enabled() };
+  }
+
+  @Get('covers/search')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Search photos for an event cover (Admin only)' })
+  searchCovers(@Query('q') q = '') {
+    return this.covers.search(q);
+  }
+
+  @Post('covers/chosen')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Report a chosen library photo, as the library requires (Admin only)' })
+  coverChosen(@Body() body: { downloadLocation: string }) {
+    return this.covers.markChosen(String(body?.downloadLocation ?? ''));
+  }
+
   // ── Recordings ─────────────────────────────────────────────────────────
 
   @Get('recordings/all')
@@ -94,8 +138,9 @@ export class EventsController {
   findAllRecordings(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
+    @CurrentUser() user: any,
   ) {
-    return this.eventsService.findAllRecordings(Number(page), Number(limit));
+    return this.eventsService.findAllRecordings(Number(page), Number(limit), user?.role === 'ADMIN');
   }
 
   @Get('recordings/retention')
@@ -106,8 +151,8 @@ export class EventsController {
 
   @Get(':id/recordings')
   @ApiOperation({ summary: 'Get recordings for an event' })
-  findRecordings(@Param('id') id: string) {
-    return this.eventsService.findRecordingsByEvent(id);
+  findRecordings(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.eventsService.findRecordingsByEvent(id, user?.role === 'ADMIN');
   }
 
   @Post(':id/recordings')

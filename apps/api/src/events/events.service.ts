@@ -1,9 +1,17 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { generateIcs } from '../email/ics.util';
+import { eventCalendarDescription, generateIcs } from '../email/ics.util';
 import { eventUrl } from './event-url';
+import { Prisma } from '@prisma/client';
 import type { Event } from '@prisma/client';
+
+export interface EventListFilter {
+  when?: 'upcoming' | 'past' | 'all';
+  from?: Date;
+  to?: Date;
+  mine?: boolean;
+}
 
 /** The fields an invitation or cancellation is built from. */
 type CalendarEvent = Pick<
@@ -14,12 +22,13 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CreateRecordingDto } from './dto/create-recording.dto';
 import { randomUUID } from 'crypto';
-import { mailDate, mailTime } from '../email/mail-format';
+import { mailDate, mailTime, firstName } from '../email/mail-format';
 import { htmlToText } from '../email/html-to-text';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
-import { unlink } from 'fs/promises';
-import { resolve, sep } from 'path';
+import { removeUploadedFiles } from '../uploads/remove-uploaded-files';
+import { toVideoEmbed } from '../courses/video-url';
+import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
 
 function escapeHtml(text: string): string {
   return text
@@ -139,18 +148,6 @@ export function expandRecurrence(
  * Deletes stored files (paths such as /uploads/uploads/…) from the upload
  * folder. Paths outside it are ignored; a missing file is not an error.
  */
-async function removeUploadedFiles(paths: string[], logger: Logger) {
-  const root = resolve(process.cwd(), 'uploads');
-  for (const p of paths) {
-    if (!p.startsWith('/uploads/')) continue;
-    const file = resolve(root, p.slice('/uploads/'.length));
-    if (!file.startsWith(root + sep)) continue;
-    await unlink(file).catch((err: NodeJS.ErrnoException) => {
-      if (err.code !== 'ENOENT') logger.warn(`Could not delete ${p}: ${err.message}`);
-    });
-  }
-}
-
 /**
  * How many days members can watch a recording, from RECORDING_RETENTION_DAYS
  * (e.g. 365 when the privacy policy promises at most a year). Unset or 0 keeps
@@ -172,14 +169,39 @@ function unexpiredRecordings() {
   return cutoff ? { createdAt: { gte: cutoff } } : {};
 }
 
-/** Signed links for the attachments, and the date the recording disappears (null if never). */
-function withRecordingLinks<T extends { createdAt: Date; attachments?: { url: string }[] }>(recording: T) {
+/**
+ * How a recording's video reaches the browser. A YouTube, Vimeo or Loom video
+ * is played inside the platform, and members get only the player link (embedUrl):
+ * the share link itself would play anywhere once copied, and recordings show
+ * members. Admins keep the share link to manage the recording. Other links
+ * (e.g. a cloud folder) cannot be embedded and stay a plain link.
+ * A video uploaded to the platform plays from a signed, expiring link (fileUrl).
+ */
+export function recordingVideo(url: string, forAdmin: boolean) {
+  if (isHostedVideo(url)) {
+    return { url: forAdmin ? url : null, embedUrl: null, fileUrl: absoluteUploadUrl(signUploadPath(url)) };
+  }
+  const embedUrl = toVideoEmbed(url)?.embedUrl ?? null;
+  return { url: forAdmin || !embedUrl ? url : null, embedUrl, fileUrl: null };
+}
+
+/** Player link, signed links for the attachments, and the date the recording disappears (null if never). */
+function withRecordingLinks<T extends { url: string; createdAt: Date; attachments?: { url: string }[] }>(
+  recording: T,
+  forAdmin: boolean,
+) {
   const days = recordingRetentionDays();
   return {
     ...recording,
+    ...recordingVideo(recording.url, forAdmin),
     availableUntil: days ? new Date(recording.createdAt.getTime() + days * 86_400_000) : null,
     attachments: (recording.attachments ?? []).map((a) => ({ ...a, url: absoluteUploadUrl(signUploadPath(a.url)) })),
   };
+}
+
+/** A photo credit as stored (JSON); null removes it. */
+function coverCreditValue(credit: { name: string; url: string; source?: string } | null) {
+  return credit ? { name: credit.name, url: credit.url, source: credit.source ?? 'unsplash' } : Prisma.DbNull;
 }
 
 @Injectable()
@@ -191,15 +213,33 @@ export class EventsService {
     private email: EmailService,
   ) {}
 
-  async findAll(page = 1, limit = 20, userId?: string) {
+  /**
+   * Events for lists, the calendar and the dashboard. By default only events
+   * that have not ended yet, soonest first: with a daily series, "all events
+   * from the oldest" filled every page with past dates. `past` lists ended
+   * events, latest first; `from`/`to` select a period (calendar month);
+   * `mine` keeps the events the member said yes to.
+   */
+  async findAll(page = 1, limit = 20, userId?: string, filter: EventListFilter = {}) {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
+    const now = new Date();
+    const when = filter.from || filter.to ? 'all' : (filter.when ?? 'upcoming');
+    const where: Prisma.EventWhereInput = {
+      ...(when === 'upcoming' && { endsAt: { gte: now } }),
+      ...(when === 'past' && { endsAt: { lt: now } }),
+      ...((filter.from || filter.to) && {
+        startsAt: { ...(filter.from && { gte: filter.from }), ...(filter.to && { lt: filter.to }) },
+      }),
+      ...(filter.mine && userId && { rsvps: { some: { userId, status: 'GOING' } } }),
+    };
     const [data, total] = await Promise.all([
       this.prisma.event.findMany({
+        where,
         skip,
         take: limit,
-        orderBy: { startsAt: 'asc' },
+        orderBy: { startsAt: when === 'past' ? 'desc' : 'asc' },
         include: {
           _count: { select: { rsvps: true } },
           categories: { select: { category: { select: { id: true, name: true, slug: true } } } },
@@ -209,19 +249,31 @@ export class EventsService {
           },
         },
       }),
-      this.prisma.event.count(),
+      this.prisma.event.count({ where }),
+    ]);
+    // A daily series has hundreds of dates; counted as events it swamps the
+    // number. Each series counts once, one-off events count as themselves.
+    const [oneOff, series] = await Promise.all([
+      this.prisma.event.count({ where: { ...where, seriesId: null } }),
+      this.prisma.event.groupBy({ by: ['seriesId'], where: { ...where, seriesId: { not: null } } }),
     ]);
 
+    // The member's own answer, also when they are not among the five shown.
+    const own = userId && data.length
+      ? await this.prisma.eventRsvp.findMany({
+          where: { userId, eventId: { in: data.map((e) => e.id) } },
+          select: { id: true, status: true, userId: true, eventId: true },
+        })
+      : [];
     const events = data.map((event) => ({
       ...event,
-      userRsvp: userId
-        ? ((event.rsvps as any[])?.find((r) => r.userId === userId) ?? null)
-        : null,
+      userRsvp: userId ? (own.find((r) => r.eventId === event.id) ?? null) : null,
     }));
 
     return {
       data: events,
       total,
+      distinctTotal: oneOff + series.length,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
@@ -259,7 +311,8 @@ export class EventsService {
       throw new BadRequestException('startsAt must be before endsAt');
     }
 
-    const { recurrence, recurrenceEndsAt, categoryIds, ...eventData } = dto as any;
+    const { recurrence, recurrenceEndsAt, categoryIds, coverCredit, ...rest } = dto as any;
+    const eventData = { ...rest, ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }) };
 
     // Hand Prisma real Date objects: @IsDateString() also accepts values such as
     // "2026-10-01T14:30" (what an <input type="datetime-local"> produces), which
@@ -322,16 +375,28 @@ export class EventsService {
       throw new BadRequestException('startsAt must be before endsAt');
     }
 
-    const { categoryIds, ...fields } = dto;
+    const { categoryIds, coverCredit, ...fields } = dto;
     const updated = await this.prisma.event.update({
       where: { id },
       data: {
         ...fields,
+        ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }),
         ...(startsAt ? { startsAt } : {}),
         ...(endsAt ? { endsAt } : {}),
       },
     });
     await this.setCategories([id], categoryIds);
+    // Highlighting a date of a series highlights the series' upcoming dates too.
+    if (dto.featured !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({
+        where: { seriesId: event.seriesId, startsAt: { gte: new Date() } },
+        data: { featured: dto.featured },
+      });
+    }
+    // A daily series is the usual case for switching the day-ahead reminder off.
+    if (dto.remind24h !== undefined && event.seriesId) {
+      await this.prisma.event.updateMany({ where: { seriesId: event.seriesId }, data: { remind24h: dto.remind24h } });
+    }
     return updated;
   }
 
@@ -417,7 +482,7 @@ export class EventsService {
 
   // ── Recordings ─────────────────────────────────────────────────────────
 
-  async findAllRecordings(page = 1, limit = 20) {
+  async findAllRecordings(page = 1, limit = 20, forAdmin = false) {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
@@ -437,16 +502,16 @@ export class EventsService {
       this.prisma.recording.count({ where }),
     ]);
 
-    return { data: data.map(withRecordingLinks), total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data: data.map((r) => withRecordingLinks(r, forAdmin)), total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findRecordingsByEvent(eventId: string) {
+  async findRecordingsByEvent(eventId: string, forAdmin = false) {
     const recordings = await this.prisma.recording.findMany({
       where: { eventId, ...unexpiredRecordings() },
       orderBy: { createdAt: 'desc' },
       include: { attachments: { orderBy: { order: 'asc' } } },
     });
-    return recordings.map(withRecordingLinks);
+    return recordings.map((r) => withRecordingLinks(r, forAdmin));
   }
 
   /** Attaches a file already stored through POST /uploads/file (slides, handouts). */
@@ -479,16 +544,18 @@ export class EventsService {
 
   /**
    * Deletes recordings older than RECORDING_RETENTION_DAYS with their
-   * attachments; does nothing when no retention is set. The video itself lives
-   * on Vimeo, YouTube, Loom or Drive and is deleted there.
+   * attachments and their videos hosted by the platform; does nothing when no
+   * retention is set. Videos on Vimeo, YouTube, Loom or Drive are deleted there.
    */
   async deleteExpiredRecordings(now = new Date()) {
     const cutoff = recordingCutoff(now);
     if (!cutoff) return 0;
     const expired = { createdAt: { lt: cutoff } };
     const files = await this.prisma.recordingAttachment.findMany({ where: { recording: expired }, select: { url: true } });
+    const videos = await this.prisma.recording.findMany({ where: expired, select: { url: true } });
     const result = await this.prisma.recording.deleteMany({ where: expired });
     await removeUploadedFiles(files.map((f) => f.url), this.logger);
+    await deleteUnusedHostedVideos(this.prisma, videos.map((v) => v.url), this.logger);
     if (result.count > 0) this.logger.log(`Deleted ${result.count} recordings older than ${recordingRetentionDays()} days`);
     return result.count;
   }
@@ -496,6 +563,9 @@ export class EventsService {
   async createRecording(eventId: string, dto: CreateRecordingDto) {
     const event = await this.prisma.event.findUnique({ where: { id: eventId } });
     if (!event) throw new NotFoundException('Event not found');
+    if (isHostedVideo(dto.url) && !hostedVideoExists(dto.url)) {
+      throw new BadRequestException('Uploaded video not found');
+    }
 
     return this.prisma.recording.create({
       data: { ...dto, eventId },
@@ -506,9 +576,12 @@ export class EventsService {
   }
 
   async deleteRecording(id: string) {
-    const recording = await this.prisma.recording.findUnique({ where: { id } });
+    const recording = await this.prisma.recording.findUnique({ where: { id }, include: { attachments: { select: { url: true } } } });
     if (!recording) throw new NotFoundException('Recording not found');
     await this.prisma.recording.delete({ where: { id } });
+    // Its files go too: attachments (slides, handouts) and a video hosted by the platform.
+    await removeUploadedFiles((recording.attachments ?? []).map((a) => a.url), this.logger);
+    await deleteUnusedHostedVideos(this.prisma, [recording.url], this.logger);
     return { message: 'Recording deleted' };
   }
 
@@ -564,7 +637,7 @@ export class EventsService {
     await this.email.send({
       to: user.email,
       subject: `Aus deinem Kalender entfernt: ${event.title}`,
-      html: `<p>Hallo ${escapeHtml(user.name)},</p><p><strong>${escapeHtml(event.title)}</strong> wurde aus deinem Kalender entfernt, weil du nicht mehr zugesagt hast oder die Veranstaltung nicht stattfindet.</p>`,
+      html: `<p>Hallo ${escapeHtml(firstName(user.name))},</p><p><strong>${escapeHtml(event.title)}</strong> wurde aus deinem Kalender entfernt, weil du nicht mehr zugesagt hast oder die Veranstaltung nicht stattfindet.</p>`,
       icalEvent: icsContent,
       icalMethod: 'CANCEL',
     });
@@ -575,7 +648,7 @@ export class EventsService {
       // Must stay identical between invitation and cancellation.
       uid: `${event.id}@community`,
       title: event.title,
-      description: event.description,
+      description: eventCalendarDescription(event),
       location: event.isVirtual ? event.meetingUrl || 'Online' : event.location || undefined,
       url: eventUrl(appUrl, event.id),
       startsAt: new Date(event.startsAt),

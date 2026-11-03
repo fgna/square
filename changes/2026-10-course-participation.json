@@ -1,0 +1,7 @@
+{
+  "title": "Course participation on screen",
+  "category": "new",
+  "audience": "admins",
+  "description": "Admins see who started and completed a course, with progress and last activity, without exporting a CSV.",
+  "pr": 64
+}

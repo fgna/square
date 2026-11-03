@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isPathEnabled } from './lib/capabilities';
+import { HOME_PATH, HOME_PLUGIN } from './plugins/home.generated';
 
 const PUBLIC_PATHS = ['/', '/login', '/register', '/api/health'];
 const AUTH_PATHS = ['/login', '/register'];
@@ -96,20 +97,28 @@ export function middleware(request: NextRequest) {
     return next();
   }
 
-  if (!isPathEnabled(pathname)) return redirect('/dashboard');
+  // The instance's start page (a plugin chosen with "home"), unless an operator switched it off.
+  const home = isPathEnabled(HOME_PATH) ? HOME_PATH : '/dashboard';
+
+  if (!isPathEnabled(pathname)) return redirect(home);
 
   const authToken = request.cookies.get('auth-session')?.value;
   const userRole = request.cookies.get('user-role')?.value;
 
-  const isPublicPath = PUBLIC_PATHS.some((p) =>
+  const isPublicPath = pathname === '/get-app' || PUBLIC_PATHS.some((p) =>
     p === '/' ? pathname === '/' : pathname.startsWith(p),
   );
   const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));
   const isAdminPath = ADMIN_PATHS.some((p) => pathname.startsWith(p));
 
-  // Authenticated users on landing or auth pages → dashboard
+  // Authenticated users on landing or auth pages → start page
   if (authToken && (pathname === '/' || isAuthPath)) {
-    return redirect('/dashboard');
+    return redirect(home);
+  }
+
+  // With a start page plugin, the Core's marketing landing page is not shown: sign in instead.
+  if (!authToken && pathname === '/' && HOME_PLUGIN && home !== '/dashboard') {
+    return redirect('/login');
   }
 
   if (!authToken && !isPublicPath) {
@@ -118,7 +127,7 @@ export function middleware(request: NextRequest) {
 
   // Admin routes require ADMIN role
   if (authToken && isAdminPath && userRole !== 'ADMIN') {
-    return redirect('/dashboard');
+    return redirect(home);
   }
 
   return next();

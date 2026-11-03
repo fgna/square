@@ -18,7 +18,7 @@ const MAX_SHOWN = 3;
 export function UpcomingEventsStrip() {
   const t = useTranslations('feed');
   const { formatDate, formatTime } = useFormatters();
-  const { data, isLoading } = useEvents(1, 50);
+  const { data, isLoading } = useEvents(1, 50, { when: 'upcoming' });
   const { data: interests } = useInterests();
 
   if (isLoading) {

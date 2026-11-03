@@ -36,6 +36,17 @@ export interface IcsInviteOptions {
   attendeeEmail?: string;
 }
 
+
+/**
+ * Calendar description of an event (editor HTML). The online room comes first,
+ * so the calendar entry leads straight into it.
+ */
+export function eventCalendarDescription(event: { description: string | null; isVirtual: boolean; meetingUrl: string | null }): string {
+  const online = event.isVirtual && event.meetingUrl
+    ? `<p>Online: ${event.meetingUrl.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</p>`
+    : '';
+  return `${online}${event.description ?? ''}`;
+}
 export function generateIcs(event: IcsEvent, options: IcsInviteOptions = {}): string {
   const method = options.method ?? 'REQUEST';
   // Seconds since the epoch only ever grow, so a later cancellation always

@@ -39,6 +39,23 @@ describe('TaskAttemptStore', () => {
     });
   });
 
+  it('lists a task family by id prefix, newest first, with a bounded limit', async () => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    await setup({ findMany }).listByPrefix('alice', 'sample.');
+    expect(findMany).toHaveBeenCalledWith({
+      where: { userId: 'alice', taskId: { startsWith: 'sample.' } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 500,
+    });
+    await setup({ findMany }).listByPrefix('alice', 'sample.', 1000);
+    expect(findMany).toHaveBeenLastCalledWith(expect.objectContaining({ take: 1000 }));
+    for (const [prefix, limit] of [['', 10], ['%', 10], ['Sample', 10], ['sample.', 0], ['sample.', 1001], ['sample.', 1.5]] as const) {
+      expect(() => setup({ findMany }).listByPrefix('alice', prefix, limit)).toThrow(/Invalid member, task prefix or limit/);
+    }
+    expect(() => setup({ findMany }).listByPrefix('', 'sample.')).toThrow();
+    expect(findMany).toHaveBeenCalledTimes(2);
+  });
+
   it('replays an identical idempotency key without duplicating the attempt', async () => {
     const existing = { id: 'a1', userId: 'alice', ...attempt };
     const create = vi.fn().mockRejectedValue({ code: 'P2002' });

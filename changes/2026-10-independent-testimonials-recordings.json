@@ -1,0 +1,7 @@
+{
+  "title": "Independent testimonials and recordings controls",
+  "category": "improved",
+  "audience": "operators",
+  "description": "Community operators can independently enable journal, testimonials and recordings, including on minimal instances, without changing existing installations.",
+  "pr": 85
+}

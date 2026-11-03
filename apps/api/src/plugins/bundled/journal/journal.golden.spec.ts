@@ -179,7 +179,7 @@ async function record(steps: Step[], packFields?: () => Promise<Record<string, u
 describe('journal API golden record', () => {
   const env = { source: process.env.COMMUNITY_CONTENT_SOURCE, dir: process.env.COMMUNITY_CONTENT_DIR, tz: process.env.TZ };
   beforeAll(() => {
-    // The streak counts local days; the record is taken in UTC wherever it runs.
+    // Keep the golden record environment fixed; UTC statistics are also tested in non-UTC zones.
     process.env.TZ = 'UTC';
     vi.useFakeTimers({ now: NOW, toFake: ['Date'] });
   });

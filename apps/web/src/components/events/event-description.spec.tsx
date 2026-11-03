@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EventDescription } from './event-description';
@@ -22,10 +22,24 @@ describe('EventDescription', () => {
     expect(container.innerHTML).not.toMatch(/onerror|<script/);
   });
 
-  it('opens long descriptions on request', async () => {
+  it('opens descriptions that three lines cut off', async () => {
+    // jsdom has no layout: pretend the clamped text is taller than its box.
+    const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(120);
+    const box = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(60);
     render(<EventDescription text={`<p>${'Lang '.repeat(60)}</p>`} />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Show more' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Show more' }));
     expect(screen.getByRole('button', { name: 'Show less' })).toBeInTheDocument();
+    height.mockRestore();
+    box.mockRestore();
+  });
+
+  it('offers no "show more" when nothing is cut off', () => {
+    const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(60);
+    const box = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(60);
+    render(<EventDescription text={`<p>${'Lang '.repeat(60)}</p>`} />);
+    expect(screen.queryByRole('button', { name: 'Show more' })).toBeNull();
+    height.mockRestore();
+    box.mockRestore();
   });
 });

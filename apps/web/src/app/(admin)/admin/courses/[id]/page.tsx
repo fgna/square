@@ -15,6 +15,7 @@ import { ImageUploadField } from '@/components/common/image-upload-field';
 import { CategoryPicker } from '@/components/common/category-picker';
 import { useCourseEditor } from '@/hooks/use-course-editor';
 import type { CourseReleaseMode, Lesson } from '@community/shared';
+import { CourseParticipation } from '@/components/courses/course-participation';
 
 const card = { background: 'var(--theme-card)', border: '1px solid var(--theme-border)' };
 
@@ -253,6 +254,8 @@ export default function CourseEditorPage() {
           </Button>
         </form>
       </section>
+
+      <CourseParticipation courseId={id} />
 
       {editing && (
         <LessonEditor key={editing.id} courseId={id} lesson={editing} drip={drip} onClose={() => setEditing(null)} />

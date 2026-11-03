@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -7,11 +8,13 @@ interface StatsCardProps {
   description?: string;
   icon: LucideIcon;
   trend?: { value: number; label: string };
+  /** Makes the whole card a link to the page behind the number. */
+  href?: string;
 }
 
-export function StatsCard({ title, value, description, icon: Icon, trend }: StatsCardProps) {
-  return (
-    <Card>
+export function StatsCard({ title, value, description, icon: Icon, trend, href }: StatsCardProps) {
+  const card = (
+    <Card className={href ? 'h-full transition-colors hover:border-[var(--theme-primary)]' : undefined}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -44,5 +47,11 @@ export function StatsCard({ title, value, description, icon: Icon, trend }: Stat
         </div>
       </CardContent>
     </Card>
+  );
+  if (!href) return card;
+  return (
+    <Link href={href} className="block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+      {card}
+    </Link>
   );
 }

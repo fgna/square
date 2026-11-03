@@ -1,3 +1,5 @@
+import { rememberReturn } from './home';
+
 function generateState(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
@@ -7,6 +9,8 @@ function generateState(): string {
 export function storeOAuthState(): string {
   const state = generateState();
   sessionStorage.setItem('oauth_state', state);
+  // The provider calls back on a fixed URL; the page to return to waits here.
+  rememberReturn();
   return state;
 }
 

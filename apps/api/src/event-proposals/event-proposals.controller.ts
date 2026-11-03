@@ -5,6 +5,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EventProposalsService } from './event-proposals.service';
 import { CreateProposalDto } from './dto/create-proposal.dto';
+import { UpdateProposalDto } from './dto/update-proposal.dto';
 import { VoteProposalDto } from './dto/vote-proposal.dto';
 
 @Controller('event-proposals')
@@ -49,6 +50,13 @@ export class EventProposalsController {
   @Delete(':id/vote')
   removeVote(@Param('id') id: string, @CurrentUser() user: { id: string }) {
     return this.proposals.removeVote(id, user.id);
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  update(@Param('id') id: string, @Body() dto: UpdateProposalDto) {
+    return this.proposals.update(id, dto);
   }
 
   @Patch(':id/close')

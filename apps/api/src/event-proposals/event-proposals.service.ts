@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProposalDto } from './dto/create-proposal.dto';
+import { UpdateProposalDto } from './dto/update-proposal.dto';
+import { proposedDateProblems } from './proposal-dates';
 
 @Injectable()
 export class EventProposalsService {
@@ -95,6 +97,8 @@ export class EventProposalsService {
   }
 
   async create(userId: string, dto: CreateProposalDto) {
+    const problems = proposedDateProblems(dto.proposedDates);
+    if (problems.length) throw new BadRequestException(problems);
     return this.prisma.eventProposal.create({
       data: {
         title: dto.title,
@@ -105,6 +109,40 @@ export class EventProposalsService {
       include: {
         createdBy: { select: { id: true, name: true, avatarUrl: true } },
       },
+    });
+  }
+
+  /**
+   * Admins correct title, description or dates. Votes for dates that are no
+   * longer proposed are dropped; votes for the remaining dates stay.
+   */
+  async update(id: string, dto: UpdateProposalDto) {
+    const proposal = await this.prisma.eventProposal.findUnique({ where: { id }, include: { votes: true } });
+    if (!proposal) throw new NotFoundException('Proposal not found');
+    if (dto.proposedDates) {
+      const problems = proposedDateProblems(dto.proposedDates);
+      if (problems.length) throw new BadRequestException(problems);
+    }
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.proposedDates) {
+        const keep = new Set(dto.proposedDates);
+        for (const vote of proposal.votes) {
+          const before = (vote.dateVotes as string[]) || [];
+          const after = before.filter((d) => keep.has(d));
+          if (after.length !== before.length) {
+            await tx.proposalVote.update({ where: { id: vote.id }, data: { dateVotes: after } });
+          }
+        }
+      }
+      return tx.eventProposal.update({
+        where: { id },
+        data: {
+          ...(dto.title !== undefined && { title: dto.title }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.proposedDates !== undefined && { proposedDates: dto.proposedDates }),
+        },
+        include: { createdBy: { select: { id: true, name: true, avatarUrl: true } } },
+      });
     });
   }
 

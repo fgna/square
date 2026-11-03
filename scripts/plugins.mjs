@@ -195,6 +195,30 @@ export function renderWebRegistry(plugins) {
   );
 }
 
+/**
+ * The instance's start page: "home" in the config names an active plugin with a
+ * web part. Members land there after signing in, and on "/". Without it, the
+ * Core dashboard stays the start page.
+ */
+export function readHome({ config }, plugins) {
+  const settings = existsSync(config) ? readJson(config, 'config') : {};
+  const home = settings.home;
+  if (home === undefined) return null;
+  if (typeof home !== 'string' || !plugins.some((p) => p.id === home && p.hasWeb)) {
+    fail(`${config}: "home" must name an active plugin with a web part`);
+  }
+  return home;
+}
+
+export function renderHome(home) {
+  return (
+    HEADER +
+    '// Kept apart from the registry: the middleware imports it without any plugin code.\n' +
+    `export const HOME_PLUGIN: string | null = ${home ? `'${home}'` : 'null'};\n` +
+    `export const HOME_PATH: string = '${home ? `/p/${home}` : '/dashboard'}';\n`
+  );
+}
+
 export function renderMessages(plugins) {
   const own = plugins.filter((p) => p.messages);
   const out = Object.fromEntries(LOCALES.map((l) => [l, Object.fromEntries(own.map((p) => [p.id, p.messages[l]]))]));
@@ -231,6 +255,7 @@ export function collect({ root, config }) {
 
 export function sync({ root, config }) {
   const plugins = collect({ root, config });
+  const home = readHome({ config }, plugins);
   const installed = plugins.filter((p) => p.source === 'installed');
 
   for (const app of ['api', 'web']) {
@@ -244,6 +269,7 @@ export function sync({ root, config }) {
   writeIfChanged(join(root, 'apps/api/src/plugins/registry.generated.ts'), renderApiRegistry(plugins));
   writeIfChanged(join(root, 'apps/web/src/plugins/registry.generated.ts'), renderWebRegistry(plugins));
   writeIfChanged(join(root, 'apps/web/src/plugins/messages.generated.json'), renderMessages(plugins));
+  writeIfChanged(join(root, 'apps/web/src/plugins/home.generated.ts'), renderHome(home));
   return plugins;
 }
 

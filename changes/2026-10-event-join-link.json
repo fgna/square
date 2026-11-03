@@ -1,0 +1,7 @@
+{
+  "title": "Join online events straight from the event and the calendar entry",
+  "category": "improved",
+  "audience": "members",
+  "description": "Online events show a Join button that opens the meeting room until the event has ended. Calendar invitations, the calendar subscription, downloaded calendar files and Google Calendar entries start their description with the meeting link and carry plain text instead of the editor's HTML.",
+  "pr": 97
+}

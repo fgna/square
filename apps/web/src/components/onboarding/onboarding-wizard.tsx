@@ -26,6 +26,16 @@ import { useWelcomeVideo } from '@/hooks/use-welcome-video';
 
 const TOTAL_STEPS = 4;
 
+/**
+ * Plugin pages (/p/…) own their screen, often full-screen games or tools with
+ * their own first-run flow. The wizard is a modal dialog: opened there, it
+ * would block every click on the plugin, even when the plugin covers it.
+ * Members meet it on the community's own pages instead.
+ */
+export function onboardingAllowedOn(pathname: string | null): boolean {
+  return !pathname || !/^\/p(\/|$)/.test(pathname);
+}
+
 export function OnboardingWizard() {
   const t = useTranslations('onboarding');
   const { data: profile, isLoading: profileLoading } = useMe();
@@ -146,7 +156,9 @@ export function OnboardingWizard() {
                 {t('welcomeText')}
               </DialogDescription>
             </DialogHeader>
-            {welcome?.videoEmbedUrl && <WelcomeVideoPlayer embedUrl={welcome.videoEmbedUrl} />}
+            {(welcome?.videoEmbedUrl || welcome?.videoFileUrl) && (
+              <WelcomeVideoPlayer embedUrl={welcome.videoEmbedUrl} fileUrl={welcome.videoFileUrl} />
+            )}
             <div
               className="rounded-lg p-4 text-sm space-y-2"
               style={{

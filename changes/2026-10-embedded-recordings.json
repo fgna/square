@@ -1,0 +1,7 @@
+{
+  "title": "Recordings play inside the platform",
+  "category": "improved",
+  "audience": "members",
+  "description": "Recordings on YouTube, Vimeo or Loom play in the platform player. Members no longer receive the share link of the video host; admins still see it to manage recordings.",
+  "pr": 16
+}

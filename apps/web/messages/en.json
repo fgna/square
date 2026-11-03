@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"My thoughts","placeholder":"What's on your mind today?"},
+  "journalSimpleUI": {
+    "thoughts": "My thoughts",
+    "placeholder": "What's on your mind today?"
+  },
   "journalMoodUI": {
     "grateful": "Grateful",
     "happy": "Happy",
@@ -29,6 +32,17 @@
     "next": "Next"
   },
   "adminCoursesUI": {
+    "participationShort": "{started} started · {completed} completed",
+    "participation": {
+      "title": "Participation",
+      "summary": "{started} started · {completed} completed · {active} active in the last 30 days",
+      "none": "Nobody has started this course yet.",
+      "member": "Member",
+      "progress": "Progress",
+      "lessons": "Lessons",
+      "started": "Started",
+      "lastActivity": "Last active"
+    },
     "new": "New Course",
     "title": "Title",
     "description": "Description",
@@ -55,6 +69,13 @@
     "coverImage": "Cover image (optional)"
   },
   "adminEventsUI": {
+    "cover": "Cover picture",
+    "coverSearch": "Search photos on Unsplash…",
+    "coverUnsplashNote": "Unsplash photos load from Unsplash; the photographer is credited.",
+    "coverNone": "No photos found.",
+    "coverClose": "Close",
+    "featured": "Highlight",
+    "featuredDesc": "Marked in the list, calendar and dashboard; for a series, all upcoming dates.",
     "new": "New Event",
     "title": "Title",
     "description": "Description",
@@ -63,6 +84,8 @@
     "location": "Location (optional)",
     "virtual": "Virtual event",
     "virtualDesc": "Include a meeting URL",
+    "remind24h": "Reminder 24 hours ahead",
+    "remind24hDesc": "Mail to everyone who is going. Rather off for daily events; the reminder one hour ahead is always sent. Applies to all dates of a series.",
     "meeting": "Meeting URL",
     "max": "Max RSVPs (optional)",
     "unlimited": "Leave blank for unlimited",
@@ -329,6 +352,10 @@
     }
   },
   "events": {
+    "coverCredit": "Photo by <author>{name}</author> on <library>Unsplash</library>",
+    "compressSeries": "Group recurring events",
+    "featured": "Highlighted",
+    "seriesMore": "Recurring – more dates in the calendar",
     "title": "Events",
     "description": "Learn from and inspire each other at our live events.",
     "list": "List",
@@ -338,6 +365,7 @@
     "spotsLeft": "{count} spots left",
     "rsvp": "RSVP",
     "cancelRsvp": "Cancel RSVP",
+    "join": "Join",
     "failed": "Failed to load events.",
     "unknownError": "Unknown error",
     "retry": "Retry",
@@ -359,6 +387,11 @@
       "download": "Download .ics"
     },
     "proposals": {
+      "start": "Start",
+      "endTime": "End",
+      "edit": "Edit",
+      "save": "Save",
+      "errorEnd": "The end must be after the start.",
       "title": "Event Proposals",
       "open": "{count} open",
       "new": "New Proposal",
@@ -484,7 +517,15 @@
       "errorGeneric": "Could not post. Please try again.",
       "shareSuccess": "Share a success"
     },
+    "attachments": {
+      "title": "Attachments (admins only)",
+      "audio": "Attach audio",
+      "remove": "Remove attachment",
+      "failed": "Upload failed. Please try again."
+    },
     "card": {
+      "pin": "Pin to top",
+      "unpin": "Unpin",
       "edit": "Edit",
       "report": "Report",
       "delete": "Delete",
@@ -798,6 +839,11 @@
       "subtitle": "Choose your preferred language."
     },
     "notifications": {
+      "journalTitle": "Journal reminder",
+      "journalDesc": "A short e-mail so you complete your day in the journal.",
+      "journalDefault": "Daily at {time} (default)",
+      "journalOwn": "My own time",
+      "journalOff": "No reminder",
       "digestTitle": "Email Digest",
       "digestSubtitle": "Get a summary of new posts, events, and notifications delivered to your inbox.",
       "daily": "Daily",
@@ -886,6 +932,12 @@
     "eventsCount": "{count} events"
   },
   "dashboard": {
+    "month": {
+      "title": "The next 30 days",
+      "allEvents": "All events",
+      "empty": "Nothing is planned for the next 30 days.",
+      "recurring": "recurring"
+    },
     "welcome": {
       "video": "Welcome video",
       "heading": "Welcome",
@@ -1114,11 +1166,14 @@
     "steps": "Installation",
     "stepDownload": "Download the APK",
     "stepOpen": "Open the file",
-    "stepAllow": "Allow installation",
+    "stepAllow": "Allow installation from this browser or file manager when Android asks. You can turn this permission off again afterwards.",
     "stepInstall": "Install the app",
     "stepSignIn": "Sign in",
     "offline": "Some features need an internet connection.",
-    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser."
+    "unavailable": "No Android APK has been published for this community. You can continue using the website in your browser.",
+    "loading": "Loading app download…",
+    "back": "Back to the community",
+    "stepServer": "If the app asks for a server address, enter {url}."
   },
   "adminCategoriesUI": {
     "title": "Categories",
@@ -1162,6 +1217,10 @@
     "testimonials": "Testimonials"
   },
   "adminSettingsUI": {
+    "journalReminderTitle": "Journal reminder",
+    "journalReminderDescription": "Members get a daily e-mail to complete their journal. Each member can change the time or turn it off.",
+    "journalReminderToggle": "Send reminders",
+    "journalReminderTime": "Default time",
     "title": "Platform Settings",
     "description": "Configure branding and platform-wide options.",
     "branding": "Branding",
@@ -1175,7 +1234,9 @@
     "publicSignup": "Allow public sign-ups",
     "publicSignupDescription": "New members can register without an invitation.",
     "save": "Save changes",
-    "logoHint": "Shown top left instead of the name. A wide logo on a transparent or dark background works best."
+    "logoHint": "Shown top left instead of the name. A wide logo on a transparent or dark background works best.",
+    "appIcon": "App icon",
+    "appIconHint": "Shown on the home screen when members add the site to it, and in the browser tab. Square image, at least 512 × 512 pixels. Without one, the first letter of the name is shown."
   },
   "adminJournalUI": {
     "title": "Journal Prompts",
@@ -1201,6 +1262,17 @@
     "noPrompts": "No prompts yet. Add one above."
   },
   "adminDigestsUI": {
+    "sendTest": "Send test to me",
+    "testSent": "Test digest sent to {to}.",
+    "testFailed": "Could not send the test digest (check e-mail settings).",
+    "schedule": "Sent weekly on {day} at {weekly}, daily at {daily} ({zone}). Members choose daily, weekly or off in their settings.",
+    "weekday0": "Sundays",
+    "weekday1": "Mondays",
+    "weekday2": "Tuesdays",
+    "weekday3": "Wednesdays",
+    "weekday4": "Thursdays",
+    "weekday5": "Fridays",
+    "weekday6": "Saturdays",
     "sectionNewPosts": "New Posts",
     "sectionUpcomingEvents": "Upcoming Events",
     "sectionNewCourses": "New Courses",
@@ -1211,8 +1283,8 @@
     "nameExample": "e.g. Weekly Digest v2",
     "emailSubject": "Email Subject",
     "subjectExample": "e.g. Your weekly community digest",
-    "headerHtml": "Header HTML",
-    "footerHtml": "Footer HTML",
+    "headerHtml": "Introduction (e.g. your weekly note)",
+    "footerHtml": "Closing text",
     "accentColor": "Accent Color",
     "logoOptional": "Logo URL (optional)",
     "sections": "Digest Sections",
@@ -1463,5 +1535,23 @@
     "added": "Recording added",
     "failed": "The recording could not be saved",
     "uploadFailed": "The file could not be uploaded"
+  },
+  "videoUpload": {
+    "button": "Upload video",
+    "progress": "{percent}% uploaded",
+    "cancel": "Cancel upload",
+    "hint": "MP4 or MOV with H.264; 720p is enough. In QuickTime: File → Export As → 720p. The video stays on this platform and plays only here.",
+    "onlyMp4": "Please choose an MP4 or MOV file.",
+    "failed": "Upload failed. Please try again.",
+    "uploaded": "Uploaded video"
+  },
+  "androidAppAdminUI": {
+    "title": "Android app download",
+    "description": "Offer your community's Android app on the website.",
+    "enable": "Show Android app download",
+    "url": "APK download URL (HTTPS)",
+    "hint": "Use a public URL for a signed release APK. Members must be able to download it without repository access. Keep signing keys and APK versioning consistent for updates.",
+    "invalidUrl": "Enter a valid HTTPS download URL without credentials or a fragment before enabling the download.",
+    "saveError": "Settings could not be saved."
   }
 }

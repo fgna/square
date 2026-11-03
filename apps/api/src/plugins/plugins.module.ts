@@ -1,4 +1,4 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { DynamicModule, Global, Module, NotFoundException } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import type { PluginApiContext, PluginContentPack, PluginJournalEntries, PluginTaskAttempts, PluginLearningGroups } from '@community/plugin-sdk/api';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -10,7 +10,6 @@ import { ContentPackService } from './data/content-pack.service';
 import { LearningGroupsModule } from '../learning-groups/learning-groups.module';
 import { LearningGroupsService } from '../learning-groups/learning-groups.service';
 import { instanceCapabilities } from '../config/capabilities';
-import { NotFoundException } from '@nestjs/common';
 
 /** The Core services behind the SDK's data and contentPack, available app-wide. */
 @Global()

@@ -84,6 +84,19 @@ describe('LessonView — download controls', () => {
     expect(screen.queryByRole('link', { name: /Meditation/ })).not.toBeInTheDocument();
   });
 
+  it('plays downloadable audio in the lesson and still offers the file', () => {
+    render(
+      <LessonView
+        lesson={lesson({ attachments: [file({ filename: 'Meditation.mp3', url: 'http://api/m.mp3', mimeType: 'audio/mpeg' })] })}
+      />,
+    );
+
+    const audio = document.querySelector('audio')!;
+    expect(audio).toHaveAttribute('src', 'http://api/m.mp3');
+    expect(audio).not.toHaveAttribute('controlsList');
+    expect(screen.getByRole('link', { name: /Meditation/ })).toHaveAttribute('href', 'http://api/m.mp3');
+  });
+
   it('links to the video host only when the admin allowed video downloads', () => {
     const { rerender } = render(<LessonView lesson={lesson({ videoEmbedUrl: 'https://player.vimeo.com/video/1' })} />);
     expect(screen.queryByRole('link', { name: /Download this video/ })).not.toBeInTheDocument();

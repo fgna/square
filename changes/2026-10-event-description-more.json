@@ -1,0 +1,7 @@
+{
+  "title": "\"Show more\" only when an event description is cut off",
+  "category": "fixed",
+  "audience": "members",
+  "description": "The button under event descriptions appears only when the text really continues; it no longer shows without effect.",
+  "pr": 67
+}

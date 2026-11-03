@@ -1,0 +1,7 @@
+{
+  "title": "Event previews show text, and event cards fit on phones",
+  "category": "fixed",
+  "audience": "members",
+  "description": "Event descriptions written with the editor no longer show HTML tags such as <p> in the self-assessment recommendations, on topic pages and in search. On phones, the link to join or leave all dates of a series moves to its own line instead of pushing the event card wider than the screen.",
+  "pr": 86
+}

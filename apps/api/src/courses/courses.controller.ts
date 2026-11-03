@@ -9,7 +9,7 @@ import {
   UpdateModuleDto,
   CreateLessonDto,
   UpdateLessonDto,
-  MoveDto,
+  MoveDto, MoveLessonToModuleDto,
   AddAttachmentDto,
   UpdateAttachmentDto,
 } from './dto/course-content.dto';
@@ -178,6 +178,13 @@ export class CoursesController {
   @ApiOperation({ summary: 'Move a lesson up or down within its module (Admin only)' })
   moveLesson(@Param('lessonId') lessonId: string, @Body() dto: MoveDto) {
     return this.coursesService.moveLesson(lessonId, dto.direction);
+  }
+
+  @Post('lessons/:lessonId/module')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Move a lesson to another module of the same course (Admin only)' })
+  moveLessonToModule(@Param('lessonId') lessonId: string, @Body() dto: MoveLessonToModuleDto) {
+    return this.coursesService.moveLessonToModule(lessonId, dto.moduleId);
   }
 
   @Post('lessons/:lessonId/attachments')

@@ -1,0 +1,7 @@
+{
+  "title": "Admin pages and tables fit on phones",
+  "category": "fixed",
+  "audience": "admins",
+  "description": "Admin tables (courses, members, audit log, invites) scroll sideways on a phone instead of cutting off their right-hand columns, and a wide table no longer makes the whole page wider than the screen. In the course list, the course title opens the course editor.",
+  "pr": 100
+}

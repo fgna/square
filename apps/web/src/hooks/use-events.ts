@@ -2,12 +2,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import type { PaginatedEvents, CommunityEvent } from '@community/shared';
 
-export function useEvents(page = 1, limit = 20) {
+/** Which events a list asks for; the API defaults to events that have not ended. */
+export interface EventListFilter {
+  when?: 'upcoming' | 'past' | 'all';
+  /** ISO dates: a period, e.g. the weeks shown in the calendar. */
+  from?: string;
+  to?: string;
+  /** Only events the member said yes to. */
+  mine?: boolean;
+}
+
+export function useEvents(page = 1, limit = 20, filter: EventListFilter = {}) {
   return useQuery({
-    queryKey: ['events', page, limit],
+    queryKey: ['events', page, limit, filter],
     queryFn: async () => {
       const { data } = await apiClient.get<PaginatedEvents>('/events', {
-        params: { page, limit },
+        params: { page, limit, ...filter },
       });
       return data;
     },

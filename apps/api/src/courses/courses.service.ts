@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { CreateLessonDto, UpdateLessonDto } from './dto/course-content.dto';
@@ -7,6 +7,7 @@ import { toVideoEmbed, videoDownloadPage } from './video-url';
 import { signUploadPath } from '../uploads/attachment-links';
 import { absoluteUploadUrl } from '../uploads/public-url';
 import { lessonAvailableAt } from './lesson-release';
+import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
 
 const lessonInclude = {
   attachments: { orderBy: { order: 'asc' as const } },
@@ -22,10 +23,14 @@ export function isViewableInBrowser(mimeType: string): boolean {
   return mimeType === 'application/pdf' || mimeType.startsWith('audio/');
 }
 
-/** Normalises a video link, or rejects hosts that cannot be embedded. */
+/** Normalises a video link, or rejects hosts that cannot be embedded. Videos uploaded to the platform must exist. */
 function checkedVideoUrl(videoUrl: string | null | undefined): string | null | undefined {
   if (videoUrl === undefined) return undefined;
   if (videoUrl === null || videoUrl.trim() === '') return null;
+  if (isHostedVideo(videoUrl.trim())) {
+    if (!hostedVideoExists(videoUrl.trim())) throw new BadRequestException('Uploaded video not found');
+    return videoUrl.trim();
+  }
   if (!toVideoEmbed(videoUrl)) {
     throw new BadRequestException('Video link must be a YouTube, Vimeo or Loom link');
   }
@@ -34,6 +39,8 @@ function checkedVideoUrl(videoUrl: string | null | undefined): string | null | u
 
 @Injectable()
 export class CoursesService {
+  private readonly logger = new Logger(CoursesService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async findAll(page = 1, limit = 20, userId?: string, userRole?: string) {
@@ -90,7 +97,8 @@ export class CoursesService {
     // Admins edit the course and see everything as stored; courses without
     // drip have nothing to hold back.
     if (userRole === 'ADMIN' || !userId || course.releaseMode !== 'DRIP') {
-      return { ...course, modules: course.modules.map((m) => ({ ...m, lessons: m.lessons.map((l) => this.present(l)) })) };
+      const forAdmin = userRole === 'ADMIN';
+      return { ...course, modules: course.modules.map((m) => ({ ...m, lessons: m.lessons.map((l) => this.present(l, null, forAdmin)) })) };
     }
 
     const startedAt = await this.startedAt(course.id, userId);
@@ -120,10 +128,14 @@ export class CoursesService {
    * Adds the embeddable video link and absolute attachment links. A lesson
    * that has not opened yet is sent without its content, video or files —
    * hiding them in the browser alone would leave them one request away.
+   * Members get only the player link, not the video's own page: an unlisted
+   * share link copied from a response would play anywhere. Admins keep it to
+   * edit the lesson.
    */
   private present<L extends { content: string; videoUrl?: string | null; attachments?: { url: string }[] }>(
     lesson: L,
     availableAt: Date | null = null,
+    forAdmin = false,
   ) {
     if (availableAt) {
       return {
@@ -131,6 +143,7 @@ export class CoursesService {
         content: '',
         videoUrl: null,
         videoEmbedUrl: null,
+        videoFileUrl: null,
         videoDownloadUrl: null,
         attachments: [],
         locked: true,
@@ -139,7 +152,10 @@ export class CoursesService {
     }
     return {
       ...lesson,
+      videoUrl: forAdmin ? lesson.videoUrl ?? null : null,
       videoEmbedUrl: lesson.videoUrl ? toVideoEmbed(lesson.videoUrl)?.embedUrl ?? null : null,
+      // A video uploaded to the platform plays from a signed, expiring link.
+      videoFileUrl: isHostedVideo(lesson.videoUrl) ? absoluteUploadUrl(signUploadPath(lesson.videoUrl)) : null,
       // Only when the admin allows it, and only for hosts that offer downloads.
       videoDownloadUrl:
         lesson.videoUrl && (lesson as { videoDownloadable?: boolean }).videoDownloadable
@@ -191,7 +207,9 @@ export class CoursesService {
   async delete(id: string) {
     const course = await this.prisma.course.findUnique({ where: { id } });
     if (!course) throw new NotFoundException('Course not found');
+    const videos = await this.prisma.lesson.findMany({ where: { module: { courseId: id } }, select: { videoUrl: true } });
     await this.prisma.course.delete({ where: { id } });
+    await deleteUnusedHostedVideos(this.prisma, videos.map((l) => l.videoUrl), this.logger);
     return { message: 'Course deleted' };
   }
 
@@ -288,7 +306,7 @@ export class CoursesService {
       throw new NotFoundException('Lesson not found');
     }
     const course = lesson.module.course;
-    if (userRole === 'ADMIN' || !userId || course.releaseMode !== 'DRIP') return this.present(lesson);
+    if (userRole === 'ADMIN' || !userId || course.releaseMode !== 'DRIP') return this.present(lesson, null, userRole === 'ADMIN');
 
     return this.present(
       lesson,
@@ -317,7 +335,9 @@ export class CoursesService {
 
   async deleteModule(moduleId: string) {
     await this.findModule(moduleId);
+    const videos = await this.prisma.lesson.findMany({ where: { moduleId }, select: { videoUrl: true } });
     await this.prisma.module.delete({ where: { id: moduleId } });
+    await deleteUnusedHostedVideos(this.prisma, videos.map((l) => l.videoUrl), this.logger);
     return { message: 'Module deleted' };
   }
 
@@ -349,11 +369,11 @@ export class CoursesService {
       },
       include: lessonInclude,
     });
-    return this.present(lesson);
+    return this.present(lesson, null, true);
   }
 
   async updateLesson(lessonId: string, dto: UpdateLessonDto) {
-    await this.findLesson(lessonId);
+    const before = await this.findLesson(lessonId);
     const lesson = await this.prisma.lesson.update({
       where: { id: lessonId },
       data: {
@@ -365,7 +385,9 @@ export class CoursesService {
       },
       include: lessonInclude,
     });
-    return this.present(lesson);
+    // A replaced or removed video uploaded to the platform is deleted from disk.
+    if (before.videoUrl !== lesson.videoUrl) await deleteUnusedHostedVideos(this.prisma, [before.videoUrl], this.logger);
+    return this.present(lesson, null, true);
   }
 
   /** Viewable types (PDF, audio) may be view-only; Office files cannot be shown in a browser. */
@@ -382,8 +404,9 @@ export class CoursesService {
   }
 
   async deleteLesson(lessonId: string) {
-    await this.findLesson(lessonId);
+    const lesson = await this.findLesson(lessonId);
     await this.prisma.lesson.delete({ where: { id: lessonId } });
+    await deleteUnusedHostedVideos(this.prisma, [lesson.videoUrl], this.logger);
     return { message: 'Lesson deleted' };
   }
 
@@ -399,6 +422,28 @@ export class CoursesService {
       this.prisma.lesson.update({ where: { id: neighbour.id }, data: { order: lesson.order } }),
     ]);
     return { ...lesson, order: neighbour.order };
+  }
+
+  /**
+   * Moves a lesson into another module of the same course, at its end. Notes,
+   * attachments and members' progress stay with the lesson (they refer to it,
+   * not to the module).
+   */
+  async moveLessonToModule(lessonId: string, moduleId: string) {
+    const lesson = await this.prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: true } });
+    if (!lesson) throw new NotFoundException('Lesson not found');
+    const target = await this.findModule(moduleId);
+    if (target.courseId !== lesson.module.courseId) {
+      throw new BadRequestException('Lessons can only move between modules of the same course');
+    }
+    if (target.id === lesson.moduleId) return this.present(lesson);
+    const last = await this.prisma.lesson.findFirst({ where: { moduleId }, orderBy: { order: 'desc' } });
+    const moved = await this.prisma.lesson.update({
+      where: { id: lessonId },
+      data: { moduleId, order: (last?.order ?? 0) + 1 },
+      include: lessonInclude,
+    });
+    return this.present(moved);
   }
 
   /** Attaches a file already stored through POST /uploads/file. */

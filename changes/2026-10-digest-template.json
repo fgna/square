@@ -1,0 +1,7 @@
+{
+  "title": "Digests in the admin's design, at a chosen time",
+  "category": "improved",
+  "audience": "admins",
+  "description": "The digest e-mail now uses the active template (logo, colour, subject, introduction, sections, closing text). Operators set daily and weekly send times; admins can send themselves a test.",
+  "pr": 57
+}

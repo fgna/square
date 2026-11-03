@@ -28,6 +28,17 @@ export function useCreateProposal() {
   });
 }
 
+/** Admins correct a proposal; votes for removed dates are dropped by the API. */
+export function useUpdateProposal() {
+  const qc = useQueryClient();
+  return useMutation({
+    meta: { silent: true },
+    mutationFn: ({ id, ...data }: { id: string; title: string; description?: string; proposedDates: string[] }) =>
+      apiClient.patch(`/event-proposals/${id}`, data).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['event-proposals'] }),
+  });
+}
+
 export function useVoteProposal() {
   const qc = useQueryClient();
   return useMutation({

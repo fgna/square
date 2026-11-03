@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { Test } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { CoursesService } from './courses.service';
@@ -59,6 +62,8 @@ describe('CoursesService — course content', () => {
 
       expect(open).toMatchObject({ locked: false, content: '<p>day0 text</p>' });
       expect(open.videoEmbedUrl).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+      // Members get the player, not the share link they could pass on.
+      expect(open.videoUrl).toBeNull();
 
       expect(locked).toMatchObject({ locked: true, content: '', videoUrl: null, videoEmbedUrl: null, attachments: [] });
       expect(locked.availableAt).toBeInstanceOf(Date);
@@ -67,6 +72,7 @@ describe('CoursesService — course content', () => {
     it('shows admins every lesson as stored', async () => {
       const course = await service.findOne('c1', 'admin-1', 'ADMIN');
       expect(course.modules[0].lessons.every((l) => !l.locked)).toBe(true);
+      expect(course.modules[0].lessons[0].videoUrl).toBe('https://youtu.be/dQw4w9WgXcQ');
       expect(prisma.progress.upsert).not.toHaveBeenCalled();
     });
 
@@ -144,6 +150,27 @@ describe('CoursesService — course content', () => {
     });
   });
 
+  describe('moving a lesson to another module', () => {
+    beforeEach(() => {
+      prisma.lesson.findUnique.mockResolvedValue({ id: 'l1', moduleId: 'm1', order: 2, content: '', module: { id: 'm1', courseId: 'c1' } });
+      prisma.lesson.findFirst.mockResolvedValue({ order: 5 });
+      prisma.lesson.update.mockImplementation(async ({ data }: any) => ({ id: 'l1', content: '', attachments: [], ...data }));
+    });
+
+    it('appends the lesson to a module of the same course', async () => {
+      prisma.module.findUnique.mockResolvedValue({ id: 'm2', courseId: 'c1' });
+      const moved = await service.moveLessonToModule('l1', 'm2');
+      expect(prisma.lesson.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'l1' }, data: { moduleId: 'm2', order: 6 } }));
+      expect(moved).toMatchObject({ moduleId: 'm2', order: 6 });
+    });
+
+    it('refuses a module of another course', async () => {
+      prisma.module.findUnique.mockResolvedValue({ id: 'x', courseId: 'other' });
+      await expect(service.moveLessonToModule('l1', 'x')).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.lesson.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('creating lessons', () => {
     beforeEach(() => {
       prisma.module.findUnique.mockResolvedValue({ id: 'm1', courseId: 'c1', order: 1 });
@@ -161,6 +188,25 @@ describe('CoursesService — course content', () => {
       expect(created.order).toBe(4);
       expect(created.content).toBe('<p>Hello</p>');
       expect(created.videoEmbedUrl).toBe('https://player.vimeo.com/video/76979871');
+    });
+
+    it('accepts a video uploaded to the platform only when its file exists, and plays it from a signed link', async () => {
+      const missing = '/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4';
+      await expect(service.createLesson('m1', { title: 'Intro', videoUrl: missing })).rejects.toBeInstanceOf(BadRequestException);
+
+      const root = mkdtempSync(join(tmpdir(), 'lesson-video-'));
+      vi.spyOn(process, 'cwd').mockReturnValue(root);
+      try {
+        mkdirSync(join(root, 'uploads', 'videos'), { recursive: true });
+        writeFileSync(join(root, 'uploads', 'videos', '0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4'), 'x');
+        const created = await service.createLesson('m1', { title: 'Intro', videoUrl: missing });
+        expect(created.videoEmbedUrl).toBeNull();
+        expect(created.videoFileUrl).toMatch(/\/uploads\/videos\/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e\.mp4\?exp=\d+&sig=[0-9a-f]+$/);
+        expect(created.videoDownloadUrl).toBeNull();
+      } finally {
+        vi.restoreAllMocks();
+        rmSync(root, { recursive: true, force: true });
+      }
     });
 
     it('refuses a video link that cannot be embedded', async () => {

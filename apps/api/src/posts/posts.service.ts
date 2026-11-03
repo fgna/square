@@ -4,6 +4,11 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { sanitizeRichText as sanitizeContent } from '../common/sanitize-rich-text';
+import { signUploadPath } from '../uploads/attachment-links';
+import { absoluteUploadUrl } from '../uploads/public-url';
+import { removeUploadedFiles } from '../uploads/remove-uploaded-files';
+import { deleteUnusedHostedVideos, hostedVideoExists, hostedVideoFile, isHostedVideo } from '../videos/hosted-video';
+import { statSync } from 'fs';
 
 const pollSelect = {
   id: true,
@@ -37,10 +42,23 @@ const postSelect = {
     select: { category: { select: { id: true, name: true, slug: true, icon: true, color: true } } },
   },
   poll: { select: pollSelect },
+  attachments: {
+    select: { id: true, filename: true, url: true, mimeType: true, size: true, order: true },
+    orderBy: { order: 'asc' as const },
+  },
   _count: {
     select: { comments: true, reactions: true },
   },
 };
+
+/**
+ * Attachment files (audio, uploaded videos) are only reachable through a
+ * signed link that expires, like course documents.
+ */
+function withAttachmentLinks<P extends { attachments?: { url: string }[] }>(post: P): P {
+  if (!post.attachments) return post;
+  return { ...post, attachments: post.attachments.map((a) => ({ ...a, url: absoluteUploadUrl(signUploadPath(a.url)) })) };
+}
 
 @Injectable()
 export class PostsService {
@@ -122,7 +140,7 @@ export class PostsService {
 
         const total = counts.reduce((sum, c) => sum + c, 0);
         return {
-          data,
+          data: data.map(withAttachmentLinks),
           total,
           page,
           limit,
@@ -143,7 +161,7 @@ export class PostsService {
     ]);
 
     return {
-      data,
+      data: data.map(withAttachmentLinks),
       total,
       page,
       limit,
@@ -178,7 +196,7 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
 
-    return post;
+    return withAttachmentLinks(post);
   }
 
   async create(dto: CreatePostDto, authorId: string, authorRole?: string) {
@@ -219,7 +237,7 @@ export class PostsService {
       });
     }
 
-    return post;
+    return withAttachmentLinks(post);
   }
 
   async update(id: string, content: string, userId: string, userRole: string) {
@@ -233,11 +251,55 @@ export class PostsService {
     }
 
     const sanitized = sanitizeContent(content);
-    return this.prisma.post.update({
-      where: { id },
-      data: { content: sanitized },
-      select: postSelect,
+    return withAttachmentLinks(
+      await this.prisma.post.update({
+        where: { id },
+        data: { content: sanitized },
+        select: postSelect,
+      }),
+    );
+  }
+
+  /**
+   * Admins attach audio (an upload from POST /uploads/file) or a video
+   * uploaded to the platform (POST /videos/uploads) to a post.
+   */
+  async addAttachment(postId: string, input: { uploadId?: string; videoUrl?: string }) {
+    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('Post not found');
+    let file: { filename: string; url: string; mimeType: string; size: number };
+    if (input.videoUrl) {
+      if (!isHostedVideo(input.videoUrl) || !hostedVideoExists(input.videoUrl)) {
+        throw new BadRequestException('Uploaded video not found');
+      }
+      file = { filename: 'video.mp4', url: input.videoUrl, mimeType: 'video/mp4', size: statSync(hostedVideoFile(input.videoUrl)!).size };
+    } else if (input.uploadId) {
+      const upload = await this.prisma.upload.findUnique({ where: { id: input.uploadId } });
+      if (!upload) throw new NotFoundException('Upload not found');
+      if (!upload.mimeType.startsWith('audio/')) throw new BadRequestException('Only audio and videos can be attached to posts');
+      file = { filename: upload.filename, url: upload.url, mimeType: upload.mimeType, size: upload.size };
+    } else {
+      throw new BadRequestException('uploadId or videoUrl required');
+    }
+    const last = await this.prisma.postAttachment.findFirst({ where: { postId }, orderBy: { order: 'desc' } });
+    const attachment = await this.prisma.postAttachment.create({
+      data: { postId, ...file, order: (last?.order ?? 0) + 1 },
     });
+    return { ...attachment, url: absoluteUploadUrl(signUploadPath(attachment.url)) };
+  }
+
+  async deleteAttachment(attachmentId: string) {
+    const attachment = await this.prisma.postAttachment.findUnique({ where: { id: attachmentId } });
+    if (!attachment) throw new NotFoundException('Attachment not found');
+    await this.prisma.postAttachment.delete({ where: { id: attachmentId } });
+    await this.removeAttachmentFiles([attachment.url]);
+    return { message: 'Attachment removed' };
+  }
+
+  /** Audio files are deleted; a video only once nothing else uses it. */
+  private async removeAttachmentFiles(urls: string[]) {
+    await removeUploadedFiles(urls.filter((u) => !isHostedVideo(u)), this.logger);
+    await deleteUnusedHostedVideos(this.prisma, urls, this.logger);
   }
 
   /**
@@ -267,7 +329,9 @@ export class PostsService {
       throw new ForbiddenException('Post is not available');
     }
 
+    const files = await this.prisma.postAttachment.findMany({ where: { postId: id }, select: { url: true } });
     await this.prisma.post.delete({ where: { id } });
+    if (files.length) await this.removeAttachmentFiles(files.map((f) => f.url));
     return { message: 'Post deleted' };
   }
 

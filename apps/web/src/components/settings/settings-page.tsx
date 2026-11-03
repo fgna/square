@@ -792,6 +792,8 @@ export function SettingsPage() {
             </CardContent>
           </Card>
 
+          <JournalReminderCard />
+
           {/* An "In-App Notifications" card sat here with switches for push
               notifications and marketing emails. Neither was stored or acted
               on — they reset on reload — so it was removed rather than left
@@ -858,5 +860,51 @@ export function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+/** Shown only when the instance sends journal reminders: default time, own time, or off. */
+function JournalReminderCard() {
+  const t = useTranslations('settings');
+  const queryClient = useQueryClient();
+  const { data } = useQuery<{ enabled: boolean; defaultTime: string; choice: string }>({
+    queryKey: ['me', 'journal-reminder'],
+    queryFn: () => apiClient.get('/users/me/journal-reminder').then((r) => r.data),
+  });
+  const update = useMutation({
+    mutationFn: (choice: string) => apiClient.patch('/users/me/journal-reminder', { choice }).then((r) => r.data),
+    onSuccess: (next) => queryClient.setQueryData(['me', 'journal-reminder'], next),
+  });
+  if (!data?.enabled) return null;
+  const mode = data.choice === 'default' || data.choice === 'off' ? data.choice : 'own';
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{t('notifications.journalTitle')}</CardTitle>
+        <CardDescription>{t('notifications.journalDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <select
+          aria-label={t('notifications.journalTitle')}
+          className="w-full rounded-md px-3 py-2 text-sm"
+          style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)', color: 'var(--theme-text)' }}
+          value={mode}
+          onChange={(e) => update.mutate(e.target.value === 'own' ? data.defaultTime : e.target.value)}
+        >
+          <option value="default">{t('notifications.journalDefault', { time: data.defaultTime })}</option>
+          <option value="own">{t('notifications.journalOwn')}</option>
+          <option value="off">{t('notifications.journalOff')}</option>
+        </select>
+        {mode === 'own' && (
+          <Input
+            type="time"
+            className="w-32"
+            aria-label={t('notifications.journalOwn')}
+            defaultValue={data.choice}
+            onBlur={(e) => e.target.value && e.target.value !== data.choice && update.mutate(e.target.value)}
+          />
+        )}
+      </CardContent>
+    </Card>
   );
 }

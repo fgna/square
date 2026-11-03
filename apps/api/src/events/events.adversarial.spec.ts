@@ -39,6 +39,7 @@ function buildMockPrisma() {
       update: vi.fn(),
       delete: vi.fn(),
       count: vi.fn(),
+      groupBy: vi.fn().mockResolvedValue([]),
     },
     eventRsvp: {
       findUnique: vi.fn(),

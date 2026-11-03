@@ -51,7 +51,7 @@ describe('protectLessonAttachments', () => {
   });
 
   it('blocks documents and audio without a signature even when no attachment points to them any more', async () => {
-    for (const file of ['/uploads/uploads/x/slides.pptx', '/uploads/uploads/x/handout.PDF', '/uploads/uploads/x/talk.mp3']) {
+    for (const file of ['/uploads/uploads/x/slides.pptx', '/uploads/uploads/x/handout.PDF', '/uploads/uploads/x/talk.mp3', '/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4']) {
       const { next, res } = await run(false, {}, file);
       expect(next).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(403);

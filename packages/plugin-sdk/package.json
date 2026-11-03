@@ -17,6 +17,10 @@
     "./tasks": {
       "types": "./src/tasks.d.ts",
       "default": "./src/tasks.mjs"
+    },
+    "./adaptive": {
+      "types": "./src/adaptive.d.ts",
+      "default": "./src/adaptive.mjs"
     }
   }
 }

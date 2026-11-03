@@ -1,0 +1,6 @@
+{
+  "title": "Optional gamification wallet and equipment",
+  "category": "new",
+  "description": "Square can persist member rewards, wallet balances, purchases, inventory, and selected cosmetic equipment using an optional gamification capability and scoped server-side reward issuers. Enabling it requires database migrations and controlled issuer configuration; production use remains subject to security and migration acceptance.",
+  "pr": 108
+}

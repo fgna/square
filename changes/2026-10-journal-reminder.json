@@ -1,0 +1,7 @@
+{
+  "title": "Optional daily journal reminder",
+  "category": "new",
+  "audience": "members",
+  "description": "When an admin turns it on, members get a daily e-mail to complete their journal and choose their own time or turn it off.",
+  "pr": 63
+}

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateIcs } from './ics.util';
+import { eventCalendarDescription, generateIcs } from './ics.util';
+import { htmlToText } from './html-to-text';
 
 const event = {
   uid: 'ev1@community',
@@ -44,5 +45,17 @@ describe('generateIcs', () => {
     await new Promise((r) => setTimeout(r, 1100));
     const cancel = generateIcs(event, { method: 'CANCEL' });
     expect(seq(cancel)).toBeGreaterThan(seq(invite));
+  });
+});
+
+describe('eventCalendarDescription', () => {
+  it('puts the online room first, so the calendar entry leads into it', () => {
+    const text = htmlToText(eventCalendarDescription({ description: '<p>Live Journaling</p>', isVirtual: true, meetingUrl: 'https://zoom.us/j/1?pwd=a&b=c' }));
+    expect(text).toBe('Online: https://zoom.us/j/1?pwd=a&b=c\nLive Journaling');
+  });
+
+  it('leaves events without an online room unchanged', () => {
+    expect(eventCalendarDescription({ description: '<p>Vor Ort</p>', isVirtual: false, meetingUrl: 'https://x.de' })).toBe('<p>Vor Ort</p>');
+    expect(eventCalendarDescription({ description: null, isVirtual: true, meetingUrl: null })).toBe('');
   });
 });

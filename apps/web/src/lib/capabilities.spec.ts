@@ -8,7 +8,14 @@ describe('capability routing', () => {
     expect(isPathEnabled('/dashboard', identityOnly)).toBe(true);
     expect(isPathEnabled('/admin/users', identityOnly)).toBe(true);
     for (const path of ['/feed', '/messages', '/events', '/courses', '/assessment', '/p/journal',
-      '/admin/courses', '/admin/assessment']) expect(isPathEnabled(path, identityOnly)).toBe(false);
+      '/admin/courses', '/admin/assessment', '/testimonials', '/admin/testimonials', '/recordings']) expect(isPathEnabled(path, identityOnly)).toBe(false);
+  });
+  it('permits independently enabled testimonials and recordings', () => {
+    const enabled = parseCapabilities('testimonials,recordings');
+    expect(isPathEnabled('/testimonials', enabled)).toBe(true);
+    expect(isPathEnabled('/admin/testimonials', enabled)).toBe(true);
+    expect(isPathEnabled('/recordings', enabled)).toBe(true);
+    expect(isPathEnabled('/events', enabled)).toBe(false);
   });
   it('rejects invalid flags and supports selected capabilities', () => {
     expect(() => parseCapabilities('feed,unknown')).toThrow(/unknown/);

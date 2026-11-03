@@ -19,7 +19,8 @@
     "docker:logs": "docker compose logs -f",
     "test:i18n": "node scripts/audit-web-translations.mjs --strict",
     "plugins:sync": "node scripts/plugins.mjs",
-    "test:plugins": "node --test scripts/plugins.test.mjs"
+    "test:plugins": "node --test scripts/plugins.test.mjs",
+    "test:sdk": "node --test packages/plugin-sdk/src/tasks.test.mjs packages/plugin-sdk/src/adaptive.test.mjs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.19.0",

@@ -1,0 +1,7 @@
+{
+  "title": "Upcoming events in the list, calendar and dashboard",
+  "category": "fixed",
+  "audience": "members",
+  "description": "The events list, dashboard and feed strip show events that have not ended, soonest first, including the ones a member said yes to; the calendar shows every event of the month on display. Recurring series no longer push upcoming events off the first page.",
+  "pr": 46
+}

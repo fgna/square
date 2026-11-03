@@ -1,0 +1,7 @@
+{
+  "title": "Expired event reminders disappear from the notification bell",
+  "category": "fixed",
+  "audience": "members",
+  "description": "Event reminders expire at the event start, including the unread badge. Delayed and concurrent scheduler runs avoid stale or duplicate delivery.",
+  "pr": 122
+}

@@ -1,0 +1,7 @@
+{
+  "title": "Android app for Square communities",
+  "category": "new",
+  "audience": "Android members and community operators",
+  "description": "An experimental HTTPS Android app can open a community and retain its web session. Connection and certificate failures now show a useful error instead of a blank screen. Distribution and release acceptance remain separate.",
+  "pr": 60
+}

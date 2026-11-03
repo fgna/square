@@ -6,6 +6,7 @@ import { Download, ExternalLink, FileText, Lock, Music } from 'lucide-react';
 import { renderPostContent } from '@/lib/render-post-content';
 import { useFormatters } from '@/lib/use-formatters';
 import { ClickToLoadVideo } from '@/components/common/click-to-load-video';
+import { HostedVideo } from '@/components/common/hosted-video';
 import type { Lesson, LessonAttachment } from '@community/shared';
 
 /** PDF and audio can be shown in the lesson; Office files only open once downloaded. */
@@ -90,9 +91,12 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
   const all = lesson.attachments ?? [];
   const files = all.filter((f) => f.downloadable !== false);
   const viewOnly = all.filter((f) => f.downloadable === false && isViewableInBrowser(f.mimeType));
+  // Audio (a guided meditation) plays in the lesson; downloading stays possible.
+  const players = files.filter((f) => f.mimeType.startsWith('audio/'));
 
   return (
     <div className="space-y-5">
+      {lesson.videoFileUrl && <HostedVideo src={lesson.videoFileUrl} title={lesson.title} />}
       {lesson.videoEmbedUrl && (
         <ClickToLoadVideo embedUrl={lesson.videoEmbedUrl} title={lesson.title} />
       )}
@@ -121,6 +125,19 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
         <div className="space-y-4">
           {viewOnly.map((file) => (
             <ViewOnlyFile key={file.id} file={file} />
+          ))}
+        </div>
+      )}
+
+      {players.length > 0 && (
+        <div className="space-y-4">
+          {players.map((file) => (
+            <figure key={file.id} className="space-y-1.5">
+              <figcaption className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text)' }}>
+                <Music size={16} style={{ color: 'var(--theme-primary)' }} /> {file.filename}
+              </figcaption>
+              <audio controls preload="none" src={file.url} className="w-full" />
+            </figure>
           ))}
         </div>
       )}

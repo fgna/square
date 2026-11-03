@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { CapabilityGuard } from './config/capabilities.guard';
 import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
+import { onlyWhereDeclared } from './common/throttle-scope';
 import { normalizeRequestId } from './common/request-id';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -21,21 +22,23 @@ import { MessagesModule } from './messages/messages.module';
 import { SearchModule } from './search/search.module';
 import { InvitesModule } from './invites/invites.module';
 import { EmailModule } from './email/email.module';
-import { DigestService } from './email/digest.service';
 import { CategoriesModule } from './categories/categories.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
 import { GoalsModule } from './goals/goals.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { EventProposalsModule } from './event-proposals/event-proposals.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { VideosModule } from './videos/videos.module';
 import { LearningGroupsModule } from './learning-groups/learning-groups.module';
 import { TierModule } from './tier/tier.module';
 import { DigestTemplateModule } from './digest/digest-template.module';
+import { JournalReminderModule } from './journal-reminder/journal-reminder.module';
 import { BillingModule } from './billing/billing.module';
 import { AiCoachModule } from './ai-coach/ai-coach.module';
 import { RedisModule } from './redis/redis.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { PluginsModule } from './plugins/plugins.module';
+import { GamificationModule } from './gamification/gamification.module';
 
 @Module({
   imports: [
@@ -72,6 +75,8 @@ import { PluginsModule } from './plugins/plugins.module';
         name: 'auth',
         ttl: 900_000,  // 15 minutes
         limit: 60,
+        // Only on the routes that ask for it (sign-in, registration, password).
+        skipIf: onlyWhereDeclared('auth'),
       },
     ]),
     RedisModule,
@@ -96,15 +101,17 @@ import { PluginsModule } from './plugins/plugins.module';
     AssessmentsModule,
     EventProposalsModule,
     UploadsModule,
+    VideosModule,
     LearningGroupsModule,
     TierModule,
     DigestTemplateModule,
+    JournalReminderModule,
     BillingModule,
     AiCoachModule,
     PluginsModule.register(),
+    GamificationModule,
   ],
   providers: [
-    DigestService,
     // UserThrottlerGuard uses authenticated userId as throttle key (falls back to IP),
     // which is more accurate than IP-based limiting behind a reverse proxy.
     { provide: APP_GUARD, useClass: UserThrottlerGuard },

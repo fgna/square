@@ -4,6 +4,9 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpsertChallengeDto } from './dto/upsert-challenge.dto';
 import * as argon2 from 'argon2';
 import { toVideoEmbed } from '../courses/video-url';
+import { isHostedVideo } from '../videos/hosted-video';
+import { signUploadPath } from '../uploads/attachment-links';
+import { absoluteUploadUrl } from '../uploads/public-url';
 
 @Injectable()
 export class UsersService {
@@ -212,6 +215,28 @@ export class UsersService {
     });
   }
 
+  /** Whether this instance sends journal reminders, its default time and the member's choice. */
+  async getJournalReminder(userId: string) {
+    const [settings, user] = await Promise.all([
+      this.prisma.platformSettings.findUnique({ where: { id: 'default' }, select: { journalReminders: true, journalReminderTime: true } }),
+      this.prisma.user.findUnique({ where: { id: userId }, select: { journalReminder: true } }),
+    ]);
+    return {
+      enabled: settings?.journalReminders ?? false,
+      defaultTime: settings?.journalReminderTime ?? '16:30',
+      choice: user?.journalReminder ?? 'default',
+    };
+  }
+
+  /** "default" (the instance's time), "off", or the member's own "HH:MM". */
+  async updateJournalReminder(userId: string, choice: string) {
+    if (choice !== 'default' && choice !== 'off' && !/^([01]\d|2[0-3]):[0-5]\d$/.test(choice)) {
+      throw new BadRequestException('Choose "default", "off" or a time HH:MM');
+    }
+    await this.prisma.user.update({ where: { id: userId }, data: { journalReminder: choice === 'default' ? null : choice } });
+    return this.getJournalReminder(userId);
+  }
+
   async updateDigestPreference(userId: string, frequency: string) {
     return this.prisma.user.update({
       where: { id: userId },
@@ -230,9 +255,11 @@ export class UsersService {
       this.prisma.user.findUnique({ where: { id: userId }, select: { welcomeVideoDismissedAt: true } }),
     ]);
     const videoUrl = settings?.welcomeVideoUrl ?? null;
+    // Only the player link: the share link would play outside the platform.
     return {
-      videoUrl,
       videoEmbedUrl: videoUrl ? toVideoEmbed(videoUrl)?.embedUrl ?? null : null,
+      // An uploaded welcome video plays from a signed, expiring link.
+      videoFileUrl: isHostedVideo(videoUrl) ? absoluteUploadUrl(signUploadPath(videoUrl)) : null,
       dismissed: !!user?.welcomeVideoDismissedAt,
     };
   }

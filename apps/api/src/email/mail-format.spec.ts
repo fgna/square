@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mailDate, mailDay, mailTime, countLabel } from './mail-format';
+import { mailDate, mailDay, mailTime, countLabel, firstName } from './mail-format';
 
 describe('mail-format', () => {
   // 17:30 UTC on a summer day is 19:30 in Germany.
@@ -17,5 +17,14 @@ describe('mail-format', () => {
   it('picks singular or plural', () => {
     expect(countLabel(1, 'Kommentar', 'Kommentare')).toBe('1 Kommentar');
     expect(countLabel(3, 'Kommentar', 'Kommentare')).toBe('3 Kommentare');
+  });
+});
+
+describe('firstName', () => {
+  it('greets members by their first name', () => {
+    expect(firstName('Anna Beispiel')).toBe('Anna');
+    expect(firstName('  Jan  ')).toBe('Jan');
+    expect(firstName('Dr. Eva Muster')).toBe('Eva');
+    expect(firstName('')).toBe('');
   });
 });

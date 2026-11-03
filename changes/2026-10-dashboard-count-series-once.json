@@ -1,0 +1,7 @@
+{
+  "title": "Dashboard counts a recurring event once",
+  "category": "fixed",
+  "audience": "members",
+  "description": "The upcoming-events tile counted every date of a series, so a daily event showed as about 250 events. The event list now also returns distinctTotal, which counts each series once, and the tile uses it.",
+  "pr": 96
+}

@@ -1,0 +1,7 @@
+{
+  "title": "Dialogs fit on phones",
+  "category": "fixed",
+  "audience": "admins on phones",
+  "description": "Dialogs such as editing an event, a digest or a lesson stay within the screen on phones and scroll when they are taller than it. Before, long content made them wider than the screen, cutting off their left side without a way to scroll there. Start and end dates of events and digests are stacked on small screens.",
+  "pr": 92
+}

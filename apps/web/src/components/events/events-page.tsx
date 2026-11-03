@@ -19,6 +19,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 import {
   format,
@@ -32,18 +33,24 @@ import {
   addMonths,
   subMonths,
   isToday,
+  addDays,
 } from "date-fns";
 import type { CommunityEvent } from "@community/shared";
 import { EventProposalsSection } from "@/components/event-proposals/event-proposals-section";
 import { AddToCalendar } from "./add-to-calendar";
+import { EventCover } from "./event-cover";
+import { Switch } from "@/components/ui/switch";
 import { EventDescription } from "./event-description";
 
 function EventCard({
   event,
   highlighted = false,
+  seriesCompressed = false,
 }: {
   event: CommunityEvent;
   highlighted?: boolean;
+  /** The list shows this series once: say that more dates follow. */
+  seriesCompressed?: boolean;
 }) {
   const t = useTranslations('events');
   const { dateFnsLocale } = useFormatters();
@@ -93,10 +100,13 @@ function EventCard({
       style={
         highlighted
           ? { boxShadow: "0 0 0 2px var(--theme-primary)" }
-          : undefined
+          : event.featured
+            ? { borderColor: "var(--theme-primary)", borderWidth: 2 }
+            : undefined
       }
     >
       <CardContent className="p-0">
+        <EventCover url={event.coverUrl} credit={event.coverCredit} title={event.title} />
         {/* Date strip */}
         <div
           className="flex items-center gap-4 px-5 py-3"
@@ -127,7 +137,17 @@ function EventCard({
               >
                 {event.title}
               </h3>
+              {seriesCompressed && (
+                <p className="text-[11px] mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
+                  {t("seriesMore")}
+                </p>
+              )}
               <div className="flex gap-1.5 flex-shrink-0">
+                {event.featured && (
+                  <Badge style={{ background: "var(--theme-primary)", color: "var(--theme-background)", borderColor: "transparent" }}>
+                    ★ {t("featured")}
+                  </Badge>
+                )}
                 {event.isVirtual && (
                   <Badge
                     style={{
@@ -175,7 +195,8 @@ function EventCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          {/* Wraps on phones: the series link takes its own line instead of pushing the card wider than the screen. */}
+          <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1">
             <div className="flex -space-x-2">
               {event.rsvps?.slice(0, 5).map((attendee) => (
                 <div
@@ -193,7 +214,7 @@ function EventCard({
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
                 variant={userRsvp ? "outline" : "default"}
@@ -218,13 +239,26 @@ function EventCard({
                 )}
               </Button>
               <AddToCalendar event={event} />
+              {/* Straight into the online room (Zoom etc.) until the event has ended. */}
+              {event.isVirtual && event.meetingUrl && new Date(event.endsAt) > new Date() && (
+                <a
+                  href={event.meetingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md px-3 h-8 text-xs font-medium"
+                  style={{ background: "var(--theme-primary)", color: "var(--theme-background)" }}
+                >
+                  <ExternalLink size={12} />
+                  {t("join")}
+                </a>
+              )}
             </div>
             {event.seriesId && (
               <button
                 type="button"
                 onClick={handleSeries}
                 disabled={isPending}
-                className="text-xs underline self-start"
+                className="basis-full text-left text-xs underline"
                 style={{ color: "var(--theme-text-muted)" }}
               >
                 {userRsvp ? t("seriesCancel") : t("seriesRsvp")}
@@ -237,7 +271,7 @@ function EventCard({
   );
 }
 
-function CalendarView({ events }: { events: CommunityEvent[] }) {
+function CalendarView() {
   const t = useTranslations('events');
   const { dateFnsLocale } = useFormatters();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -246,6 +280,12 @@ function CalendarView({ events }: { events: CommunityEvent[] }) {
   const monthEnd = endOfMonth(currentMonth);
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // The weeks shown, past days included, instead of the first page of the list.
+  const { data: monthData } = useEvents(1, 100, {
+    from: calStart.toISOString(),
+    to: addDays(calEnd, 1).toISOString(),
+  });
+  const events: CommunityEvent[] = monthData?.data ?? [];
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
   const eventsByDay = (day: Date) =>
@@ -336,19 +376,24 @@ function CalendarView({ events }: { events: CommunityEvent[] }) {
                   {format(day, "d")}
                 </span>
                 <div className="space-y-0.5">
-                  {dayEvents.slice(0, 2).map((e) => (
-                    <div
-                      key={e.id}
-                      className="text-[10px] px-1.5 py-0.5 rounded truncate"
-                      style={{
-                        background: "rgba(197,168,128,0.15)",
-                        color: "var(--theme-primary)",
-                      }}
-                      title={e.title}
-                    >
-                      {e.title}
-                    </div>
-                  ))}
+                  {[...dayEvents]
+                    // Highlighted first, then one-off events; recurring series last and muted.
+                    .sort((a, b) => Number(!!b.featured) - Number(!!a.featured) || Number(!!a.seriesId) - Number(!!b.seriesId))
+                    .slice(0, 2)
+                    .map((e) => (
+                      <div
+                        key={e.id}
+                        className={`text-[10px] px-1.5 py-0.5 rounded truncate ${e.featured ? "font-semibold" : ""}`}
+                        style={{
+                          background: e.featured ? "var(--theme-primary)" : e.seriesId ? "rgba(255,255,255,0.04)" : "rgba(197,168,128,0.15)",
+                          color: e.featured ? "var(--theme-background)" : e.seriesId ? "var(--theme-text-muted)" : "var(--theme-primary)",
+                        }}
+                        title={e.title}
+                      >
+                        {e.featured && "★ "}
+                        {e.title}
+                      </div>
+                    ))}
                   {dayEvents.length > 2 && (
                     <div
                       className="text-[10px] px-1.5"
@@ -369,10 +414,36 @@ function CalendarView({ events }: { events: CommunityEvent[] }) {
 
 export function EventsPage() {
   const t = useTranslations('events');
-  const { data, isLoading, error, refetch } = useEvents();
+  const { data, isLoading, error, refetch } = useEvents(1, 100, { when: 'upcoming' });
   const [view, setView] = useState<"list" | "calendar">("list");
+  // A daily series would fill the list; by default each series shows once,
+  // with its next date. Remembered per browser.
+  const [compressSeries, setCompressSeries] = useState(() => {
+    try {
+      return localStorage.getItem("events.compressSeries") !== "false";
+    } catch {
+      return true;
+    }
+  });
+  const toggleCompress = (on: boolean) => {
+    setCompressSeries(on);
+    try {
+      localStorage.setItem("events.compressSeries", String(on));
+    } catch {
+      /* private mode: not remembered */
+    }
+  };
 
-  const events: CommunityEvent[] = data?.data ?? [];
+  const allEvents: CommunityEvent[] = data?.data ?? [];
+  const seenSeries = new Set<string>();
+  const events = compressSeries
+    ? allEvents.filter((e) => {
+        if (!e.seriesId) return true;
+        if (seenSeries.has(e.seriesId)) return false;
+        seenSeries.add(e.seriesId);
+        return true;
+      })
+    : allEvents;
 
   // There is no page per event: links elsewhere (feed strip, assessment) point
   // to /events#event-<id>. The list loads after navigation, so the browser's
@@ -444,6 +515,13 @@ export function EventsPage() {
 
       <EventProposalsSection />
 
+      {view === "list" && allEvents.some((e) => e.seriesId) && (
+        <label className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+          <Switch checked={compressSeries} onCheckedChange={toggleCompress} />
+          {t("compressSeries")}
+        </label>
+      )}
+
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -477,7 +555,7 @@ export function EventsPage() {
           </CardContent>
         </Card>
       ) : view === "calendar" ? (
-        <CalendarView events={events} />
+        <CalendarView />
       ) : !events.length ? (
         <Card>
           <CardContent className="p-12 text-center">
@@ -504,6 +582,7 @@ export function EventsPage() {
               key={event.id}
               event={event}
               highlighted={event.id === highlightId}
+              seriesCompressed={compressSeries && !!event.seriesId}
             />
           ))}
         </div>

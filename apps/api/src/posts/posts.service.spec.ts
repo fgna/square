@@ -8,6 +8,11 @@ import { PostTypeEnum } from './dto/create-post.dto';
 
 const mockPrisma = {
   postReport: { upsert: vi.fn() },
+  postAttachment: { findMany: vi.fn().mockResolvedValue([]), findFirst: vi.fn(), create: vi.fn(), findUnique: vi.fn(), delete: vi.fn(), count: vi.fn().mockResolvedValue(0) },
+  upload: { findUnique: vi.fn() },
+  lesson: { count: vi.fn().mockResolvedValue(0) },
+  recording: { count: vi.fn().mockResolvedValue(0) },
+  platformSettings: { count: vi.fn().mockResolvedValue(0) },
   post: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
@@ -121,6 +126,37 @@ describe('PostsService', () => {
 
       const result = await service.create({ content: 'Big news', type: PostTypeEnum.ANNOUNCEMENT }, 'admin-1', 'ADMIN');
       expect(result.type).toBe('ANNOUNCEMENT');
+    });
+  });
+
+  describe('attachments', () => {
+    it('attaches an audio upload and hands out a signed link', async () => {
+      mockPrisma.post.findUnique.mockResolvedValue({ id: '1' });
+      mockPrisma.upload.findUnique.mockResolvedValue({ filename: 'Montag.m4a', url: '/uploads/uploads/a/montag.m4a', mimeType: 'audio/mp4', size: 1200 });
+      mockPrisma.postAttachment.findFirst.mockResolvedValue(null);
+      mockPrisma.postAttachment.create.mockImplementation(async ({ data }: any) => ({ id: 'a1', ...data }));
+
+      const a = await service.addAttachment('1', { uploadId: 'up1' });
+      expect(mockPrisma.postAttachment.create).toHaveBeenCalledWith({
+        data: { postId: '1', filename: 'Montag.m4a', url: '/uploads/uploads/a/montag.m4a', mimeType: 'audio/mp4', size: 1200, order: 1 },
+      });
+      expect(a.url).toMatch(/\/uploads\/uploads\/a\/montag\.m4a\?exp=\d+&sig=[0-9a-f]+$/);
+    });
+
+    it('refuses documents and unknown videos', async () => {
+      mockPrisma.post.findUnique.mockResolvedValue({ id: '1' });
+      mockPrisma.upload.findUnique.mockResolvedValue({ filename: 'x.pdf', url: '/uploads/uploads/x.pdf', mimeType: 'application/pdf', size: 1 });
+      await expect(service.addAttachment('1', { uploadId: 'up1' })).rejects.toThrow('Only audio and videos');
+      await expect(service.addAttachment('1', { videoUrl: '/uploads/videos/0b4c5a52-8e8f-4d55-9a0e-6f3e1b2c3d4e.mp4' })).rejects.toThrow('Uploaded video not found');
+    });
+
+    it('sends members signed links for the attachments in the feed', async () => {
+      mockPrisma.post.findMany.mockResolvedValue([
+        { id: '1', attachments: [{ id: 'a1', url: '/uploads/uploads/a/montag.m4a', mimeType: 'audio/mp4' }] },
+      ]);
+      mockPrisma.post.count.mockResolvedValue(1);
+      const { data } = await service.findAll(1, 20);
+      expect(data[0].attachments[0].url).toMatch(/montag\.m4a\?exp=\d+&sig=/);
     });
   });
 

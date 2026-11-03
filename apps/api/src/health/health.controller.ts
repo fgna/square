@@ -1,10 +1,13 @@
 import { Controller, Get, SetMetadata } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('health')
 @Controller('health')
+// Container health checks poll every few seconds.
+@SkipThrottle({ default: true, auth: true })
 export class HealthController {
   constructor(private prisma: PrismaService) {}
 

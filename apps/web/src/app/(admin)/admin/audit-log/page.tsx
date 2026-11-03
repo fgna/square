@@ -52,7 +52,7 @@ export default function AdminAuditLogPage() {
       />
 
       <div
-        className="rounded-xl overflow-hidden"
+        className="rounded-xl overflow-x-auto"
         style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}
       >
         <table className="w-full text-sm">

@@ -2,18 +2,21 @@
  * Instance-wide capability switch. Omitting SQUARE_CAPABILITIES preserves the
  * complete legacy product. Explicit lists are allowlists, including an empty list.
  */
-export const CAPABILITIES = ['feed', 'messages', 'events', 'courses', 'journal', 'assessments', 'learning-groups'] as const;
+export const CAPABILITIES = ['feed', 'messages', 'events', 'courses', 'journal', 'assessments', 'testimonials', 'recordings', 'gamification', 'learning-groups'] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
 const DEPENDENCIES: Partial<Record<Capability, Capability[]>> = {};
 const ROUTES: Record<Capability, RegExp[]> = {
+  'learning-groups': [/^\/api\/learning-groups(?:\/|$)/],
   feed: [/^\/api\/posts(?:\/|$)/, /^\/api\/admin\/(?:posts|reports)(?:\/|$)/],
   messages: [/^\/api\/messages(?:\/|$)/],
-  'learning-groups': [/^\/api\/learning-groups(?:\/|$)/],
   events: [/^\/api\/(?:events|event-proposals|calendar)(?:\/|$)/, /^\/api\/admin\/(?:events|event-proposals)(?:\/|$)/],
   courses: [/^\/api\/courses(?:\/|$)/, /^\/api\/admin\/courses(?:\/|$)/],
   journal: [/^\/api\/p\/journal(?:\/|$)/, /^\/api\/admin\/journal(?:\/|$)/],
   assessments: [/^\/api\/assessments(?:\/|$)/, /^\/api\/admin\/assessment(?:\/|$)/],
+  testimonials: [/^\/api\/testimonials(?:\/|$)/, /^\/api\/admin\/testimonials(?:\/|$)/],
+  gamification: [/^\/api\/gamification(?:\/|$)/],
+  recordings: [/^\/api\/events\/(?:recordings(?:\/|$)|[^/]+\/recordings(?:\/|$))/],
 };
 
 export function parseCapabilities(value: string | undefined): ReadonlySet<Capability> {
@@ -32,6 +35,10 @@ export function parseCapabilities(value: string | undefined): ReadonlySet<Capabi
 
 export function disabledApiCapability(path: string, enabled: ReadonlySet<Capability>): Capability | undefined {
   const pathname = path.split('?')[0];
+  // Recording endpoints share the events controller, but have their own switch.
+  if (ROUTES.recordings.some((pattern) => pattern.test(pathname))) {
+    return enabled.has('recordings') ? undefined : 'recordings';
+  }
   return CAPABILITIES.find((name) => !enabled.has(name) && ROUTES[name].some((pattern) => pattern.test(pathname)));
 }
 export const instanceCapabilities = parseCapabilities(process.env.SQUARE_CAPABILITIES);

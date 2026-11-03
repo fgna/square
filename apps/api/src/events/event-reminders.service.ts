@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { mailDate, mailTime } from '../email/mail-format';
+import { mailDate, mailTime, firstName } from '../email/mail-format';
 
 @Injectable()
 export class EventRemindersService {
@@ -21,69 +21,65 @@ export class EventRemindersService {
     await this.send1hReminders();
   }
 
+  private reminderWindow(kind: '24h' | '1h') {
+    const now = Date.now();
+    const in75min = new Date(now + 75 * 60 * 1000);
+    return kind === '24h'
+      ? { gt: in75min, lte: new Date(now + 25 * 60 * 60 * 1000) }
+      : { gt: new Date(now), lte: in75min };
+  }
+
   private async send24hReminders() {
-    const now = new Date();
-    const in75min = new Date(now.getTime() + 75 * 60 * 1000);
-    const in25h = new Date(now.getTime() + 25 * 60 * 60 * 1000);
-
-    const events = await this.prisma.event.findMany({
-      where: {
-        startsAt: { gt: in75min, lte: in25h },
-        reminder24hSent: false,
-      },
-    });
-
-    if (events.length === 0) return;
-
-    let totalSent = 0;
-
-    for (const event of events) {
-      const sent = await this.sendRemindersForEvent(event, 'in 24 Stunden');
-
-      await this.prisma.event.update({
-        where: { id: event.id },
-        data: { reminder24hSent: true },
-      });
-
-      totalSent += sent;
-    }
-
-    this.logger.log(`24h reminders: sent ${totalSent} for ${events.length} event(s)`);
+    await this.sendWindow('24h');
   }
 
   private async send1hReminders() {
-    const now = new Date();
-    const in75min = new Date(now.getTime() + 75 * 60 * 1000);
+    await this.sendWindow('1h');
+  }
 
+  private async sendWindow(kind: '24h' | '1h') {
+    const flag = kind === '24h' ? 'reminder24hSent' : 'reminder1hSent';
     const events = await this.prisma.event.findMany({
       where: {
-        startsAt: { gte: now, lte: in75min },
-        reminder1hSent: false,
+        startsAt: this.reminderWindow(kind),
+        [flag]: false,
+        ...(kind === '24h' ? { remind24h: true } : {}),
       },
     });
 
-    if (events.length === 0) return;
-
-    let totalSent = 0;
-
     for (const event of events) {
-      const sent = await this.sendRemindersForEvent(event, 'in einer Stunde');
-
-      await this.prisma.event.update({
-        where: { id: event.id },
-        data: { reminder1hSent: true },
+      // Claim before external delivery: concurrent workers/restarts must not
+      // resend a partially delivered batch. Failed deliveries are best effort.
+      const claimed = await this.prisma.event.updateMany({
+        where: {
+          id: event.id,
+          AND: [{ startsAt: event.startsAt }, { startsAt: this.reminderWindow(kind) }],
+          [flag]: false,
+          ...(kind === '24h' ? { remind24h: true } : {}),
+        },
+        data: { [flag]: true },
       });
-
-      totalSent += sent;
+      if (!claimed.count) continue;
+      await this.sendRemindersForEvent(event, kind);
     }
+  }
 
-    this.logger.log(`1h reminders: sent ${totalSent} for ${events.length} event(s)`);
+  private async stillEligible(event: { id: string; startsAt: Date }, kind: '24h' | '1h') {
+    return this.prisma.event.findFirst({
+      where: {
+        id: event.id,
+        AND: [{ startsAt: event.startsAt }, { startsAt: this.reminderWindow(kind) }],
+        ...(kind === '24h' ? { remind24h: true } : {}),
+      },
+      select: { id: true },
+    });
   }
 
   private async sendRemindersForEvent(
     event: { id: string; title: string; startsAt: Date; location: string | null; isVirtual: boolean; meetingUrl: string | null },
-    timeLabel: string,
+    kind: '24h' | '1h',
   ): Promise<number> {
+    const timeLabel = kind === '24h' ? 'in 24 Stunden' : 'in einer Stunde';
     const rsvps = await this.prisma.eventRsvp.findMany({
       where: {
         eventId: event.id,
@@ -99,6 +95,7 @@ export class EventRemindersService {
     const platformName = await this.getPlatformName();
 
     for (const rsvp of rsvps) {
+      if (!await this.stillEligible(event, kind)) break;
       // Send email
       try {
         const html = this.buildReminderHtml({
@@ -126,15 +123,13 @@ export class EventRemindersService {
         );
       }
 
-      // Create in-app notification (fire-and-forget)
-      this.notifications
-        .create(rsvp.user.id, null, 'EVENT_REMINDER', event.id, 'event')
-        .catch((err) =>
-          this.logger.error(
-            `Failed to create reminder notification for user ${rsvp.user.id}`,
-            err,
-          ),
-        );
+      // Recheck after email latency, and await persistence before finishing.
+      if (!await this.stillEligible(event, kind)) break;
+      try {
+        await this.notifications.create(rsvp.user.id, null, 'EVENT_REMINDER', event.id, 'event');
+      } catch (err) {
+        this.logger.error(`Failed to create reminder notification for user ${rsvp.user.id}`, err);
+      }
     }
 
     return sent;
@@ -183,7 +178,7 @@ export class EventRemindersService {
 
         <!-- Body -->
         <tr><td style="padding: 32px; background: rgba(17,24,39,0.7);">
-          <div style="font-size: 16px; color: #f3f4f6; margin-bottom: 16px;">Hallo ${this.escapeHtml(data.userName)},</div>
+          <div style="font-size: 16px; color: #f3f4f6; margin-bottom: 16px;">Hallo ${this.escapeHtml(firstName(data.userName))},</div>
           <div style="font-size: 14px; color: #9ca3af; margin-bottom: 24px;">
             kurze Erinnerung: Diese Veranstaltung beginnt <strong style="color: #c5a880;">${data.timeLabel}</strong>:
           </div>

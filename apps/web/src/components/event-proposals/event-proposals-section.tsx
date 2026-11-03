@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useFormatters } from '@/lib/use-formatters';
-import { Loader2, Plus, X, Calendar, ThumbsUp, Lock, Trash2, ChevronDown, ChevronUp, Vote } from 'lucide-react';
+import { Loader2, Plus, X, Calendar, ThumbsUp, Lock, Trash2, ChevronDown, ChevronUp, Vote, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,11 +11,13 @@ import { useAuth } from '@/hooks/use-auth';
 import {
   useEventProposals,
   useCreateProposal,
+  useUpdateProposal,
   useVoteProposal,
   useRemoveVote,
   useCloseProposal,
   useDeleteProposal,
 } from '@/hooks/use-event-proposals';
+import { formatProposedDate, joinProposedDate, splitProposedDate } from '@/lib/proposal-dates';
 
 interface EventProposalsSectionProps {
   compact?: boolean;
@@ -28,6 +30,7 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
   const isAdmin = user?.role === 'ADMIN';
   const { data, isLoading } = useEventProposals();
   const createMutation = useCreateProposal();
+  const updateMutation = useUpdateProposal();
   const voteMutation = useVoteProposal();
   const removeMutation = useRemoveVote();
   const closeMutation = useCloseProposal();
@@ -37,25 +40,46 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dates, setDates] = useState<string[]>(['', '']);
+  // Each row: start (datetime-local) and an optional end time on the same day.
+  const [dates, setDates] = useState<{ start: string; end: string }[]>([{ start: '', end: '' }, { start: '', end: '' }]);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const addDate = () => setDates((d) => [...d, '']);
+  const addDate = () => setDates((d) => [...d, { start: '', end: '' }]);
   const removeDate = (i: number) => setDates((d) => d.filter((_, idx) => idx !== i));
-  const updateDate = (i: number, val: string) =>
-    setDates((d) => d.map((v, idx) => (idx === i ? val : v)));
+  const updateDate = (i: number, val: Partial<{ start: string; end: string }>) =>
+    setDates((d) => d.map((v, idx) => (idx === i ? { ...v, ...val } : v)));
+
+  const startEdit = (proposal: any) => {
+    setEditingId(proposal.id);
+    setTitle(proposal.title);
+    setDescription(proposal.description ?? '');
+    setDates(
+      ((proposal.proposedDates as string[]) || []).map((value) => {
+        const { start, end } = splitProposedDate(value);
+        return { start: start.slice(0, 16), end: end ? end.slice(11, 16) : '' };
+      }),
+    );
+    setShowForm(true);
+    setExpanded(true);
+  };
 
   const resetForm = () => {
     setFormError(null);
     setTitle('');
     setDescription('');
-    setDates(['', '']);
+    setDates([{ start: '', end: '' }, { start: '', end: '' }]);
+    setEditingId(null);
     setShowForm(false);
   };
 
   const handleCreate = async () => {
     setFormError(null);
-    const validDates = dates.filter((d) => d.trim());
+    const validDates = dates.map((d) => joinProposedDate(d.start, d.end)).filter(Boolean);
+    if (dates.some((d) => d.start && d.end && d.end <= d.start.slice(11, 16))) {
+      setFormError(t('proposals.errorEnd'));
+      return;
+    }
     // CreateProposalDto requires at least 3 characters.
     if (title.trim().length < 3) {
       setFormError(t('proposals.errorTitle'));
@@ -67,11 +91,9 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
       return;
     }
     try {
-      await createMutation.mutateAsync({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        proposedDates: validDates,
-      });
+      const payload = { title: title.trim(), description: description.trim() || undefined, proposedDates: validDates };
+      if (editingId) await updateMutation.mutateAsync({ id: editingId, ...payload });
+      else await createMutation.mutateAsync(payload);
       resetForm();
     } catch (err: any) {
       const message = err?.response?.data?.message;
@@ -181,7 +203,8 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
                     </p>
                     {dates.map((d, i) => (
                       <div key={i} className="flex gap-2">
-                        <Input type="datetime-local" value={d} onChange={(e) => updateDate(i, e.target.value)} className="flex-1" />
+                        <Input type="datetime-local" value={d.start} onChange={(e) => updateDate(i, { start: e.target.value })} className="flex-1" aria-label={t('proposals.start')} />
+                        <Input type="time" value={d.end} onChange={(e) => updateDate(i, { end: e.target.value })} className="w-28" aria-label={t('proposals.endTime')} />
                         {dates.length > 2 && (
                           <button type="button" onClick={() => removeDate(i)} className="p-2 hover:bg-white/5 rounded-md">
                             <X size={14} style={{ color: 'var(--theme-text-muted)' }} />
@@ -195,8 +218,8 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" onClick={resetForm}>{t('proposals.cancel')}</Button>
-                    <Button size="sm" onClick={handleCreate} disabled={createMutation.isPending}>
-                      {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : t('proposals.create')}
+                    <Button size="sm" onClick={handleCreate} disabled={createMutation.isPending || updateMutation.isPending}>
+                      {createMutation.isPending || updateMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : editingId ? t('proposals.save') : t('proposals.create')}
                     </Button>
                   </div>
                 </div>
@@ -268,9 +291,7 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
                     <div className="flex flex-wrap gap-1.5">
                       {proposedDates.map((date: string) => {
                         const isVoted = myDateVotes.includes(date);
-                        const formatted = new Date(date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
-                          weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                        });
+                        const formatted = formatProposedDate(date, locale);
                         return (
                           <button
                             key={date}
@@ -294,6 +315,11 @@ export function EventProposalsSection({ compact = false }: EventProposalsSection
                     {/* Admin actions */}
                     {isAdmin && (
                       <div className="flex gap-2 pt-1" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                        {!isClosed && (
+                          <Button variant="ghost" size="sm" onClick={() => startEdit(proposal)}>
+                            <Pencil size={11} className="mr-1" /> {t('proposals.edit')}
+                          </Button>
+                        )}
                         {!isClosed && (
                           <Button variant="ghost" size="sm" onClick={() => closeMutation.mutate(proposal.id)} disabled={closeMutation.isPending}>
                             <Lock size={11} className="mr-1" /> {t('proposals.close')}

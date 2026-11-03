@@ -1,0 +1,7 @@
+{
+  "title": "The welcome wizard no longer blocks plugin pages",
+  "category": "fixed",
+  "audience": "members",
+  "description": "The welcome wizard for new members opens on the community's own pages only. On a plugin page, such as a full-screen game, it used to block every tap while hidden behind the plugin.",
+  "pr": 81
+}

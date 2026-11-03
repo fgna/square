@@ -36,6 +36,18 @@ describe('WelcomeVideoCard', () => {
     await waitFor(() => expect(screen.queryByTitle('Welcome video')).not.toBeInTheDocument());
   });
 
+  it('plays an uploaded welcome video directly from its signed link', async () => {
+    api.get.mockResolvedValue({
+      data: { videoEmbedUrl: null, videoFileUrl: '/uploads/videos/x.mp4?exp=1&sig=a', dismissed: false },
+    });
+    renderCard();
+
+    const video = await screen.findByTitle('Welcome video');
+    expect(video.tagName).toBe('VIDEO');
+    expect(video).toHaveAttribute('src', '/uploads/videos/x.mp4?exp=1&sig=a');
+    expect(screen.queryByRole('button', { name: 'Load video' })).toBeNull();
+  });
+
   it('stays away when no video is set, or it was hidden before', async () => {
     api.get.mockResolvedValue({ data: { videoUrl: null, videoEmbedUrl: null, dismissed: false } });
     renderCard();

@@ -11,7 +11,8 @@ import type { PrismaService } from '../prisma/prisma.service';
 // Recording attachments are protected the same way. Documents and audio are
 // protected by their type as well: a file whose lesson or recording
 // attachment was deleted still sits on disk and used to become public then.
-const PROTECTED_EXTENSIONS = /\.(pdf|docx?|xlsx?|pptx?|mp3|m4a|wav)$/i;
+// Videos hosted by the platform (uploads/videos/*.mp4) are always protected too.
+const PROTECTED_EXTENSIONS = /\.(pdf|docx?|xlsx?|pptx?|mp3|m4a|wav|mp4)$/i;
 
 const LINK_TTL_SECONDS = 24 * 60 * 60;
 

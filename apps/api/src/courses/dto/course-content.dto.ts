@@ -92,6 +92,12 @@ export class MoveDto {
   direction: 'up' | 'down';
 }
 
+export class MoveLessonToModuleDto {
+  @ApiProperty({ description: 'Module of the same course the lesson moves to (appended at its end)' })
+  @IsString()
+  moduleId: string;
+}
+
 export class AddAttachmentDto {
   @ApiProperty({ description: 'Id returned by POST /uploads/file' })
   @IsString()

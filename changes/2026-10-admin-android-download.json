@@ -1,0 +1,7 @@
+{
+  "title": "Admin-managed Android app download",
+  "category": "new",
+  "audience": "administrators and members",
+  "description": "Administrators can enable a public Android APK download link in community settings. Visitors can open the installation instructions before signing in.",
+  "pr": 82
+}

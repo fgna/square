@@ -112,6 +112,11 @@ function CreateCourseDialog({ open, onClose }: { open: boolean; onClose: () => v
 
 export default function AdminCoursesPage() {
   const t = useTranslations('adminCoursesUI');
+  // Started and completed members per course (Admin -> course -> participation for details).
+  const { data: participation } = useQuery<Record<string, { started: number; completed: number }>>({
+    queryKey: ['admin', 'courses', 'participation'],
+    queryFn: () => apiClient.get('/admin/courses/participation').then((r) => r.data),
+  });
   const queryClient = useQueryClient();
   const { data, isLoading } = useAdminCourses();
   const [createOpen, setCreateOpen] = useState(false);
@@ -145,7 +150,7 @@ export default function AdminCoursesPage() {
       </div>
 
       <div
-        className="rounded-xl overflow-hidden"
+        className="rounded-xl overflow-x-auto"
         style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}
       >
         <table className="w-full text-sm">
@@ -171,13 +176,21 @@ export default function AdminCoursesPage() {
                   <tr key={course.id} style={{ borderBottom: '1px solid var(--theme-border)' }}>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium" style={{ color: 'var(--theme-text)' }}>{course.title}</p>
+                        {/* The title opens the editor too: on a phone the actions column is off-screen. */}
+                        <Link href={`/admin/courses/${course.id}`} className="font-medium hover:underline" style={{ color: 'var(--theme-text)' }}>
+                          {course.title}
+                        </Link>
                         <p className="text-xs line-clamp-1" style={{ color: 'var(--theme-text-muted)' }}>{course.description}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                       {/* The list endpoint returns _count, not the modules themselves, so this always said 0. */}
                       {t('modulesCount', { count: course._count?.modules ?? course.modules?.length ?? 0 })}
+                      {participation?.[course.id] && (
+                        <span className="block">
+                          {t('participationShort', { started: participation[course.id].started, completed: participation[course.id].completed })}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

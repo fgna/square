@@ -21,10 +21,12 @@ export interface Lesson {
   order: number;
   moduleId: string;
   createdAt: string;
-  /** The YouTube/Vimeo/Loom link as entered. */
+  /** The YouTube/Vimeo/Loom link or uploaded video path as entered; sent to admins only. */
   videoUrl?: string | null;
   /** The player URL to put in an iframe, derived by the API from videoUrl. */
   videoEmbedUrl?: string | null;
+  /** A video uploaded to the platform: signed, expiring file link for a <video> player. */
+  videoFileUrl?: string | null;
   /** Admin setting: offer members the video host's download page. */
   videoDownloadable?: boolean;
   /** Set by the API only when videoDownloadable is on and the host offers downloads. */

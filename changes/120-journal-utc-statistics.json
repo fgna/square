@@ -1,0 +1,7 @@
+{
+  "title": "Journal statistics stay consistent across server time zones",
+  "category": "fixed",
+  "audience": "members",
+  "description": "Journal streaks and date windows now use UTC calendar days consistently, including on servers configured for a different time zone.",
+  "pr": 120
+}

@@ -22,4 +22,11 @@ export interface PluginPageProps {
 export interface WebPlugin {
   /** A React component, e.g. `function Page({ path, api }: PluginPageProps) { … }`. */
   Page: (props: PluginPageProps) => unknown;
+  /**
+   * Optional look of the sign-in and registration pages, used only when this
+   * plugin is the instance's start page ("home" in community.plugins.json).
+   * It frames the Core's own forms: render `children` exactly once. The forms,
+   * sign-in logic and legal links stay the Core's.
+   */
+  AuthFrame?: (props: { children: unknown }) => unknown;
 }

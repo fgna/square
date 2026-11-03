@@ -110,6 +110,18 @@ export class UsersController {
     return this.usersService.setPassword(user.id, dto.currentPassword, dto.newPassword);
   }
 
+  @Get('me/journal-reminder')
+  @ApiOperation({ summary: 'Journal reminder: enabled on this instance, default time, my choice' })
+  getJournalReminder(@CurrentUser() user: any) {
+    return this.usersService.getJournalReminder(user.id);
+  }
+
+  @Patch('me/journal-reminder')
+  @ApiOperation({ summary: 'Set my journal reminder: "default", "off" or "HH:MM"' })
+  updateJournalReminder(@CurrentUser() user: any, @Body() body: { choice: string }) {
+    return this.usersService.updateJournalReminder(user.id, String(body?.choice ?? ''));
+  }
+
   @Patch('me/digest')
   @ApiOperation({ summary: 'Update email digest preference' })
   updateDigest(@CurrentUser() user: any, @Body() dto: UpdateDigestDto) {

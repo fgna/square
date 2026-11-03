@@ -14,6 +14,19 @@ function escapeIcs(text: string): string {
 }
 
 /**
+ * Calendar text: the editor stores descriptions as HTML, and the online room
+ * comes first so a calendar entry leads straight into it.
+ */
+export function calendarDescription(event: CommunityEvent): string {
+  const text = event.description
+    .replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return event.isVirtual && event.meetingUrl ? `Online: ${event.meetingUrl}${text ? `\n\n${text}` : ''}` : text;
+}
+
+/**
  * Built in the browser rather than fetched from the API: a download link
  * cannot carry an Authorization header, and the page already holds everything
  * the file needs.
@@ -37,7 +50,7 @@ export function buildEventIcs(event: CommunityEvent, appUrl: string): string {
     `DTSTART:${formatIcsDate(event.startsAt)}`,
     `DTEND:${formatIcsDate(event.endsAt)}`,
     `SUMMARY:${escapeIcs(event.title)}`,
-    `DESCRIPTION:${escapeIcs(event.description)}`,
+    `DESCRIPTION:${escapeIcs(calendarDescription(event))}`,
   ];
 
   if (location) lines.push(`LOCATION:${escapeIcs(location)}`);
@@ -73,7 +86,7 @@ export function googleCalendarUrl(event: CommunityEvent): string {
     action: 'TEMPLATE',
     text: event.title,
     dates: `${formatIcsDate(event.startsAt)}/${formatIcsDate(event.endsAt)}`,
-    details: event.description,
+    details: calendarDescription(event),
     location: event.isVirtual ? event.meetingUrl || 'Online' : event.location || '',
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;

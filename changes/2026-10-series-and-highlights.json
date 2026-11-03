@@ -1,0 +1,7 @@
+{
+  "title": "Recurring events grouped, selected events highlighted",
+  "category": "improved",
+  "audience": "members",
+  "description": "The events list shows each recurring series once, and events an admin highlights stand out in the list and calendar.",
+  "pr": 65
+}

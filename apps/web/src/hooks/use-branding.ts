@@ -4,8 +4,11 @@ import apiClient from '@/lib/api-client';
 export interface Branding {
   platformName: string;
   logoUrl: string | null;
+  appIconUrl?: string | null;
   /** Admin → Settings: without it, registration needs an invitation. */
   allowSignups: boolean;
+  androidAppDownloadEnabled?: boolean;
+  androidAppDownloadUrl?: string | null;
 }
 
 /** Name, logo and sign-up setting from Admin → Settings (public: also used before sign-in). */

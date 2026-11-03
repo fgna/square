@@ -11,3 +11,4 @@ export * from './types/tier.types';
 // Utils
 export * from './utils/date.utils';
 export * from './utils/string.utils';
+export * from './utils/android-app-download.cjs';

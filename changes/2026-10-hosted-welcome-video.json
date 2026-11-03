@@ -1,0 +1,7 @@
+{
+  "title": "Upload the welcome video",
+  "category": "improved",
+  "audience": "admins",
+  "description": "The welcome video for new members can be uploaded to the platform instead of linking Loom, Vimeo or YouTube. It plays only inside the platform.",
+  "pr": 50
+}

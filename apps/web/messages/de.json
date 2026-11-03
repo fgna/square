@@ -1,5 +1,8 @@
 {
-  "journalSimpleUI": {"thoughts":"Meine Gedanken","placeholder":"Was beschäftigt dich heute?"},
+  "journalSimpleUI": {
+    "thoughts": "Meine Gedanken",
+    "placeholder": "Was beschäftigt dich heute?"
+  },
   "journalMoodUI": {
     "grateful": "Dankbar",
     "happy": "Glücklich",
@@ -29,6 +32,17 @@
     "next": "Weiter"
   },
   "adminCoursesUI": {
+    "participationShort": "{started} gestartet · {completed} abgeschlossen",
+    "participation": {
+      "title": "Teilnahme",
+      "summary": "{started} gestartet · {completed} abgeschlossen · {active} in den letzten 30 Tagen aktiv",
+      "none": "Noch hat niemand diesen Kurs begonnen.",
+      "member": "Mitglied",
+      "progress": "Fortschritt",
+      "lessons": "Lektionen",
+      "started": "Begonnen",
+      "lastActivity": "Zuletzt aktiv"
+    },
     "new": "Neuer Kurs",
     "title": "Titel",
     "description": "Beschreibung",
@@ -55,6 +69,13 @@
     "coverImage": "Titelbild (optional)"
   },
   "adminEventsUI": {
+    "cover": "Titelbild",
+    "coverSearch": "Foto bei Unsplash suchen …",
+    "coverUnsplashNote": "Unsplash-Fotos werden von Unsplash geladen; der Fotograf wird genannt.",
+    "coverNone": "Keine Fotos gefunden.",
+    "coverClose": "Schließen",
+    "featured": "Hervorheben",
+    "featuredDesc": "Erscheint markiert in Liste, Kalender und Dashboard; bei einer Serie für alle kommenden Termine.",
     "new": "Neue Veranstaltung",
     "title": "Titel",
     "description": "Beschreibung",
@@ -63,6 +84,8 @@
     "location": "Ort (optional)",
     "virtual": "Online-Veranstaltung",
     "virtualDesc": "Link zum Online-Meeting hinzufügen",
+    "remind24h": "Erinnerung 24 Stunden vorher",
+    "remind24hDesc": "Mail an alle mit Zusage. Bei täglichen Terminen eher aus; die Erinnerung eine Stunde vorher kommt immer. Gilt für alle Termine einer Serie.",
     "meeting": "Meeting-URL",
     "max": "Maximale Zusagen (optional)",
     "unlimited": "Leer lassen für unbegrenzte Teilnahme",
@@ -329,6 +352,10 @@
     }
   },
   "events": {
+    "coverCredit": "Foto: <author>{name}</author> auf <library>Unsplash</library>",
+    "compressSeries": "Regelmäßige Termine zusammenfassen",
+    "featured": "Hervorgehoben",
+    "seriesMore": "Regelmäßig – weitere Termine im Kalender",
     "title": "Veranstaltungen",
     "description": "Ihr lernt und inspiriert euch gegenseitig bei unseren Live-Veranstaltungen.",
     "list": "Liste",
@@ -338,6 +365,7 @@
     "spotsLeft": "{count} Plätze frei",
     "rsvp": "Zusagen",
     "cancelRsvp": "Zusage zurücknehmen",
+    "join": "Beitreten",
     "failed": "Veranstaltungen konnten nicht geladen werden.",
     "unknownError": "Unbekannter Fehler",
     "retry": "Erneut versuchen",
@@ -359,6 +387,11 @@
       "download": ".ics herunterladen"
     },
     "proposals": {
+      "start": "Beginn",
+      "endTime": "Ende",
+      "edit": "Bearbeiten",
+      "save": "Speichern",
+      "errorEnd": "Das Ende muss nach dem Beginn liegen.",
       "title": "Terminvorschläge",
       "open": "{count} offen",
       "new": "Neuer Vorschlag",
@@ -484,7 +517,15 @@
       "errorGeneric": "Veröffentlichen hat nicht geklappt. Bitte versuch es noch einmal.",
       "shareSuccess": "Erfolg teilen"
     },
+    "attachments": {
+      "title": "Anhänge (nur Admins)",
+      "audio": "Audio anhängen",
+      "remove": "Anhang entfernen",
+      "failed": "Hochladen fehlgeschlagen. Versuch es noch einmal."
+    },
     "card": {
+      "pin": "Oben anpinnen",
+      "unpin": "Nicht mehr anpinnen",
       "edit": "Bearbeiten",
       "report": "Melden",
       "delete": "Löschen",
@@ -798,6 +839,11 @@
       "subtitle": "Wähle deine bevorzugte Sprache."
     },
     "notifications": {
+      "journalTitle": "Journal-Erinnerung",
+      "journalDesc": "Eine kurze E-Mail, damit du deinen Tag im Journal abschließt.",
+      "journalDefault": "Täglich um {time} (Standard)",
+      "journalOwn": "Eigene Uhrzeit",
+      "journalOff": "Keine Erinnerung",
       "digestTitle": "E-Mail-Zusammenfassung",
       "digestSubtitle": "Erhalte eine Zusammenfassung neuer Beiträge, Veranstaltungen und Benachrichtigungen per E-Mail.",
       "daily": "Täglich",
@@ -886,6 +932,12 @@
     "eventsCount": "{count} Veranstaltungen"
   },
   "dashboard": {
+    "month": {
+      "title": "Die nächsten 30 Tage",
+      "allEvents": "Alle Veranstaltungen",
+      "empty": "In den nächsten 30 Tagen ist nichts geplant.",
+      "recurring": "regelmäßig"
+    },
     "welcome": {
       "video": "Willkommensvideo",
       "heading": "Willkommen",
@@ -1114,11 +1166,14 @@
     "steps": "Installation",
     "stepDownload": "APK herunterladen",
     "stepOpen": "Datei öffnen",
-    "stepAllow": "Installation zulassen",
+    "stepAllow": "Erlaube die Installation aus diesem Browser oder Dateimanager, wenn Android danach fragt. Diese Berechtigung kannst du anschließend wieder ausschalten.",
     "stepInstall": "App installieren",
     "stepSignIn": "Anmelden",
     "offline": "Manche Funktionen benötigen eine Verbindung.",
-    "unavailable": "Für diese Community ist aktuell keine Android-APK veröffentlicht. Du kannst die Website weiterhin im Browser benutzen."
+    "unavailable": "Für diese Community ist aktuell keine Android-APK veröffentlicht. Du kannst die Website weiterhin im Browser benutzen.",
+    "loading": "App-Download wird geladen…",
+    "back": "Zurück zur Community",
+    "stepServer": "Falls die App nach einer Serveradresse fragt, trage {url} ein."
   },
   "adminCategoriesUI": {
     "title": "Kategorien",
@@ -1162,6 +1217,10 @@
     "testimonials": "Erfahrungsberichte"
   },
   "adminSettingsUI": {
+    "journalReminderTitle": "Journal-Erinnerung",
+    "journalReminderDescription": "Mitglieder bekommen täglich eine E-Mail, ihr Journal abzuschließen. Jedes Mitglied kann die Uhrzeit ändern oder die Erinnerung abschalten.",
+    "journalReminderToggle": "Erinnerung senden",
+    "journalReminderTime": "Standard-Uhrzeit",
     "title": "Plattformeinstellungen",
     "description": "Markenauftritt und plattformweite Optionen konfigurieren.",
     "branding": "Markenauftritt",
@@ -1175,7 +1234,9 @@
     "publicSignup": "Öffentliche Registrierung erlauben",
     "publicSignupDescription": "Neue Mitglieder können sich ohne Einladung registrieren.",
     "save": "Änderungen speichern",
-    "logoHint": "Erscheint oben links anstelle des Namens. Am besten wirkt ein breites Logo auf transparentem oder dunklem Hintergrund."
+    "logoHint": "Erscheint oben links anstelle des Namens. Am besten wirkt ein breites Logo auf transparentem oder dunklem Hintergrund.",
+    "appIcon": "App-Icon",
+    "appIconHint": "Erscheint auf dem Startbildschirm, wenn Mitglieder die Seite dort ablegen, und im Browser-Tab. Quadratisches Bild, mindestens 512 × 512 Pixel. Ohne Icon erscheint der Anfangsbuchstabe des Namens."
   },
   "adminJournalUI": {
     "title": "Journal-Impulse",
@@ -1201,6 +1262,17 @@
     "noPrompts": "Noch keine Impulse. Füge oben einen hinzu."
   },
   "adminDigestsUI": {
+    "sendTest": "Test an mich senden",
+    "testSent": "Test-Digest an {to} gesendet.",
+    "testFailed": "Test-Digest konnte nicht gesendet werden (Mailversand prüfen).",
+    "schedule": "Versand: wöchentlich {day} um {weekly}, täglich um {daily} ({zone}). Mitglieder wählen in ihren Einstellungen täglich, wöchentlich oder aus.",
+    "weekday0": "sonntags",
+    "weekday1": "montags",
+    "weekday2": "dienstags",
+    "weekday3": "mittwochs",
+    "weekday4": "donnerstags",
+    "weekday5": "freitags",
+    "weekday6": "samstags",
     "sectionNewPosts": "Neue Beiträge",
     "sectionUpcomingEvents": "Anstehende Veranstaltungen",
     "sectionNewCourses": "Neue Kurse",
@@ -1211,8 +1283,8 @@
     "nameExample": "z. B. Wöchentlicher Digest",
     "emailSubject": "E-Mail-Betreff",
     "subjectExample": "z. B. Dein wöchentlicher Community-Rückblick",
-    "headerHtml": "HTML-Kopfbereich",
-    "footerHtml": "HTML-Fußbereich",
+    "headerHtml": "Einleitung (z. B. dein Wochentext)",
+    "footerHtml": "Schlusstext",
     "accentColor": "Akzentfarbe",
     "logoOptional": "Logo-URL (optional)",
     "sections": "Digest-Abschnitte",
@@ -1463,5 +1535,23 @@
     "added": "Aufzeichnung hinzugefügt",
     "failed": "Die Aufzeichnung konnte nicht gespeichert werden",
     "uploadFailed": "Die Datei konnte nicht hochgeladen werden"
+  },
+  "videoUpload": {
+    "button": "Video hochladen",
+    "progress": "{percent} % hochgeladen",
+    "cancel": "Hochladen abbrechen",
+    "hint": "MP4 oder MOV mit H.264, 720p reicht. In QuickTime: Ablage → Exportieren als → 720p. Das Video bleibt auf dieser Plattform und spielt nur hier.",
+    "onlyMp4": "Bitte eine MP4- oder MOV-Datei wählen.",
+    "failed": "Hochladen fehlgeschlagen. Versuch es noch einmal.",
+    "uploaded": "Hochgeladenes Video"
+  },
+  "androidAppAdminUI": {
+    "title": "Android-App herunterladen",
+    "description": "Biete die Android-App deiner Community auf der Website an.",
+    "enable": "Android-App-Download anzeigen",
+    "url": "APK-Download-URL (HTTPS)",
+    "hint": "Verwende eine öffentliche URL zu einer signierten Release-APK. Mitglieder müssen sie ohne Repository-Zugriff herunterladen können. Behalte Signierschlüssel und eine fortlaufende APK-Versionierung für Updates bei.",
+    "invalidUrl": "Trage vor der Freigabe eine gültige HTTPS-Download-URL ohne Zugangsdaten oder Fragment ein.",
+    "saveError": "Die Einstellungen konnten nicht gespeichert werden."
   }
 }

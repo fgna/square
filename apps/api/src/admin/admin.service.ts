@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { UpdatePlatformSettingsDto } from './dto/update-platform-settings.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { toVideoEmbed } from '../courses/video-url';
+import { deleteUnusedHostedVideos, hostedVideoExists, isHostedVideo } from '../videos/hosted-video';
 import { GdprService } from '../gdpr/gdpr.service';
+import { normalizeAndroidAppDownloadSettings } from '@community/shared/android-app-download';
 
 /** Accounts deleted by their owner keep a placeholder row (see GdprService.deleteAccount). */
 export function isDeletedAccount(email: string | null | undefined): boolean {
@@ -11,6 +13,8 @@ export function isDeletedAccount(email: string | null | undefined): boolean {
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(
     private prisma: PrismaService,
     private gdpr: GdprService,
@@ -341,18 +345,53 @@ export class AdminService {
 
   async updatePlatformSettings(dto: UpdatePlatformSettingsDto) {
     const data = { ...dto };
+    let previousWelcome: string | null = null;
+    if (dto.androidAppDownloadEnabled !== undefined || dto.androidAppDownloadUrl !== undefined) {
+      const current = await this.prisma.platformSettings.findUnique({
+        where: { id: 'default' },
+        select: { androidAppDownloadEnabled: true, androidAppDownloadUrl: true },
+      });
+      try {
+        // Write the complete valid pair so concurrent partial writes cannot leave
+        // an enabled download with an empty URL.
+        Object.assign(data, normalizeAndroidAppDownloadSettings(current, dto));
+      } catch (error) {
+        throw new BadRequestException((error as Error).message);
+      }
+    }
+    if (data.appIconUrl !== undefined) {
+      const icon = data.appIconUrl?.trim() || null;
+      // Only own uploads: the web app fetches this file on the server to build
+      // the home-screen icons, so an outside address must never get there.
+      if (icon && !isOwnUploadPath(icon)) throw new BadRequestException('App icon must be an uploaded image');
+      data.appIconUrl = icon;
+    }
     if (data.welcomeVideoUrl !== undefined) {
       const url = data.welcomeVideoUrl?.trim() || null;
-      // Same hosts as course videos: each is embedded, and allowed by frame-src.
-      if (url && !toVideoEmbed(url)) {
-        throw new BadRequestException('Welcome video must be a Loom, Vimeo or YouTube link');
+      // Same as course videos: an uploaded video (must exist), or a host that
+      // is embedded and allowed by frame-src.
+      if (url && isHostedVideo(url)) {
+        if (!hostedVideoExists(url)) throw new BadRequestException('Uploaded video not found');
+      } else if (url && !toVideoEmbed(url)) {
+        throw new BadRequestException('Welcome video must be an uploaded video or a Loom, Vimeo or YouTube link');
       }
       data.welcomeVideoUrl = url;
+      previousWelcome = (await this.prisma.platformSettings.findUnique({ where: { id: 'default' }, select: { welcomeVideoUrl: true } }))?.welcomeVideoUrl ?? null;
     }
-    return this.prisma.platformSettings.upsert({
+    const settings = await this.prisma.platformSettings.upsert({
       where: { id: 'default' },
       create: { id: 'default', ...data, updatedAt: new Date() },
       update: { ...data, updatedAt: new Date() },
     });
+    // A replaced uploaded welcome video is deleted unless something else uses it.
+    if (previousWelcome && previousWelcome !== settings.welcomeVideoUrl) {
+      await deleteUnusedHostedVideos(this.prisma, [previousWelcome], this.logger);
+    }
+    return settings;
   }
+}
+
+/** "/uploads/…" without query, fragment, backslash, whitespace or "..". */
+export function isOwnUploadPath(value: string): boolean {
+  return /^\/uploads\/[^?#\\\s]+$/.test(value) && !value.split('/').includes('..');
 }

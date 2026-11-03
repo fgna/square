@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 
 export interface WelcomeVideo {
-  videoUrl: string | null;
   videoEmbedUrl: string | null;
+  /** A welcome video uploaded to the platform: signed, expiring link. */
+  videoFileUrl?: string | null;
   dismissed: boolean;
 }
 

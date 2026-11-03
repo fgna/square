@@ -1,0 +1,7 @@
+{
+  "title": "Chat and health checks no longer hit the sign-in rate limit",
+  "category": "fixed",
+  "audience": "members",
+  "description": "The strict rate limit for sign-in, registration and password routes no longer applies to every route. Open chats kept polling and were blocked after about five minutes; container health checks turned the API unhealthy.",
+  "pr": 45
+}

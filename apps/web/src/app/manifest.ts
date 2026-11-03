@@ -1,10 +1,15 @@
 import type { MetadataRoute } from 'next';
+import { getServerBranding } from '@/lib/server-branding';
 
-export default function manifest(): MetadataRoute.Manifest {
+// Name and icon come from Admin → Settings, so read them per request.
+export const dynamic = 'force-dynamic';
+
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const { platformName } = await getServerBranding();
   return {
     id: '/',
-    name: 'Community Platform',
-    short_name: 'Community',
+    name: platformName,
+    short_name: platformName,
     description: 'Community discussions, courses and events',
     start_url: '/',
     scope: '/',
