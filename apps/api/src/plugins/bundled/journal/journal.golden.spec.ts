@@ -144,15 +144,14 @@ const packSteps: Step[] = [
 
 async function record(steps: Step[], packFields?: () => Promise<Record<string, unknown>>) {
   const calls: unknown[] = [];
-  // PrismaModule is global in the app; a global stand-in plays its part.
-  const prisma = { module: class FakePrismaModule {}, global: true, providers: [{ provide: PrismaService, useValue: recordingPrisma(calls) }], exports: [PrismaService] };
+  const prisma = recordingPrisma(calls);
   const moduleRef = await Test.createTestingModule({
-    imports: [prisma, PluginsModule.register([{ id: 'journal', plugin: journal }])],
+    imports: [PluginsModule.register([{ id: 'journal', plugin: journal }])],
     providers: [
       { provide: APP_GUARD, useClass: HeaderUserGuard },
       { provide: APP_GUARD, useClass: RolesGuard },
     ],
-  }).compile();
+  }).overrideProvider(PrismaService).useValue(prisma).compile();
   const app: INestApplication = moduleRef.createNestApplication();
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true, transformOptions: { enableImplicitConversion: false } }));

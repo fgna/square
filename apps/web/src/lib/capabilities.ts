@@ -1,5 +1,5 @@
 /** Keep this list aligned with apps/api/src/config/capabilities.ts. */
-export const CAPABILITIES = ['feed', 'messages', 'events', 'courses', 'journal', 'assessments', 'testimonials', 'recordings', 'gamification'] as const;
+export const CAPABILITIES = ['feed', 'messages', 'events', 'courses', 'journal', 'assessments', 'testimonials', 'recordings', 'gamification', 'learning-groups'] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 export function parseCapabilities(value: string | undefined): ReadonlySet<Capability> {
   if (value === undefined) return new Set(CAPABILITIES);
@@ -11,6 +11,7 @@ export function parseCapabilities(value: string | undefined): ReadonlySet<Capabi
 export const enabledCapabilities = parseCapabilities(process.env.NEXT_PUBLIC_SQUARE_CAPABILITIES);
 export function capabilityForPath(path: string): Capability | undefined {
   const mappings: [Capability, RegExp][] = [
+    ['learning-groups', /^\/(?:learning-groups|p\/turbo-mathe\/groups)(?:\/|$)/],
     ['feed', /^\/(?:feed|questions|bookmarks)(?:\/|$)/],
     ['messages', /^\/messages(?:\/|$)/],
     ['events', /^\/(?:events|event-proposals)(?:\/|$)/],

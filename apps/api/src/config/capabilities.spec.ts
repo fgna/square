@@ -8,7 +8,7 @@ describe('instance capabilities', () => {
   it('allows an identity-only instance and blocks every optional API surface', () => {
     const enabled = parseCapabilities('');
     for (const path of ['/api/posts', '/api/messages/conversations', '/api/events', '/api/courses',
-      '/api/p/journal/entries', '/api/assessments', '/api/testimonials', '/api/events/recordings/all', '/api/events/123/recordings', '/api/admin/events', '/api/admin/assessment']) {
+      '/api/p/journal/entries', '/api/learning-groups', '/api/assessments', '/api/testimonials', '/api/events/recordings/all', '/api/events/123/recordings', '/api/admin/events', '/api/admin/assessment']) {
       expect(disabledApiCapability(path, enabled)).toBeTruthy();
     }
     expect(disabledApiCapability('/api/auth/login', enabled)).toBeUndefined();

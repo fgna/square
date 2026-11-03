@@ -91,6 +91,11 @@ jobs:
       - name: Verify wallet concurrency and owned equipment on PostgreSQL
         run: pnpm --dir apps/api exec vitest run src/gamification/gamification.postgres.spec.ts src/gamification/gamification.equipment-postgres.spec.ts
 
+      - name: Verify installed plugin group authorization with synthetic members
+        env:
+          PLUGIN_GROUPS_DISPOSABLE_DB: '1'
+        run: pnpm --dir apps/api exec vitest run src/plugins/plugin-learning-groups.postgres.spec.ts
+
   gamification-upgrade:
     # Existing synthetic task history must survive the additive economy migrations.
     runs-on: ubuntu-latest

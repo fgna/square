@@ -1,0 +1,6 @@
+{
+  "title": "Permission-safe plugin learning groups",
+  "category": "new",
+  "description": "Installed web plugins can use authenticated, capability-gated learning-group operations without raw token or HTTP proxy access.",
+  "pr": 72
+}

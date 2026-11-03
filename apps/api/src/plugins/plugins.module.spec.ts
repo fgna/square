@@ -6,6 +6,8 @@ import request from 'supertest';
 import type { ApiPlugin } from '@community/plugin-sdk/api';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PrismaService } from '../prisma/prisma.service';
+import { instanceCapabilities, type Capability } from '../config/capabilities';
+import { CapabilityGuard } from '../config/capabilities.guard';
 import { PluginsModule } from './plugins.module';
 
 // Stands in for the JWT guard: the member comes from a test header.
@@ -21,10 +23,12 @@ class HeaderUserGuard implements CanActivate {
 
 // PrismaModule is global in the app; a global stand-in plays its part.
 const findUnique = vi.fn();
+const findGroups = vi.fn();
+const prisma = { journalEntry: { findUnique }, learningGroup: { findMany: findGroups } };
 const fakePrisma = {
   module: class FakePrismaModule {},
   global: true,
-  providers: [{ provide: PrismaService, useValue: { journalEntry: { findUnique } } }],
+  providers: [{ provide: PrismaService, useValue: prisma }],
   exports: [PrismaService],
 };
 
@@ -40,6 +44,11 @@ const samplePlugin: ApiPlugin = {
       @Get('today')
       async today(@CurrentUser('id') userId: string) {
         return { source: contentPack.source(), entry: await data.journal.get(userId, '2026-10-21') };
+      }
+
+      @Get('groups')
+      groups(@CurrentUser('id') userId: string) {
+        return data.groups.list(userId);
       }
 
       @Get('admin')
@@ -60,9 +69,10 @@ describe('PluginsModule', () => {
       imports: [fakePrisma, PluginsModule.register([{ id: 'sample-plugin', plugin: samplePlugin }])],
       providers: [
         { provide: APP_GUARD, useClass: HeaderUserGuard },
+        { provide: APP_GUARD, useClass: CapabilityGuard },
         { provide: APP_GUARD, useClass: RolesGuard },
       ],
-    }).compile();
+    }).overrideProvider(PrismaService).useValue(prisma).compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
     await app.init();
@@ -83,6 +93,31 @@ describe('PluginsModule', () => {
     expect(findUnique).toHaveBeenCalledWith({ where: { userId_date: { userId: 'u1', date: new Date('2026-10-21T00:00:00.000Z') } } });
   });
 
+  it('uses the authenticated member for plugin group queries and enforces the capability', async () => {
+    const capabilities = instanceCapabilities as Set<Capability>;
+    const previouslyEnabled = capabilities.has('learning-groups');
+    const server = app.getHttpServer();
+    const path = '/api/p/sample-plugin/groups';
+    try {
+      capabilities.add('learning-groups');
+      findGroups.mockResolvedValue([{ id: 'member-group' }]);
+      await request(server).get(path).expect(403);
+      await request(server).get(path).query({ userId: 'other' }).set('x-test-user', 'member').expect(200, [{ id: 'member-group' }]);
+      expect(findGroups).toHaveBeenCalledTimes(1);
+      expect(findGroups).toHaveBeenCalledWith(expect.objectContaining({
+        where: { members: { some: { userId: 'member' } } },
+      }));
+
+      capabilities.delete('learning-groups');
+      await request(server).get(path).set('x-test-user', 'member').expect(404);
+      await request(server).get('/api/learning-groups').set('x-test-user', 'member').expect(404);
+      expect(findGroups).toHaveBeenCalledTimes(1);
+    } finally {
+      if (previouslyEnabled) capabilities.add('learning-groups');
+      else capabilities.delete('learning-groups');
+    }
+  });
+
   it('applies the global guards to plugin routes', async () => {
     expect((await request(app.getHttpServer()).get('/api/p/sample-plugin/hello')).status).toBe(403);
   });
@@ -98,7 +133,7 @@ describe('PluginsModule', () => {
   });
 
   it('registers nothing when no plugin is installed', async () => {
-    const empty = await Test.createTestingModule({ imports: [fakePrisma, PluginsModule.register([])] }).compile();
+    const empty = await Test.createTestingModule({ imports: [fakePrisma, PluginsModule.register([])] }).overrideProvider(PrismaService).useValue(prisma).compile();
     const a = empty.createNestApplication();
     await a.init();
     await a.close();
