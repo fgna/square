@@ -7,7 +7,7 @@ export class BookmarksService {
 
   async toggle(userId: string, postId: string) {
     const post = await this.prisma.post.findUnique({ where: { id: postId } });
-    if (!post) throw new NotFoundException('Post not found');
+    if (!post || post.publishAt) throw new NotFoundException('Post not found');
 
     const existing = await this.prisma.bookmark.findUnique({
       where: { userId_postId: { userId, postId } },

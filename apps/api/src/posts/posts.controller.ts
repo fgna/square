@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { BookmarksService } from './bookmarks.service';
-import { CreatePostDto } from './dto/create-post.dto';
+import { CreatePostDto, SchedulePostDto } from './dto/create-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ReportPostDto } from './dto/report-post.dto';
@@ -45,6 +45,20 @@ export class PostsController {
     @CurrentUser() user: any,
   ) {
     return this.bookmarksService.findAll(user.id, Number(page), Number(limit));
+  }
+
+  @Get('scheduled')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Scheduled posts, next first (Admin only)' })
+  findScheduled() {
+    return this.postsService.findScheduled();
+  }
+
+  @Patch(':id/schedule')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Move a scheduled post to another time, or publish it now with null (Admin only)' })
+  reschedule(@Param('id') id: string, @Body() dto: SchedulePostDto) {
+    return this.postsService.reschedule(id, dto.publishAt);
   }
 
   @Get(':id')

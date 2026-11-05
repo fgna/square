@@ -93,9 +93,9 @@ export class DigestService {
   /** Content that is the same for every member. */
   private async sharedContent(periodStart: Date, now: Date) {
     const [newPosts, topPosts, upcoming, upcomingEventCount, newCourses, platformName] = await Promise.all([
-      this.prisma.post.count({ where: { createdAt: { gte: periodStart }, isHidden: false } }),
+      this.prisma.post.count({ where: { createdAt: { gte: periodStart }, isHidden: false, publishAt: null } }),
       this.prisma.post.findMany({
-        where: { createdAt: { gte: periodStart }, isHidden: false },
+        where: { createdAt: { gte: periodStart }, isHidden: false, publishAt: null },
         orderBy: { reactions: { _count: 'desc' } },
         take: 5,
         select: { content: true, author: { select: { name: true } }, _count: { select: { reactions: true, comments: true } } },

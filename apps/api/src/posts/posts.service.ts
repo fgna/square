@@ -33,6 +33,7 @@ const postSelect = {
   authorId: true,
   isPinned: true,
   isHidden: true,
+  publishAt: true,
   createdAt: true,
   updatedAt: true,
   author: {
@@ -50,6 +51,19 @@ const postSelect = {
     select: { comments: true, reactions: true },
   },
 };
+
+/** Members only ever see published posts; scheduled ones wait for their time. */
+export const PUBLISHED = { publishAt: null };
+
+/** A scheduled time must lie ahead, and not absurdly far. */
+const MAX_SCHEDULE_AHEAD_MS = 366 * 24 * 60 * 60 * 1000;
+export function scheduleTime(value: string, now = new Date()): Date {
+  const at = new Date(value);
+  if (Number.isNaN(at.getTime())) throw new BadRequestException('Invalid publishing time');
+  if (at.getTime() <= now.getTime()) throw new BadRequestException('The publishing time must be in the future');
+  if (at.getTime() - now.getTime() > MAX_SCHEDULE_AHEAD_MS) throw new BadRequestException('The publishing time is more than a year ahead');
+  return at;
+}
 
 /**
  * Attachment files (audio, uploaded videos) are only reachable through a
@@ -73,7 +87,7 @@ export class PostsService {
     limit = Math.max(1, Math.min(limit, 100));
     page = Math.max(1, page);
     const skip = (page - 1) * limit;
-    const where: any = { isHidden: false };
+    const where: any = { isHidden: false, ...PUBLISHED };
     if (type) where.type = type;
 
     const selectWithUser = {
@@ -171,7 +185,7 @@ export class PostsService {
 
   async findOne(id: string) {
     const post = await this.prisma.post.findUnique({
-      where: { id, isHidden: false },
+      where: { id, isHidden: false, ...PUBLISHED },
       select: {
         ...postSelect,
         comments: {
@@ -204,12 +218,18 @@ export class PostsService {
     if (dto.type === 'ANNOUNCEMENT' && authorRole !== 'ADMIN') {
       throw new ForbiddenException('Only admins can post announcements');
     }
+    // Scheduling is for admins (e.g. a weekly post prepared at the weekend).
+    if (dto.publishAt && authorRole !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can schedule posts');
+    }
+    const publishAt = dto.publishAt ? scheduleTime(dto.publishAt) : null;
     const sanitized = sanitizeContent(dto.content);
     const post = await this.prisma.post.create({
       data: {
         content: sanitized,
         type: (dto.type as any) || 'DISCUSSION',
         authorId,
+        ...(publishAt && { publishAt }),
         ...(dto.categoryIds?.length && {
           categories: {
             create: dto.categoryIds.map((categoryId) => ({ categoryId })),
@@ -238,6 +258,43 @@ export class PostsService {
     }
 
     return withAttachmentLinks(post);
+  }
+
+  /** Scheduled posts, next first (admins). */
+  async findScheduled() {
+    const data = await this.prisma.post.findMany({
+      where: { publishAt: { not: null } },
+      orderBy: { publishAt: 'asc' },
+      select: postSelect,
+    });
+    return data.map(withAttachmentLinks);
+  }
+
+  /** Moves a scheduled post to another time, or publishes it now (null). */
+  async reschedule(id: string, publishAt: string | null | undefined) {
+    const post = await this.prisma.post.findUnique({ where: { id }, select: { publishAt: true } });
+    if (!post || !post.publishAt) throw new NotFoundException('Scheduled post not found');
+    const data = publishAt ? { publishAt: scheduleTime(publishAt) } : { publishAt: null, createdAt: new Date() };
+    return withAttachmentLinks(await this.prisma.post.update({ where: { id }, data, select: postSelect }));
+  }
+
+  /**
+   * Publishes scheduled posts whose time has come. The post takes its
+   * scheduled time as creation time, so it sits at the top of the feed.
+   */
+  async publishDue(now = new Date()): Promise<number> {
+    const due = await this.prisma.post.findMany({
+      where: { publishAt: { lte: now } },
+      select: { id: true, publishAt: true },
+    });
+    for (const post of due) {
+      await this.prisma.post.updateMany({
+        where: { id: post.id, publishAt: post.publishAt },
+        data: { publishAt: null, createdAt: post.publishAt! },
+      });
+    }
+    if (due.length) this.logger.log(`Published ${due.length} scheduled post(s)`);
+    return due.length;
   }
 
   async update(id: string, content: string, userId: string, userRole: string) {
