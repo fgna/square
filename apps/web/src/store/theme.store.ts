@@ -4,7 +4,7 @@ import { themes } from '@/lib/themes';
 import type { Theme } from '@community/shared';
 
 interface ThemeStore {
-  themeName: string;
+  themeName: string | null;
   availableThemes: Theme[];
   setThemeName: (name: string) => void;
 }
@@ -12,7 +12,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      themeName: 'executive-glass',
+      themeName: null,
       availableThemes: themes,
       setThemeName: (name: string) => set({ themeName: name }),
     }),
