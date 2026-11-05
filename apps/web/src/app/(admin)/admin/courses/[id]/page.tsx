@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowDown, ArrowLeft, ArrowUp, BookOpen, Paperclip, Pencil, Plus, Trash2, Video } from 'lucide-react';
@@ -11,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LessonEditor } from '@/components/courses/lesson-editor';
-import { ImageUploadField } from '@/components/common/image-upload-field';
+import { CoverPicker } from '@/components/events/cover-picker';
 import { CategoryPicker } from '@/components/common/category-picker';
 import { useCourseEditor } from '@/hooks/use-course-editor';
 import type { CourseReleaseMode, Lesson } from '@community/shared';
@@ -53,6 +54,7 @@ function IconButton({
  * only in the seed script.
  */
 export default function CourseEditorPage() {
+  const t = useTranslations('adminCourseEditorUI');
   const { id } = useParams<{ id: string }>();
   const editor = useCourseEditor(id);
   const course = editor.course.data;
@@ -83,7 +85,7 @@ export default function CourseEditorPage() {
       </div>
     );
   }
-  if (!course) return <p style={{ color: 'var(--theme-text-muted)' }}>Course not found.</p>;
+  if (!course) return <p style={{ color: 'var(--theme-text-muted)' }}>{t('notFound')}</p>;
 
   const drip = course.releaseMode === 'DRIP';
   const settingsChanged =
@@ -93,7 +95,7 @@ export default function CourseEditorPage() {
     [...categoryIds].sort().join(',') !== [...savedCategoryIds].sort().join(',');
 
   const addLesson = (moduleId: string) => {
-    const lessonTitle = window.prompt('Title of the new lesson');
+    const lessonTitle = window.prompt(t('newLessonPrompt'));
     if (!lessonTitle?.trim()) return;
     editor.addLesson.mutate(
       { moduleId, title: lessonTitle.trim() },
@@ -104,42 +106,42 @@ export default function CourseEditorPage() {
   return (
     <div className="space-y-6">
       <Link href="/admin/courses" className="inline-flex items-center gap-1 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-        <ArrowLeft size={14} /> All courses
+        <ArrowLeft size={14} /> {t('back')}
       </Link>
 
       <PageHeader
         title={course.title}
-        description={course.isPublished ? 'Published — changes are visible to members right away' : 'Draft — only admins can see it'}
+        description={course.isPublished ? t('statusPublished') : t('statusDraft')}
         icon={BookOpen}
       />
 
       {/* Settings */}
       <section className="rounded-xl p-5 space-y-4" style={card}>
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--theme-text)' }}>Course settings</h2>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--theme-text)' }}>{t('settings')}</h2>
         <div className="space-y-1.5">
-          <Label htmlFor="course-title">Title</Label>
+          <Label htmlFor="course-title">{t('titleLabel')}</Label>
           <Input id="course-title" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="course-description">Description</Label>
+          <Label htmlFor="course-description">{t('descriptionLabel')}</Label>
           <Textarea id="course-description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Cover image</Label>
+          <Label>{t('cover')}</Label>
           {/* Saved immediately: there is nothing else to confirm about a picture. */}
-          <ImageUploadField
-            label="Cover image"
-            value={course.coverUrl}
-            onChange={(coverUrl) => editor.updateCourse.mutate({ coverUrl })}
+          <CoverPicker
+            api="/courses/covers"
+            url={course.coverUrl ?? null}
+            onChange={(coverUrl, coverCredit) => editor.updateCourse.mutate({ coverUrl, coverCredit: coverUrl ? coverCredit : null })}
           />
         </div>
         <CategoryPicker value={categoryIds} onChange={setCategoryIds} />
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium mb-1" style={{ color: 'var(--theme-text)' }}>Release lessons</legend>
+          <legend className="text-sm font-medium mb-1" style={{ color: 'var(--theme-text)' }}>{t('release')}</legend>
           {(
             [
-              ['ALL_AT_ONCE', 'All at once', 'Members can open every lesson as soon as the course is published.'],
-              ['DRIP', 'Step by step (drip)', 'Each lesson opens a set number of days after the member starts the course.'],
+              ['ALL_AT_ONCE', t('releaseAll'), t('releaseAllHint')],
+              ['DRIP', t('releaseDrip'), t('releaseDripHint')],
             ] as const
           ).map(([value, label, hint]) => (
             <label key={value} className="flex items-start gap-2 text-sm cursor-pointer" style={{ color: 'var(--theme-text)' }}>
@@ -164,17 +166,17 @@ export default function CourseEditorPage() {
             editor.updateCourse.mutate({ title: title.trim(), description: description.trim(), releaseMode, categoryIds })
           }
         >
-          Save settings
+          {t('saveSettings')}
         </Button>
       </section>
 
       {/* Modules and lessons */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--theme-text)' }}>Modules and lessons</h2>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--theme-text)' }}>{t('modulesHeading')}</h2>
 
         {course.modules.length === 0 && (
           <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-            No modules yet. A course is made of modules, and each module holds lessons — start with the first module below.
+            {t('noModules')}
           </p>
         )}
 
@@ -184,18 +186,18 @@ export default function CourseEditorPage() {
               <span className="flex-1 font-medium text-sm" style={{ color: 'var(--theme-text)' }}>
                 {mi + 1}. {mod.title}
               </span>
-              <IconButton label="Rename module" onClick={() => {
-                const next = window.prompt('Module title', mod.title);
+              <IconButton label={t('renameModule')} onClick={() => {
+                const next = window.prompt(t('moduleTitlePrompt'), mod.title);
                 if (next?.trim() && next.trim() !== mod.title) editor.renameModule.mutate({ id: mod.id, title: next.trim() });
               }}><Pencil size={14} /></IconButton>
-              <IconButton label="Move module up" disabled={mi === 0} onClick={() => editor.moveModule.mutate({ id: mod.id, direction: 'up' })}>
+              <IconButton label={t('moveModuleUp')} disabled={mi === 0} onClick={() => editor.moveModule.mutate({ id: mod.id, direction: 'up' })}>
                 <ArrowUp size={14} />
               </IconButton>
-              <IconButton label="Move module down" disabled={mi === course.modules.length - 1} onClick={() => editor.moveModule.mutate({ id: mod.id, direction: 'down' })}>
+              <IconButton label={t('moveModuleDown')} disabled={mi === course.modules.length - 1} onClick={() => editor.moveModule.mutate({ id: mod.id, direction: 'down' })}>
                 <ArrowDown size={14} />
               </IconButton>
-              <IconButton label="Delete module" danger onClick={() => {
-                if (confirm(`Delete module "${mod.title}" and its ${mod.lessons.length} lesson(s)? This cannot be undone.`)) {
+              <IconButton label={t('deleteModule')} danger onClick={() => {
+                if (confirm(t('deleteModuleConfirm', { title: mod.title, count: mod.lessons.length }))) {
                   editor.deleteModule.mutate(mod.id);
                 }
               }}><Trash2 size={14} /></IconButton>
@@ -207,7 +209,7 @@ export default function CourseEditorPage() {
                   <button type="button" className="flex-1 text-left truncate hover:underline" style={{ color: 'var(--theme-text)' }} onClick={() => setEditing(lesson)}>
                     {lesson.title}
                   </button>
-                  {lesson.videoUrl && <Video size={13} aria-label="Has video" style={{ color: 'var(--theme-text-muted)' }} />}
+                  {lesson.videoUrl && <Video size={13} aria-label={t('hasVideo')} style={{ color: 'var(--theme-text-muted)' }} />}
                   {(lesson.attachments?.length ?? 0) > 0 && (
                     <span className="flex items-center gap-0.5 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                       <Paperclip size={12} />{lesson.attachments!.length}
@@ -215,18 +217,18 @@ export default function CourseEditorPage() {
                   )}
                   {drip && (
                     <span className="text-xs px-1.5 rounded" style={{ color: 'var(--theme-primary)', background: 'rgba(197,168,128,0.1)' }}>
-                      Day {lesson.releaseAfterDays ?? 0}
+                      {t('day', { day: lesson.releaseAfterDays ?? 0 })}
                     </span>
                   )}
-                  <IconButton label="Edit lesson" onClick={() => setEditing(lesson)}><Pencil size={14} /></IconButton>
-                  <IconButton label="Move lesson up" disabled={li === 0} onClick={() => editor.moveLesson.mutate({ id: lesson.id, direction: 'up' })}>
+                  <IconButton label={t('editLesson')} onClick={() => setEditing(lesson)}><Pencil size={14} /></IconButton>
+                  <IconButton label={t('moveLessonUp')} disabled={li === 0} onClick={() => editor.moveLesson.mutate({ id: lesson.id, direction: 'up' })}>
                     <ArrowUp size={14} />
                   </IconButton>
-                  <IconButton label="Move lesson down" disabled={li === mod.lessons.length - 1} onClick={() => editor.moveLesson.mutate({ id: lesson.id, direction: 'down' })}>
+                  <IconButton label={t('moveLessonDown')} disabled={li === mod.lessons.length - 1} onClick={() => editor.moveLesson.mutate({ id: lesson.id, direction: 'down' })}>
                     <ArrowDown size={14} />
                   </IconButton>
-                  <IconButton label="Delete lesson" danger onClick={() => {
-                    if (confirm(`Delete lesson "${lesson.title}"? This cannot be undone.`)) editor.deleteLesson.mutate(lesson.id);
+                  <IconButton label={t('deleteLesson')} danger onClick={() => {
+                    if (confirm(t('deleteLessonConfirm', { title: lesson.title }))) editor.deleteLesson.mutate(lesson.id);
                   }}><Trash2 size={14} /></IconButton>
                 </li>
               ))}
@@ -234,7 +236,7 @@ export default function CourseEditorPage() {
 
             <div className="px-4 py-2">
               <Button size="sm" variant="ghost" onClick={() => addLesson(mod.id)} disabled={editor.addLesson.isPending}>
-                <Plus size={14} className="mr-1" /> Add lesson
+                <Plus size={14} className="mr-1" /> {t('addLesson')}
               </Button>
             </div>
           </div>
@@ -248,9 +250,9 @@ export default function CourseEditorPage() {
             editor.addModule.mutate(newModule.trim(), { onSuccess: () => setNewModule('') });
           }}
         >
-          <Input placeholder="New module title" value={newModule} onChange={(e) => setNewModule(e.target.value)} />
+          <Input placeholder={t('newModulePlaceholder')} value={newModule} onChange={(e) => setNewModule(e.target.value)} />
           <Button type="submit" size="sm" disabled={!newModule.trim() || editor.addModule.isPending}>
-            <Plus size={14} className="mr-1" /> Add module
+            <Plus size={14} className="mr-1" /> {t('addModule')}
           </Button>
         </form>
       </section>

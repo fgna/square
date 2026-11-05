@@ -171,6 +171,8 @@ model Course {
   title       String
   description String
   coverUrl    String?
+  /// Photographer credit when the cover is an Unsplash photo ({ name, url, source }).
+  coverCredit Json?
   isPublished Boolean          @default(false)
   releaseMode CourseReleaseMode @default(ALL_AT_ONCE)
   modules     Module[]
