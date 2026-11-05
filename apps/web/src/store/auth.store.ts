@@ -4,9 +4,17 @@ import type { AuthUser } from '@community/shared';
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
-function setCookie(name: string, value: string) {
-  document.cookie = `${name}=${value}; path=/; SameSite=Lax; max-age=${COOKIE_MAX_AGE}`;
+function setCookie(name: string, value: string, maxAge = COOKIE_MAX_AGE) {
+  document.cookie = `${name}=${value}; path=/; SameSite=Lax; max-age=${maxAge}`;
 }
+
+/**
+ * "This browser has signed in here before": no personal data, kept after
+ * sign-out, so the start page sends members to the sign-in form instead of
+ * the page for newcomers (see middleware).
+ */
+export const RETURNING_MEMBER_COOKIE = 'returning-member';
+const RETURNING_MEMBER_MAX_AGE = 365 * 24 * 60 * 60;
 
 function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
@@ -18,6 +26,7 @@ function deleteCookie(name: string) {
 function syncAuthCookies(role: string) {
   setCookie('auth-session', '1');
   setCookie('user-role', role);
+  setCookie(RETURNING_MEMBER_COOKIE, '1', RETURNING_MEMBER_MAX_AGE);
 }
 
 function clearAuthCookies() {

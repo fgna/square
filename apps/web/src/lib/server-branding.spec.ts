@@ -8,7 +8,7 @@ describe('server-side branding', () => {
     vi.stubEnv('API_INTERNAL_URL', 'http://api:3001/');
     const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ platformName: ' GrowthLeaders ', appIconUrl: '/uploads/uploads/u1/icon.png' }) });
     vi.stubGlobal('fetch', fetch);
-    expect(await getServerBranding()).toEqual({ platformName: 'GrowthLeaders', appIconUrl: '/uploads/uploads/u1/icon.png' });
+    expect(await getServerBranding()).toEqual({ platformName: 'GrowthLeaders', appIconUrl: '/uploads/uploads/u1/icon.png', allowSignups: true, joinUrl: null });
     expect(fetch.mock.calls[0][0]).toBe('http://api:3001/api/platform/branding');
   });
 

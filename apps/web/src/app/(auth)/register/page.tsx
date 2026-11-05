@@ -61,6 +61,15 @@ function RegisterForm() {
         <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
           {t('inviteOnlyMessage')}
         </p>
+        {branding.joinUrl && (
+          <a
+            href={branding.joinUrl}
+            className="mt-4 inline-block text-sm font-medium hover:underline"
+            style={{ color: 'var(--theme-primary)' }}
+          >
+            {t('joinPage')}
+          </a>
+        )}
         <p className="mt-4 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
           {t('haveAccount')}{' '}
           <Link

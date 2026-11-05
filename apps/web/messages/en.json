@@ -264,7 +264,8 @@
     "haveAccount": "Already have an account?",
     "registrationFailed": "Registration failed",
     "inviteOnlyTitle": "Invitation only",
-    "inviteOnlyMessage": "New accounts currently require an invitation. Please use the link from your invitation."
+    "inviteOnlyMessage": "New accounts currently require an invitation. Please use the link from your invitation.",
+    "joinPage": "Find out more and become a member"
   },
   "bookmarks": {
     "title": "Saved Posts",
@@ -1233,6 +1234,8 @@
     "accessDescription": "Control who can join the platform.",
     "publicSignup": "Allow public sign-ups",
     "publicSignupDescription": "New members can register without an invitation.",
+    "joinUrl": "Page for visitors without an invitation",
+    "joinUrlHint": "While sign-ups need an invitation, \"Join\" and \"Register\" on the start page lead here, e.g. to your sales or information page. Leave empty to show the invitation notice.",
     "save": "Save changes",
     "logoHint": "Shown top left instead of the name. A wide logo on a transparent or dark background works best.",
     "appIcon": "App icon",

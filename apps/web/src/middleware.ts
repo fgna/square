@@ -121,6 +121,12 @@ export function middleware(request: NextRequest) {
     return redirect('/login');
   }
 
+  // Members who signed in on this browser before go straight to the sign-in
+  // form; the landing page is for newcomers.
+  if (!authToken && pathname === '/' && request.cookies.get('returning-member')?.value === '1') {
+    return redirect('/login');
+  }
+
   if (!authToken && !isPublicPath) {
     return redirect(`/login?from=${encodeURIComponent(pathname)}`);
   }
