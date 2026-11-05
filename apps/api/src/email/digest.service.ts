@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from './email.service';
 import { absoluteUploadUrl } from '../uploads/public-url';
-import { DigestContent, DigestLook, digestDue, digestSchedule, renderDigest } from './digest-render';
+import { DigestContent, DigestLook, digestCover, digestDue, digestSchedule, renderDigest } from './digest-render';
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -74,7 +74,7 @@ export class DigestService {
     return { sent, to: user.email };
   }
 
-  private look(template: { subject: string; headerHtml: string; footerHtml: string; sections: unknown; accentColor: string; logoUrl: string | null }): DigestLook {
+  private look(template: { subject: string; headerHtml: string; footerHtml: string; sections: unknown; accentColor: string; logoUrl: string | null; coverUrl?: string | null; coverCredit?: unknown }): DigestLook {
     return {
       subject: template.subject,
       headerHtml: template.headerHtml,
@@ -82,6 +82,7 @@ export class DigestService {
       sections: Array.isArray(template.sections) ? (template.sections as string[]) : null,
       accentColor: template.accentColor,
       logoUrl: template.logoUrl ? absoluteUploadUrl(template.logoUrl) : null,
+      ...digestCover(template),
     };
   }
 

@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import { ImageUploadField } from '@/components/common/image-upload-field';
+import { CoverPicker, type CoverCredit } from '@/components/events/cover-picker';
 
 interface DigestTemplate {
   id: string;
@@ -25,6 +27,8 @@ interface DigestTemplate {
   sections: string[];
   accentColor: string;
   logoUrl: string | null;
+  coverUrl?: string | null;
+  coverCredit?: CoverCredit;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -62,7 +66,9 @@ function TemplateFormDialog({
   const [headerHtml, setHeaderHtml] = useState(template?.headerHtml ?? '');
   const [footerHtml, setFooterHtml] = useState(template?.footerHtml ?? '');
   const [accentColor, setAccentColor] = useState(template?.accentColor ?? '#c5a880');
-  const [logoUrl, setLogoUrl] = useState(template?.logoUrl ?? '');
+  const [logoUrl, setLogoUrl] = useState<string | null>(template?.logoUrl ?? null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(template?.coverUrl ?? null);
+  const [coverCredit, setCoverCredit] = useState<CoverCredit>(template?.coverCredit ?? null);
   const [sections, setSections] = useState<string[]>(template?.sections ?? ['new_posts', 'upcoming_events']);
 
   const mutation = useMutation({
@@ -83,7 +89,10 @@ function TemplateFormDialog({
       headerHtml,
       footerHtml,
       accentColor,
-      logoUrl: logoUrl || undefined,
+      // null removes a logo or cover that was set before.
+      logoUrl: logoUrl || null,
+      coverUrl: coverUrl || null,
+      coverCredit: coverUrl ? coverCredit : null,
       sections,
     });
   };
@@ -160,15 +169,19 @@ function TemplateFormDialog({
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dt-logo">{t('logoOptional')}</Label>
-              <Input
-                id="dt-logo"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('logoOptional')}</Label>
+            <ImageUploadField label={t('logoOptional')} value={logoUrl} onChange={setLogoUrl} previewClassName="h-12 w-40" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('coverOptional')}</Label>
+            <CoverPicker
+              api="/digest-templates/covers"
+              url={coverUrl}
+              onChange={(url, credit) => { setCoverUrl(url); setCoverCredit(credit); }}
+            />
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('coverHint')}</p>
           </div>
           <div className="space-y-2">
             <Label>{t('sections')}</Label>
@@ -297,11 +310,16 @@ export default function AdminDigestsPage() {
 
   return (
     <div className="space-y-6">
-      <TemplateFormDialog
-        open={formOpen}
-        onClose={handleCloseForm}
-        template={editTemplate}
-      />
+      {/* Mounted per opening and keyed by template: the form takes its values
+          from the template when it mounts, so editing used to show empty fields. */}
+      {formOpen && (
+        <TemplateFormDialog
+          key={editTemplate?.id ?? 'new'}
+          open={formOpen}
+          onClose={handleCloseForm}
+          template={editTemplate}
+        />
+      )}
       {previewId && (
         <PreviewDialog
           open={!!previewId}

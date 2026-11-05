@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Header, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Header, Query, StreamableFile } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DigestTemplateService } from './digest-template.service';
 import { CreateDigestTemplateDto } from './dto/create-digest-template.dto';
@@ -7,11 +7,14 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { DigestService } from '../email/digest.service';
 import { digestSchedule } from '../email/digest-render';
+import { UnsplashCovers } from '../events/cover-image';
 
 @ApiTags('digest-templates')
 @ApiBearerAuth()
 @Controller('digest-templates')
 export class DigestTemplateController {
+  private readonly covers = new UnsplashCovers();
+
   constructor(
     private digestTemplateService: DigestTemplateService,
     private digests: DigestService,
@@ -52,6 +55,29 @@ export class DigestTemplateController {
   async preview(@Param('id') id: string): Promise<StreamableFile> {
     const html = await this.digestTemplateService.renderPreview(id);
     return new StreamableFile(Buffer.from(html, 'utf-8'));
+  }
+
+  // ── Cover photos from Unsplash (only with UNSPLASH_ACCESS_KEY), before ':id' ──
+
+  @Get('covers/status')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Whether a photo library is configured for digest covers' })
+  coverStatus() {
+    return { unsplash: this.covers.enabled() };
+  }
+
+  @Get('covers/search')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Search photos for a digest cover (Admin only)' })
+  searchCovers(@Query('q') q = '') {
+    return this.covers.search(q);
+  }
+
+  @Post('covers/chosen')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Report a chosen library photo, as the library requires (Admin only)' })
+  coverChosen(@Body() body: { downloadLocation: string }) {
+    return this.covers.markChosen(String(body?.downloadLocation ?? ''));
   }
 
   @Get(':id')

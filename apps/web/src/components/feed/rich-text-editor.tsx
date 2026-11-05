@@ -22,7 +22,9 @@ import {
   Heading2,
   Minus,
   ImagePlus,
+  Camera,
 } from 'lucide-react';
+import { UnsplashSearch, useUnsplashEnabled, type UnsplashPhoto } from '@/components/common/unsplash-search';
 
 interface RichTextEditorProps {
   content: string;
@@ -34,6 +36,40 @@ interface RichTextEditorProps {
    * (as in the feed), the editor offers no image button.
    */
   onUploadImage?: (file: File) => Promise<string>;
+  /**
+   * With images on: the photo search to offer next to uploads (e.g.
+   * "/courses/covers"), shown when the operator set up Unsplash.
+   */
+  photoSearchApi?: string;
+}
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+/** Picks an Unsplash photo and inserts it with the credit line Unsplash requires right below. */
+function UnsplashDialog({ editor, api, onClose }: { editor: Editor; api: string; onClose: () => void }) {
+  const t = useTranslations('editorUI');
+  const credits = useTranslations('events');
+  const insert = (photo: UnsplashPhoto) => {
+    const library = `https://unsplash.com/?${photo.credit.url.split('?')[1] ?? ''}`;
+    const credit = credits.markup('coverCredit', {
+      name: escapeHtml(photo.credit.name),
+      author: (chunks) => `<a href="${escapeHtml(photo.credit.url)}" target="_blank" rel="noopener noreferrer">${chunks}</a>`,
+      library: (chunks) => `<a href="${escapeHtml(library)}" target="_blank" rel="noopener noreferrer">${chunks}</a>`,
+    });
+    editor.chain().focus().setImage({ src: photo.url, alt: photo.alt ?? '' }).insertContent(`<p><em>${credit}</em></p>`).run();
+    onClose();
+  };
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('insertUnsplash')}</DialogTitle>
+        </DialogHeader>
+        <UnsplashSearch api={api} onChoose={insert} />
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function ToolbarButton({
@@ -63,9 +99,10 @@ function ToolbarButton({
   );
 }
 
-function Toolbar({ editor, onUploadImage }: { editor: Editor; onUploadImage?: (file: File) => Promise<string> }) {
+function Toolbar({ editor, onUploadImage, photoSearchApi }: { editor: Editor; onUploadImage?: (file: File) => Promise<string>; photoSearchApi?: string }) {
   const t = useTranslations('editorUI');
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [unsplashOpen, setUnsplashOpen] = useState(false);
 
   const [linkOpen, setLinkOpen] = useState(false);
 
@@ -156,8 +193,10 @@ function Toolbar({ editor, onUploadImage }: { editor: Editor; onUploadImage?: (f
               if (src) editor.chain().focus().setImage({ src, alt: file.name }).run();
             }}
           />
+          {photoSearchApi && <UnsplashButton api={photoSearchApi} onClick={() => setUnsplashOpen(true)} />}
         </>
       )}
+      {unsplashOpen && photoSearchApi && <UnsplashDialog editor={editor} api={photoSearchApi} onClose={() => setUnsplashOpen(false)} />}
       {linkOpen && <LinkDialog editor={editor} onClose={() => setLinkOpen(false)} />}
     </div>
   );
@@ -256,7 +295,18 @@ function LinkDialog({ editor, onClose }: { editor: Editor; onClose: () => void }
   );
 }
 
-export function RichTextEditor({ content, onChange, placeholder, compact, onUploadImage }: RichTextEditorProps) {
+/** Shown only when the operator set up Unsplash. */
+function UnsplashButton({ api, onClick }: { api: string; onClick: () => void }) {
+  const t = useTranslations('editorUI');
+  if (!useUnsplashEnabled(api)) return null;
+  return (
+    <ToolbarButton onClick={onClick} title={t('insertUnsplash')}>
+      <Camera size={14} />
+    </ToolbarButton>
+  );
+}
+
+export function RichTextEditor({ content, onChange, placeholder, compact, onUploadImage, photoSearchApi }: RichTextEditorProps) {
   const t = useTranslations('editorUI');
   const editor = useEditor({
     extensions: [
@@ -293,7 +343,7 @@ export function RichTextEditor({ content, onChange, placeholder, compact, onUplo
         background: 'var(--theme-surface, var(--theme-background))',
       }}
     >
-      <Toolbar editor={editor} onUploadImage={onUploadImage} />
+      <Toolbar editor={editor} onUploadImage={onUploadImage} photoSearchApi={photoSearchApi} />
       <EditorContent editor={editor} />
     </div>
   );

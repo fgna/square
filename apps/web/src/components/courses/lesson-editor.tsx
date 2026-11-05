@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { FileText, Loader2, Paperclip, Trash2, Video } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ export function LessonEditor({
   drip: boolean;
   onClose: () => void;
 }) {
+  const t = useTranslations('adminLessonEditorUI');
   const editor = useCourseEditor(courseId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,18 +70,18 @@ export function LessonEditor({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit lesson</DialogTitle>
+          <DialogTitle>{t('heading')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
           <div className="space-y-1.5">
-            <Label htmlFor="lesson-title">Title</Label>
+            <Label htmlFor="lesson-title">{t('titleLabel')}</Label>
             <Input id="lesson-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
           {modules.length > 1 && (
             <div className="space-y-1.5">
-              <Label htmlFor="lesson-module">Module</Label>
+              <Label htmlFor="lesson-module">{t('module')}</Label>
               {/* Moves right away and appends the lesson to the chosen module. */}
               <select
                 id="lesson-module"
@@ -100,7 +102,7 @@ export function LessonEditor({
 
           <div className="space-y-1.5">
             <Label htmlFor="lesson-video" className="flex items-center gap-1.5">
-              <Video size={14} /> Video
+              <Video size={14} /> {t('video')}
             </Label>
             <Input
               id="lesson-video"
@@ -109,8 +111,7 @@ export function LessonEditor({
               onChange={(e) => setVideoUrl(e.target.value)}
             />
             <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-              Paste the share link from YouTube (unlisted works), Vimeo or Loom, or upload an MP4 or MOV so the video
-              stays on this platform. Leave empty for a lesson without video.
+              {t('videoHint')}
             </p>
             <VideoUploadButton onUploaded={(url) => setVideoUrl(url)} />
             {/* Uploaded videos play only inside the platform; there is no download page. */}
@@ -123,14 +124,14 @@ export function LessonEditor({
                   checked={videoDownloadable && videoHostAllowsDownload}
                   onCheckedChange={setVideoDownloadable}
                   disabled={!videoHostAllowsDownload}
-                  aria-label="Members may download this video"
+                  aria-label={t('videoDownload')}
                 />
                 <span>
-                  Members may download this video
+                  {t('videoDownload')}
                   <span className="block text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                     {videoHostAllowsDownload
-                      ? 'Shows a link to the video’s page on Vimeo/Loom. Also switch on downloads in the video’s settings there.'
-                      : 'Only for Vimeo and Loom videos — YouTube offers no downloads.'}
+                      ? t('videoDownloadHint')
+                      : t('videoDownloadUnavailable')}
                   </span>
                 </span>
               </label>
@@ -138,18 +139,19 @@ export function LessonEditor({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Text under the video</Label>
+            <Label>{t('content')}</Label>
             <RichTextEditor
               content={lesson.content}
               onChange={setContent}
-              placeholder="What this lesson is about, exercises, links…"
+              placeholder={t('contentPlaceholder')}
               onUploadImage={uploadLessonImage}
+              photoSearchApi="/courses/covers"
             />
           </div>
 
           {drip && (
             <div className="space-y-1.5">
-              <Label htmlFor="lesson-days">Opens after</Label>
+              <Label htmlFor="lesson-days">{t('opensAfter')}</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="lesson-days"
@@ -161,7 +163,7 @@ export function LessonEditor({
                   onChange={(e) => setReleaseAfterDays(Math.max(0, Number(e.target.value) || 0))}
                 />
                 <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
-                  days after the member starts the course {releaseAfterDays === 0 && '(right away)'}
+                  {t('opensAfterDays')} {releaseAfterDays === 0 && t('rightAway')}
                 </span>
               </div>
             </div>
@@ -169,7 +171,7 @@ export function LessonEditor({
 
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
-              <Paperclip size={14} /> Downloads
+              <Paperclip size={14} /> {t('downloads')}
             </Label>
             {(current.attachments ?? []).length > 0 && (
               <ul className="space-y-1.5">
@@ -189,8 +191,8 @@ export function LessonEditor({
                       style={{ color: 'var(--theme-text-muted)' }}
                       title={
                         isViewableInBrowser(file.mimeType)
-                          ? 'Off: members can only view it in the lesson'
-                          : 'Browsers cannot display Word, Excel or PowerPoint. For view-only, upload a PDF version.'
+                          ? t('downloadOffHint')
+                          : t('officeDownloadOnly')
                       }
                     >
                       <Switch
@@ -199,13 +201,13 @@ export function LessonEditor({
                         onCheckedChange={(downloadable) =>
                           editor.setAttachmentDownloadable.mutate({ id: file.id, downloadable })
                         }
-                        aria-label={`Allow downloading ${file.filename}`}
+                        aria-label={t('allowDownload', { name: file.filename })}
                       />
-                      Download
+                      {t('download')}
                     </label>
                     <button
                       type="button"
-                      aria-label={`Remove ${file.filename}`}
+                      aria-label={t('removeFile', { name: file.filename })}
                       onClick={() => editor.deleteAttachment.mutate(file.id)}
                       className="p-1 rounded hover:bg-white/5"
                     >
@@ -238,23 +240,21 @@ export function LessonEditor({
               ) : (
                 <Paperclip size={14} className="mr-1.5" />
               )}
-              Add file
+              {t('addFile')}
             </Button>
             <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-              PDF, Word, Excel, PowerPoint or audio (MP3, M4A, WAV), up to 50 MB. Switch “Download” off to let
-              members only view a PDF or listen to audio in the lesson. Word, Excel and PowerPoint can only be
-              downloaded — for view-only, upload a PDF version.
+              {t('filesHint')}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={onClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button size="sm" onClick={save} disabled={!title.trim() || editor.updateLesson.isPending}>
             {editor.updateLesson.isPending && <Loader2 size={14} className="animate-spin mr-1.5" />}
-            Save lesson
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

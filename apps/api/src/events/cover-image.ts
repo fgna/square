@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IsOptional, IsString, IsUrl, Matches, MaxLength } from 'class-validator';
 
 /** An uploaded picture or a photo hotlinked from Unsplash (their guidelines require hotlinking). */
@@ -18,6 +19,11 @@ export class CoverCreditDto {
   source?: string;
 }
 
+/** A photo credit as stored (JSON); null removes it. Shared by events and courses. */
+export function coverCreditValue(credit: { name: string; url: string; source?: string } | null) {
+  return credit ? { name: credit.name, url: credit.url, source: credit.source ?? 'unsplash' } : Prisma.DbNull;
+}
+
 export interface CoverSearchResult {
   id: string;
   thumbUrl: string;
@@ -28,7 +34,7 @@ export interface CoverSearchResult {
 }
 
 /**
- * Photo search in Unsplash for event covers, only when UNSPLASH_ACCESS_KEY is
+ * Photo search in Unsplash for event and course covers, only when UNSPLASH_ACCESS_KEY is
  * set. The key stays on the server. Note for operators: hotlinked photos are
  * loaded from Unsplash's servers by members' browsers.
  */
