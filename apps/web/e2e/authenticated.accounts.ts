@@ -4,7 +4,9 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 export type TestAccount = { email: string; password: string; newlyGenerated: boolean; file?: string };
-const configRoot = () => join(homedir(), '.config', 'turbo-mathe');
+// Disposable test instances can keep synthetic account credentials inside their own
+// private working directory instead of reusing stale accounts from an earlier run.
+const configRoot = () => process.env.SQUARE_TEST_ACCOUNT_DIR || join(homedir(), '.config', 'turbo-mathe');
 
 export function accountFile(origin: string, scope = '', root = configRoot()): string {
   if (scope && !/^[a-z][a-z0-9-]{0,47}$/.test(scope)) throw new Error('Invalid synthetic account scope');
