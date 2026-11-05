@@ -20,7 +20,7 @@ function testOrigin(): URL {
 }
 
 function persistAccount(file: string, data: { email: string; password: string }): void {
-  const dir = join(homedir(), '.config', 'turbo-mathe');
+  const dir = process.env.SQUARE_TEST_ACCOUNT_DIR || join(homedir(), '.config', 'turbo-mathe');
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   const temp = file + '.tmp-' + process.pid;
   writeFileSync(temp, JSON.stringify(data), { mode: 0o600, flag: 'wx' });
@@ -47,6 +47,11 @@ export const test = base.extend<{ authenticatedPage: Page; syntheticAccountScope
       if (member.newlyGenerated) {
         phase = 'registration';
         await page.goto(new URL('/register', origin).href, { waitUntil: 'domcontentloaded' });
+        // Hydrate before submitting to avoid native GET with synthetic credentials.
+        await page.waitForFunction(() => {
+          const form = document.querySelector('form');
+          return !!form && Object.keys(form).some(key => key.startsWith('__reactProps' + '$'));
+        }, undefined, { timeout: 15000 });
         await page.locator('#name').fill('Square Synthetic Browser Test');
         await page.locator('#email').fill(member.email);
         await page.locator('#password').fill(member.password);
