@@ -1,0 +1,7 @@
+{
+  "title": "Avoid duplicate Playwright discovery in integration CI",
+  "category": "improved",
+  "audience": "admins",
+  "description": "The private integration workflow now discovers the authenticated Playwright scenario once instead of running the identical discovery command twice, while retaining all validation gates.",
+  "pr": 125
+}
