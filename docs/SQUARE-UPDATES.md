@@ -10,9 +10,9 @@ node scripts/check-square-update.mjs --current 1.0.0
 
 Alternatively, for an instance pinned to a tagged Square release in a deployment-owned staging-pair file:
 
-\`\`\`bash
+```bash
 node scripts/check-square-update.mjs --staging-pair /absolute/path/to/staging-pair.json
-\`\`\`
+```
 
 This mode reads the pair's Core checkout and pinned SHA, confirms that its checked-out HEAD matches the SHA, and identifies the installed version from exactly one stable release tag pointing to that commit. The checkout must have the release tag locally. It fails closed for untagged commits, mismatched revisions or ambiguous tags; it does not assert which revision is running in production. The deployment operator is responsible for supplying the accepted deployed pair and checking it matches the live instance.
 
@@ -28,3 +28,5 @@ Before adopting a release:
 Automatic update PRs, production deployment, migration rollback and exhaustive release-history pagination are outside this first step. The Square release tag identifies the platform version, while instance-specific applications such as Turbo Mathe manage their own releases separately.
 
 Related: [Issue #37](https://github.com/fgna/square/issues/37).
+
+For the operator procedure, write freeze, backup and rollback decisions, see [independent instance upgrade and recovery](SQUARE-UPGRADE-RECOVERY.md).
