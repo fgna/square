@@ -1,0 +1,7 @@
+{
+  "title": "Keep dialogs clickable above their overlay",
+  "category": "fixed",
+  "audience": "members",
+  "description": "Dialog content now stacks above its backdrop so visible controls such as privacy consent remain clickable without bypasses or forced interaction.",
+  "pr": 116
+}
