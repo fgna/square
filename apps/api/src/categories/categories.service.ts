@@ -66,7 +66,7 @@ export class CategoriesService {
       const [data, total] = await Promise.all([
         this.prisma.postCategory.findMany({
           // Hidden posts and draft courses were listed here too.
-          where: { categoryId: category.id, post: { isHidden: false } },
+          where: { categoryId: category.id, post: { isHidden: false, publishAt: null } },
           skip: type === 'posts' ? skip : undefined,
           take: type === 'posts' ? limit : limit,
           include: {
@@ -84,7 +84,7 @@ export class CategoriesService {
           },
         }),
         this.prisma.postCategory.count({
-          where: { categoryId: category.id, post: { isHidden: false } },
+          where: { categoryId: category.id, post: { isHidden: false, publishAt: null } },
         }),
       ]);
 

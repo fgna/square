@@ -1,0 +1,7 @@
+{
+  "title": "Admins schedule posts for later",
+  "category": "new",
+  "audience": "admins",
+  "description": "Admins can choose a date and time when writing a post, for example to prepare a Monday post at the weekend. Members see it only from then on; until then admins find it above the feed to edit, move, publish at once or delete.",
+  "pr": 112
+}

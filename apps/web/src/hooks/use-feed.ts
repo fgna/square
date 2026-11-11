@@ -35,6 +35,8 @@ interface CreatePostPayload {
     options: string[];
     endsAt?: string;
   };
+  /** Admins only: publish at this time (ISO) instead of now. */
+  publishAt?: string;
 }
 
 export function useCreatePost() {
