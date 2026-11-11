@@ -1613,5 +1613,12 @@
     "hint": "Verwende eine öffentliche URL zu einer signierten Release-APK. Mitglieder müssen sie ohne Repository-Zugriff herunterladen können. Behalte Signierschlüssel und eine fortlaufende APK-Versionierung für Updates bei.",
     "invalidUrl": "Trage vor der Freigabe eine gültige HTTPS-Download-URL ohne Zugangsdaten oder Fragment ein.",
     "saveError": "Die Einstellungen konnten nicht gespeichert werden."
+  },
+  "mediaPlayer": {
+    "label": "Läuft gerade",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "close": "Beenden und schließen",
+    "open": "Zurück zur Stelle, an der es läuft"
   }
 }

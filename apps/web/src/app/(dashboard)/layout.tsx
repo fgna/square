@@ -7,6 +7,7 @@ import { Topbar } from '@/components/layout/topbar';
 import { CommandPalette } from '@/components/command-palette/command-palette';
 import { OnboardingWizard, onboardingAllowedOn } from '@/components/onboarding/onboarding-wizard';
 import { useProfileSync } from '@/hooks/use-profile-sync';
+import { MediaDock } from '@/components/media/media-dock';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="p-4 lg:p-6">
             {children}
           </div>
+          <MediaDock />
         </main>
       </div>
       <CommandPalette />
