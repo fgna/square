@@ -7,6 +7,8 @@ export interface Branding {
   appIconUrl?: string | null;
   /** Admin → Settings: without it, registration needs an invitation. */
   allowSignups: boolean;
+  /** Page for visitors without an invitation, while sign-ups are closed. */
+  joinUrl?: string | null;
   androidAppDownloadEnabled?: boolean;
   androidAppDownloadUrl?: string | null;
 }
