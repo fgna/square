@@ -1,0 +1,7 @@
+{
+  "title": "Course and lesson editor speak the instance language",
+  "category": "improved",
+  "audience": "admins",
+  "description": "The course editor and the lesson dialog in admin are translated like the rest of the platform; German instances see them in German.",
+  "pr": 104
+}
