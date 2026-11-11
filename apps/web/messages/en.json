@@ -1553,5 +1553,12 @@
     "hint": "Use a public URL for a signed release APK. Members must be able to download it without repository access. Keep signing keys and APK versioning consistent for updates.",
     "invalidUrl": "Enter a valid HTTPS download URL without credentials or a fragment before enabling the download.",
     "saveError": "Settings could not be saved."
+  },
+  "mediaPlayer": {
+    "label": "Now playing",
+    "play": "Play",
+    "pause": "Pause",
+    "close": "Stop and close",
+    "open": "Back to where it plays"
   }
 }

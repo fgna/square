@@ -7,6 +7,7 @@ import { renderPostContent } from '@/lib/render-post-content';
 import { useFormatters } from '@/lib/use-formatters';
 import { ClickToLoadVideo } from '@/components/common/click-to-load-video';
 import { HostedVideo } from '@/components/common/hosted-video';
+import { HostedAudio } from '@/components/common/hosted-audio';
 import type { Lesson, LessonAttachment } from '@community/shared';
 
 /** PDF and audio can be shown in the lesson; Office files only open once downloaded. */
@@ -26,14 +27,7 @@ function ViewOnlyFile({ file }: { file: LessonAttachment }) {
         <figcaption className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text)' }}>
           <Music size={16} style={{ color: 'var(--theme-primary)' }} /> {file.filename}
         </figcaption>
-        <audio
-          controls
-          controlsList="nodownload"
-          preload="none"
-          src={file.url}
-          className="w-full"
-          onContextMenu={(e) => e.preventDefault()}
-        />
+        <HostedAudio src={file.url} title={file.filename} />
       </figure>
     );
   }
@@ -136,7 +130,7 @@ export function LessonView({ lesson }: { lesson: Lesson }) {
               <figcaption className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text)' }}>
                 <Music size={16} style={{ color: 'var(--theme-primary)' }} /> {file.filename}
               </figcaption>
-              <audio controls preload="none" src={file.url} className="w-full" />
+              <HostedAudio src={file.url} title={file.filename} downloadable />
             </figure>
           ))}
         </div>
