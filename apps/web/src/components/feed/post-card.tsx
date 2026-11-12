@@ -193,10 +193,10 @@ export function PostCard({ post }: PostCardProps) {
         <div className="space-y-2">
           {post.attachments!.map((a) =>
             a.mimeType.startsWith('video/') ? (
-              <HostedVideo key={a.id} src={a.url} title={a.filename} />
+              <HostedVideo key={a.id} src={a.url} title={a.filename} backHref={`/feed/${post.id}`} />
             ) : (
               // Audio plays here; no download button, the link expires.
-              <HostedAudio key={a.id} src={a.url} title={a.filename} />
+              <HostedAudio key={a.id} src={a.url} title={a.filename} backHref={`/feed/${post.id}`} />
             ),
           )}
         </div>

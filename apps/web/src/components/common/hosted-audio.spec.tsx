@@ -76,6 +76,13 @@ describe('HostedAudio', () => {
     expect(readPosition('member-1', KEY)).toBe(61);
   });
 
+  it('leads back to the page it was given, e.g. the post itself', async () => {
+    const { container, unmount } = render(<HostedAudio src={SRC} title="Monday Motivator" backHref="/feed/post-7" />);
+    await act(() => audio(container).play());
+    unmount();
+    expect(useMediaStore.getState().docked?.href).toBe('/feed/post-7');
+  });
+
   it('does not start anything when paused audio is left', () => {
     const { unmount } = render(<HostedAudio src={SRC} title="Monday Motivator" />);
     unmount();
