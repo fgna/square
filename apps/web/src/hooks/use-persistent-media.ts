@@ -22,7 +22,13 @@ const SAVE_EVERY_MS = 5000;
  * one; a new src would make the browser reload the file and start over. The
  * first link is kept for as long as it is the same file (links last 24 h).
  */
-export function usePersistentMedia(ref: RefObject<HTMLMediaElement | null>, src: string, title: string): string {
+export function usePersistentMedia(
+  ref: RefObject<HTMLMediaElement | null>,
+  src: string,
+  title: string,
+  /** Where the mini player leads back to; defaults to the current page. */
+  backHref?: string,
+): string {
   const stable = useRef(src);
   if (mediaKey(stable.current) !== mediaKey(src)) stable.current = src;
   const playSrc = stable.current;
@@ -34,7 +40,7 @@ export function usePersistentMedia(ref: RefObject<HTMLMediaElement | null>, src:
     if (!el || !playSrc) return;
     const key = mediaKey(playSrc);
     const userId = useAuthStore.getState().user?.id ?? 'guest';
-    const href = `${window.location.pathname}${window.location.search}`;
+    const href = backHref ?? `${window.location.pathname}${window.location.search}`;
 
     const fromDock = useMediaStore.getState().undock(key);
     let pendingSeek: number | null = fromDock ?? readPosition(userId, key);
@@ -91,7 +97,7 @@ export function usePersistentMedia(ref: RefObject<HTMLMediaElement | null>, src:
         el.pause();
       }
     };
-  }, [ref, playSrc, title]);
+  }, [ref, playSrc, title, backHref]);
 
   return playSrc;
 }
