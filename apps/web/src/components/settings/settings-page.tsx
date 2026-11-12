@@ -510,7 +510,7 @@ export function SettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-          )
+          )}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t('profile.title')}</CardTitle>
