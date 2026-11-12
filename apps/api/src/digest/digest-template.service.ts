@@ -3,7 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateDigestTemplateDto } from './dto/create-digest-template.dto';
 import { UpdateDigestTemplateDto } from './dto/update-digest-template.dto';
 import { absoluteUploadUrl } from '../uploads/public-url';
-import { renderDigest } from '../email/digest-render';
+import { digestCover, renderDigest } from '../email/digest-render';
+import { coverCreditValue } from '../events/cover-image';
 
 @Injectable()
 export class DigestTemplateService {
@@ -19,6 +20,8 @@ export class DigestTemplateService {
         sections: dto.sections ?? [],
         accentColor: dto.accentColor ?? '#c5a880',
         logoUrl: dto.logoUrl,
+        coverUrl: dto.coverUrl,
+        ...(dto.coverCredit !== undefined && { coverCredit: coverCreditValue(dto.coverCredit) }),
         isActive: dto.isActive ?? false,
       },
     });
@@ -38,9 +41,10 @@ export class DigestTemplateService {
 
   async update(id: string, dto: UpdateDigestTemplateDto) {
     await this.findOne(id);
+    const { coverCredit, ...data } = dto;
     return this.prisma.digestTemplate.update({
       where: { id },
-      data: dto,
+      data: { ...data, ...(coverCredit !== undefined && { coverCredit: coverCreditValue(coverCredit) }) },
     });
   }
 
@@ -77,6 +81,7 @@ export class DigestTemplateService {
         sections: Array.isArray(template.sections) ? (template.sections as string[]) : null,
         accentColor: template.accentColor,
         logoUrl: template.logoUrl ? absoluteUploadUrl(template.logoUrl) : null,
+        ...digestCover(template),
       },
       {
         userName: 'Alex',
