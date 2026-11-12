@@ -1,8 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { shouldShowOnboarding } from '@/lib/onboarding-mode';
 import { useMe } from '@/hooks/use-members';
 import { useCategories } from '@/hooks/use-categories';
 import { useUpdateInterests } from '@/hooks/use-interests';
@@ -44,6 +45,29 @@ export function OnboardingWizard() {
   const updateInterests = useUpdateInterests();
 
   const [step, setStep] = useState(1);
+  const [dismissedForUser, setDismissedForUser] = useState<string | null>(null);
+  const { data: modeData, isLoading: modeLoading } = useQuery<{ onboardingMode: 'REQUIRED' | 'OPTIONAL' | 'DISABLED' }>({
+    queryKey: ['onboarding-mode'],
+    queryFn: () => apiClient.get('/platform/branding').then(r => r.data),
+  });
+  // Older instances or a temporary branding failure preserve the required flow.
+  const mode = modeData?.onboardingMode ?? 'REQUIRED';
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    const key = `square:onboarding-skip:${profile.id}`;
+    try {
+      setDismissedForUser(window.localStorage.getItem(key) === 'true' ? profile.id : '');
+    } catch {
+      setDismissedForUser('');
+    }
+    const resume = () => {
+      try { window.localStorage.removeItem(key); } catch { /* State still resumes this session. */ }
+      setDismissedForUser('');
+    };
+    window.addEventListener('square:resume-onboarding', resume);
+    return () => window.removeEventListener('square:resume-onboarding', resume);
+  }, [profile?.id]);
   const { data: welcome } = useWelcomeVideo();
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
@@ -80,8 +104,8 @@ export function OnboardingWizard() {
   });
 
   // Don't render until we know onboarding status
-  if (profileLoading || !profile) return null;
-  if (profile.onboardingCompleted) return null;
+  if (profileLoading || modeLoading || !profile || (mode === 'OPTIONAL' && dismissedForUser === null)) return null;
+  if (!shouldShowOnboarding(mode, profile.onboardingCompleted, dismissedForUser === profile.id)) return null;
 
   const handleNext = async () => {
     if (step === 2) {
@@ -108,6 +132,11 @@ export function OnboardingWizard() {
   };
 
   const handleSkip = async () => {
+    if (mode === 'OPTIONAL') {
+      try { window.localStorage.setItem(`square:onboarding-skip:${profile.id}`, 'true'); } catch { /* Session dismissal still applies. */ }
+      setDismissedForUser(profile.id);
+      return;
+    }
     await completeOnboardingMutation.mutateAsync();
   };
 
