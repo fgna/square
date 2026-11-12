@@ -63,11 +63,16 @@ export function OnboardingWizard() {
     }
     const resume = () => {
       try { window.localStorage.removeItem(key); } catch { /* State still resumes this session. */ }
+      // Settings may have changed while the wizard was dismissed. Reopen with
+      // the latest server profile so advancing does not restore stale values.
+      setName(profile.name || '');
+      setBio(profile.bio || '');
+      setAvatarUrl(profile.avatarUrl || '');
       setDismissedForUser('');
     };
     window.addEventListener('square:resume-onboarding', resume);
     return () => window.removeEventListener('square:resume-onboarding', resume);
-  }, [profile?.id]);
+  }, [profile?.id, profile?.name, profile?.bio, profile?.avatarUrl]);
   const { data: welcome } = useWelcomeVideo();
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
