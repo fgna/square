@@ -14,15 +14,20 @@ test('synthetic member can dismiss optional privacy notice over onboarding witho
   });
   expect(settings.ok(), 'disposable admin must enable the optional notice').toBe(true);
 
+  const branding = await authenticatedPage.request.get(`${apiUrl}/api/platform/branding`);
+  expect(branding.ok()).toBe(true);
+  expect((await branding.json()).privacyNoticeEnabled).toBe(true);
+
   await authenticatedPage.evaluate(() => localStorage.removeItem('privacy-notice-seen'));
   await authenticatedPage.reload({ waitUntil: 'domcontentloaded' });
 
   // A new synthetic member has unfinished onboarding; the Radix backdrop is
   // present at the same time as the informational privacy notice.
   await expect(authenticatedPage.locator('.fixed.inset-0.z-50')).toBeVisible();
-  const notice = authenticatedPage.locator('[role="dialog"][aria-label="Privacy notice"]');
+  // Use structural selectors because independent communities may be localized.
+  const notice = authenticatedPage.locator('[role="dialog"].fixed.bottom-4');
   await expect(notice).toBeVisible({ timeout: 15_000 });
   // Playwright deliberately uses a normal click; no force, DOM dispatch or bypass.
-  await notice.getByRole('button', { name: 'Got it', includeHidden: true }).click();
+  await notice.locator('button').last().click();
   await expect(notice).toHaveCount(0);
 });
