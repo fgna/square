@@ -62,7 +62,12 @@ try {
     INSERT INTO "Progress" (id,"userId","courseId",percentage,"completedLessons","updatedAt")
       VALUES ('upgrade-progress','upgrade-member','upgrade-course',50,'["lesson-one"]',now());
     INSERT INTO "PlatformSettings" (id,"platformName","primaryColor","allowSignups","updatedAt")
-      VALUES ('default','Independent instance','#123456',false,now());
+      VALUES ('default','Independent instance','#123456',false,now())
+      ON CONFLICT (id) DO UPDATE SET
+        "platformName" = EXCLUDED."platformName",
+        "primaryColor" = EXCLUDED."primaryColor",
+        "allowSignups" = EXCLUDED."allowSignups",
+        "updatedAt" = EXCLUDED."updatedAt";
     INSERT INTO "TaskAttempt" (id,"userId","taskId","taskVersion",response,correct,"hintsUsed","idempotencyKey")
       VALUES ('upgrade-attempt','upgrade-member','instance.task',1,'{"answer":7}',true,1,'fixture-key');
     CREATE SCHEMA instance_extension;
