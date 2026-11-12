@@ -40,8 +40,6 @@ jobs:
         run: pnpm --dir apps/api exec vitest run --exclude 'src/config/docker-secrets.adversarial.spec.ts'
       - name: Web tests
         run: pnpm --dir apps/web exec vitest run
-      - name: Discover Playwright release scenario (no disposable runtime in this job)
-        run: pnpm --dir apps/web exec playwright test --config=e2e/playwright.auth.config.ts --list
       - name: Validate authenticated Playwright test discovery (no live credentials)
         run: pnpm --dir apps/web exec playwright test --config=e2e/playwright.auth.config.ts --list
       - name: Report unvalidated deployment gate
