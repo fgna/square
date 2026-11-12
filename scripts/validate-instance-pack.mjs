@@ -61,6 +61,18 @@ else {
   if (manifest.platformCompatibility !== '^1.0.0') fail('PLATFORM_COMPATIBILITY_UNSUPPORTED');
   if (!Array.isArray(manifest.locales) || !keysEqual(Object.fromEntries(manifest.locales.map(k => [k, true])), ['de','en']) ||
       manifest.locales.length !== 2) fail('LOCALES_UNSUPPORTED');
+  // Optional community branding: inherit a built-in theme and override selected colors.
+  if (manifest.branding !== undefined) {
+    const branding = manifest.branding;
+    const themes = ['executive-glass', 'corporate-light', 'high-contrast'];
+    const colorKeys = ['primary', 'secondary', 'accent'];
+    if (!object(branding) || !keysEqual(branding, ['theme', 'colors']) ||
+        !themes.includes(branding.theme) || !object(branding.colors) ||
+        !Object.entries(branding.colors).every(([key, value]) =>
+          colorKeys.includes(key) && typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value))) {
+      fail('BRANDING_INVALID');
+    }
+  }
   const cfg = manifest.assessment;
   const definition = object(cfg) ? readJson(cfg.definition, 'ASSESSMENT') : undefined;
   if (!object(definition)) fail('ASSESSMENT_SHAPE');
