@@ -2,6 +2,6 @@
   "title": "Keep dialogs clickable above their overlay",
   "category": "fixed",
   "audience": "members",
-  "description": "Dialog content now stacks above its backdrop so visible controls remain reachable.",
+  "description": "Radix dialog content now stacks above its backdrop, and the informational privacy notice remains clickable above onboarding dialogs; a synthetic Playwright regression exercises the normal dismissal.",
   "pr": 116
 }
