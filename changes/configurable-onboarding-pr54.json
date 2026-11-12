@@ -1,0 +1,7 @@
+{
+  "title": "Configure onboarding requirements per community",
+  "category": "new",
+  "audience": "community administrators",
+  "description": "Community administrators can choose required, optional, or disabled onboarding, allowing members to skip and resume onboarding where permitted while preserving existing required-mode behavior.",
+  "pr": 54
+}
