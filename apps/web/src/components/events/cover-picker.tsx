@@ -12,20 +12,23 @@ import { ImageUploadField } from '@/components/common/image-upload-field';
 export type CoverCredit = { name: string; url: string; source?: string } | null;
 
 /**
- * Admins give an event a cover: an uploaded picture, or a photo from
- * Unsplash when the operator configured it (UNSPLASH_ACCESS_KEY).
+ * Admins give an event or a course a cover: an uploaded picture, or a photo
+ * from Unsplash when the operator configured it (UNSPLASH_ACCESS_KEY).
+ * `api` is the owner's photo search ("/events/covers" or "/courses/covers").
  */
 export function CoverPicker({
   url,
   onChange,
+  api = '/events/covers',
 }: {
   url: string | null;
   onChange: (url: string | null, credit: CoverCredit) => void;
+  api?: string;
 }) {
   const t = useTranslations('adminEventsUI');
   const { data: status } = useQuery({
-    queryKey: ['events', 'covers', 'status'],
-    queryFn: () => apiClient.get('/events/covers/status').then((r) => r.data as { unsplash: boolean }),
+    queryKey: [api, 'status'],
+    queryFn: () => apiClient.get(`${api}/status`).then((r) => r.data as { unsplash: boolean }),
   });
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[] | null>(null);
@@ -34,7 +37,7 @@ export function CoverPicker({
   const search = async () => {
     setSearching(true);
     try {
-      setResults((await apiClient.get('/events/covers/search', { params: { q: query } })).data);
+      setResults((await apiClient.get(`${api}/search`, { params: { q: query } })).data);
     } catch {
       setResults([]);
     } finally {
@@ -45,7 +48,7 @@ export function CoverPicker({
   const choose = (photo: any) => {
     onChange(photo.url, photo.credit);
     setResults(null);
-    apiClient.post('/events/covers/chosen', { downloadLocation: photo.downloadLocation }).catch(() => undefined);
+    apiClient.post(`${api}/chosen`, { downloadLocation: photo.downloadLocation }).catch(() => undefined);
   };
 
   return (
