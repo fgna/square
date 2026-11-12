@@ -82,6 +82,7 @@ export class DigestService {
       sections: Array.isArray(template.sections) ? (template.sections as string[]) : null,
       accentColor: template.accentColor,
       logoUrl: template.logoUrl ? absoluteUploadUrl(template.logoUrl) : null,
+      ...digestCover(template),
     };
   }
 
