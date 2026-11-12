@@ -493,6 +493,8 @@ model PlatformSettings {
   /// Where visitors without an invitation can find out more and join (e.g. a sales page); used while sign-ups are closed.
   joinUrl      String?
   privacyNoticeEnabled Boolean @default(false)
+  /// Controls whether members must finish the welcome tour.
+  onboardingMode String @default("REQUIRED")
   /// Public Android APK download, controlled by this instance's administrators.
   androidAppDownloadEnabled Boolean @default(false)
   androidAppDownloadUrl     String?

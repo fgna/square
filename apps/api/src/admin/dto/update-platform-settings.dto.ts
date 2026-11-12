@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsUrl, MaxLength, Matches, ValidateIf } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsUrl, IsIn, MaxLength, Matches, ValidateIf } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdatePlatformSettingsDto {
@@ -43,6 +43,11 @@ export class UpdatePlatformSettingsDto {
   @IsOptional()
   @IsBoolean()
   allowSignups?: boolean;
+
+  @ApiPropertyOptional({ enum: ['REQUIRED', 'OPTIONAL', 'DISABLED'] })
+  @IsOptional()
+  @IsIn(['REQUIRED', 'OPTIONAL', 'DISABLED'])
+  onboardingMode?: 'REQUIRED' | 'OPTIONAL' | 'DISABLED';
 
   @ApiPropertyOptional({ description: 'Show an optional informational privacy notice; not a consent mechanism' })
   @IsOptional()

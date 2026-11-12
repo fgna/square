@@ -51,6 +51,7 @@ export default function PlatformSettingsPage() {
       toast.success('Settings saved');
       qc.invalidateQueries({ queryKey: ['admin', 'platform-settings'] });
       qc.invalidateQueries({ queryKey: ['branding'] });
+      qc.invalidateQueries({ queryKey: ['onboarding-mode'] });
     },
     onError: () => toast.error(ta('saveError')),
   });
@@ -183,6 +184,28 @@ export default function PlatformSettingsPage() {
             />
             <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{t('joinUrlHint')}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Onboarding</CardTitle>
+          <CardDescription>Choose whether the welcome tour is required, optional or disabled.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="onboardingMode">Onboarding mode</Label>
+          <select
+            id="onboardingMode"
+            aria-label="Onboarding mode"
+            className="mt-1 w-full rounded-md border p-2"
+            style={{ background: 'var(--theme-card)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
+            value={form.onboardingMode ?? 'REQUIRED'}
+            onChange={e => set('onboardingMode', e.target.value)}
+          >
+            <option value="REQUIRED">Required</option>
+            <option value="OPTIONAL">Optional (members may skip and resume)</option>
+            <option value="DISABLED">Disabled</option>
+          </select>
         </CardContent>
       </Card>
 
