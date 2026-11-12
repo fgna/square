@@ -66,7 +66,7 @@ export function CookieBanner() {
     <div
       role="dialog"
       aria-label={t('title')}
-      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 rounded-xl p-4 shadow-2xl animate-fade-in"
+      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-[60] rounded-xl p-4 shadow-2xl animate-fade-in"
       style={{
         background: 'var(--theme-surface)',
         backdropFilter: 'blur(16px)',
