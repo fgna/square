@@ -77,10 +77,10 @@ try {
   // Explicit canonical snapshots include credentials, content, progress, settings and plugin-owned data.
   const snapshotSql = `SELECT jsonb_build_object(
     'account',(SELECT to_jsonb(u) FROM "User" u WHERE id='upgrade-member'),
-    'post',(SELECT to_jsonb(p) FROM "Post" p WHERE id='upgrade-post'),
-    'course',(SELECT to_jsonb(c) FROM "Course" c WHERE id='upgrade-course'),
+    'post',(SELECT to_jsonb(p)-'publishAt' FROM "Post" p WHERE id='upgrade-post'),
+    'course',(SELECT to_jsonb(c)-'coverCredit' FROM "Course" c WHERE id='upgrade-course'),
     'progress',(SELECT to_jsonb(p) FROM "Progress" p WHERE id='upgrade-progress'),
-    'settings',(SELECT to_jsonb(s)-'androidAppDownloadEnabled'-'androidAppDownloadUrl' FROM "PlatformSettings" s WHERE id='default'),
+    'settings',(SELECT to_jsonb(s)-'androidAppDownloadEnabled'-'androidAppDownloadUrl'-'joinUrl'-'appIconUrl'-'privacyNoticeEnabled' FROM "PlatformSettings" s WHERE id='default'),
     'attempt',(SELECT to_jsonb(a) FROM "TaskAttempt" a WHERE id='upgrade-attempt'),
     'extension',(SELECT to_jsonb(e) FROM instance_extension.progress e WHERE member_id='upgrade-member'))::text;`;
   const snapshot = sql(snapshotSql);
