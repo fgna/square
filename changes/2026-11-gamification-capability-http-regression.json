@@ -1,0 +1,7 @@
+{
+  "title": "Verify disabled capability HTTP boundaries",
+  "category": "fixed",
+  "audience": "admins",
+  "description": "Regression tests verify that disabled gamification routes remain inaccessible over HTTP while core identity and explicitly enabled features keep working.",
+  "pr": 135
+}
