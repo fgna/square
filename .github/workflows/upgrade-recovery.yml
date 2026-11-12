@@ -1,0 +1,40 @@
+name: Isolated upgrade and recovery
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/test-square-upgrade-recovery.mjs'
+      - 'scripts/check-square-candidate*.mjs'
+      - 'scripts/check-square-update*.mjs'
+      - 'scripts/validate-staging-pair*.mjs'
+      - 'scripts/validate-instance-pack*.mjs'
+      - '.github/workflows/upgrade-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: upgrade-recovery-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  disposable-upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Pinned candidate and independent content compatibility tests
+        run: node --test scripts/check-square-update.test.mjs scripts/check-square-candidate.test.mjs scripts/check-square-candidate.integration.test.mjs scripts/validate-staging-pair.test.mjs scripts/validate-instance-pack.test.mjs
+      - run: pnpm install --frozen-lockfile
+      # Narrow PR trigger justified by issue #37's concrete data-loss/recovery risk.
+      # No services, credentials, published artifacts or deployment targets are reused.
+      - name: Real PostgreSQL upgrade, failed migration and backup restoration
+        run: node scripts/test-square-upgrade-recovery.mjs
