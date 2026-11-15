@@ -1,0 +1,6 @@
+{
+  "title": "Hidden welcome video stays findable",
+  "category": "improved",
+  "description": "After hiding the welcome video, members keep a single line on their dashboard to watch it again. Admins see the saved video in the settings.",
+  "pr": 138
+}
