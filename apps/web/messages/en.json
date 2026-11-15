@@ -1015,7 +1015,8 @@
     "welcome": {
       "video": "Welcome video",
       "heading": "Welcome",
-      "hide": "Hide"
+      "hide": "Hide",
+      "watchAgain": "Watch the welcome video"
     },
     "welcomeBack": "Welcome back, {name}!",
     "subtitle": "Your community at a glance.",
@@ -1312,7 +1313,8 @@
     "save": "Save changes",
     "logoHint": "Shown top left instead of the name. A wide logo on a transparent or dark background works best.",
     "appIcon": "App icon",
-    "appIconHint": "Shown on the home screen when members add the site to it, and in the browser tab. Square image, at least 512 × 512 pixels. Without one, the first letter of the name is shown."
+    "appIconHint": "Shown on the home screen when members add the site to it, and in the browser tab. Square image, at least 512 × 512 pixels. Without one, the first letter of the name is shown.",
+    "welcomeVideoPreview": "Saved video, as members see it"
   },
   "adminJournalUI": {
     "title": "Journal Prompts",

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PlayCircle, X } from 'lucide-react';
 import { useDismissWelcomeVideo, useWelcomeVideo } from '@/hooks/use-welcome-video';
@@ -15,15 +16,31 @@ export function WelcomeVideoPlayer({ embedUrl, fileUrl }: { embedUrl?: string | 
 }
 
 /**
- * The welcome video on the dashboard, for members who have not hidden it.
- * Renders nothing when no video is set.
+ * The welcome video on the dashboard. Hiding it folds it into a single line
+ * from which the member can open it again: hiding is remembered, but the video
+ * stays findable. Renders nothing when no video is set.
  */
 export function WelcomeVideoCard() {
   const t = useTranslations('dashboard');
   const { data } = useWelcomeVideo();
   const dismiss = useDismissWelcomeVideo();
+  // Opened again after it was hidden: only for this visit, the next one shows the line again.
+  const [reopened, setReopened] = useState(false);
 
-  if (!(data?.videoEmbedUrl || data?.videoFileUrl) || data.dismissed) return null;
+  if (!(data?.videoEmbedUrl || data?.videoFileUrl)) return null;
+
+  if (data.dismissed && !reopened) {
+    return (
+      <button
+        type="button"
+        onClick={() => setReopened(true)}
+        className="flex items-center gap-2 text-sm rounded-lg px-3 py-2 hover:bg-white/5"
+        style={{ color: 'var(--theme-text-muted)', border: '1px solid var(--theme-border)' }}
+      >
+        <PlayCircle size={16} style={{ color: 'var(--theme-primary)' }} /> {t('welcome.watchAgain')}
+      </button>
+    );
+  }
 
   return (
     <section
@@ -37,7 +54,7 @@ export function WelcomeVideoCard() {
         </h3>
         <button
           type="button"
-          onClick={() => dismiss.mutate()}
+          onClick={() => (data.dismissed ? setReopened(false) : dismiss.mutate())}
           disabled={dismiss.isPending}
           className="flex items-center gap-1 text-xs rounded px-2 py-1 hover:bg-white/5"
           style={{ color: 'var(--theme-text-muted)' }}
@@ -47,5 +64,23 @@ export function WelcomeVideoCard() {
       </div>
       <WelcomeVideoPlayer embedUrl={data.videoEmbedUrl} fileUrl={data.videoFileUrl} />
     </section>
+  );
+}
+
+/**
+ * Admin → Settings: the welcome video as members get it, so admins can check
+ * it even after hiding it on their own dashboard. Shows the saved setting.
+ */
+export function WelcomeVideoPreview() {
+  const t = useTranslations('adminSettingsUI');
+  const { data } = useWelcomeVideo();
+  if (!(data?.videoEmbedUrl || data?.videoFileUrl)) return null;
+  return (
+    <div className="space-y-1.5 pt-2">
+      <p className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
+        {t('welcomeVideoPreview')}
+      </p>
+      <WelcomeVideoPlayer embedUrl={data.videoEmbedUrl} fileUrl={data.videoFileUrl} />
+    </div>
   );
 }

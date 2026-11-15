@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Save } from 'lucide-react';
 import { VideoUploadButton } from '@/components/common/video-upload-button';
+import { WelcomeVideoPreview } from '@/components/onboarding/welcome-video';
 import { isAndroidAppDownloadUrl } from '@community/shared';
 
 function ColorSwatch({ color }: { color: string }) {
@@ -241,6 +242,7 @@ export default function PlatformSettingsPage() {
             for no welcome video. Save the settings after uploading.
           </p>
           <VideoUploadButton onUploaded={(url) => set('welcomeVideoUrl', url)} />
+          <WelcomeVideoPreview />
         </CardContent>
       </Card>
 
