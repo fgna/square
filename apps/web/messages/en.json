@@ -1077,7 +1077,9 @@
         "PAUSED": "Paused"
       },
       "max": "You can have up to {max} goals.",
-      "empty": "You have no goals yet. Add your first one (up to {max})."
+      "empty": "You have no goals yet. Add your first one (up to {max}).",
+      "edit": "Edit goal",
+      "progress": "Progress (%)"
     }
   },
   "assessment": {
