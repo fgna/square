@@ -1015,7 +1015,8 @@
     "welcome": {
       "video": "Willkommensvideo",
       "heading": "Willkommen",
-      "hide": "Ausblenden"
+      "hide": "Ausblenden",
+      "watchAgain": "Willkommensvideo ansehen"
     },
     "welcomeBack": "Willkommen zurück, {name}!",
     "subtitle": "Das ist deine Community im Überblick.",
@@ -1312,7 +1313,8 @@
     "save": "Änderungen speichern",
     "logoHint": "Erscheint oben links anstelle des Namens. Am besten wirkt ein breites Logo auf transparentem oder dunklem Hintergrund.",
     "appIcon": "App-Icon",
-    "appIconHint": "Erscheint auf dem Startbildschirm, wenn Mitglieder die Seite dort ablegen, und im Browser-Tab. Quadratisches Bild, mindestens 512 × 512 Pixel. Ohne Icon erscheint der Anfangsbuchstabe des Namens."
+    "appIconHint": "Erscheint auf dem Startbildschirm, wenn Mitglieder die Seite dort ablegen, und im Browser-Tab. Quadratisches Bild, mindestens 512 × 512 Pixel. Ohne Icon erscheint der Anfangsbuchstabe des Namens.",
+    "welcomeVideoPreview": "Gespeichertes Video, so wie Mitglieder es sehen"
   },
   "adminJournalUI": {
     "title": "Journal-Impulse",
