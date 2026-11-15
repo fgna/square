@@ -12,9 +12,18 @@ import { usePersistentMedia } from '@/hooks/use-persistent-media';
  * Leaving the page while it plays continues its sound in the mini player;
  * coming back shows the picture again at the same moment.
  */
-export function HostedVideo({ src, title }: { src: string; title: string }) {
+export function HostedVideo({
+  src,
+  title,
+  backHref,
+}: {
+  src: string;
+  title: string;
+  /** The page the mini player leads back to, e.g. the post itself rather than the whole forum. */
+  backHref?: string;
+}) {
   const ref = useRef<HTMLVideoElement>(null);
-  const playSrc = usePersistentMedia(ref, src, title);
+  const playSrc = usePersistentMedia(ref, src, title, backHref);
   return (
     <div className="w-full overflow-hidden rounded-lg" style={{ background: '#000' }}>
       <video

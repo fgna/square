@@ -1,0 +1,6 @@
+{
+  "title": "Mini player leads back to the post",
+  "category": "fixed",
+  "description": "Tapping the title in the mini player opens the post that is playing instead of the top of the forum, so members can see it and continue right there.",
+  "pr": 136
+}

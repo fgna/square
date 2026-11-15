@@ -9,9 +9,20 @@ import { usePersistentMedia } from '@/hooks/use-persistent-media';
  * continues where they stopped. No download button unless the file is meant
  * to be downloaded (a lesson file the admin did not make view-only).
  */
-export function HostedAudio({ src, title, downloadable = false }: { src: string; title: string; downloadable?: boolean }) {
+export function HostedAudio({
+  src,
+  title,
+  downloadable = false,
+  backHref,
+}: {
+  src: string;
+  title: string;
+  downloadable?: boolean;
+  /** The page the mini player leads back to, e.g. the post itself rather than the whole forum. */
+  backHref?: string;
+}) {
   const ref = useRef<HTMLAudioElement>(null);
-  const playSrc = usePersistentMedia(ref, src, title);
+  const playSrc = usePersistentMedia(ref, src, title, backHref);
   return (
     <audio
       ref={ref}
