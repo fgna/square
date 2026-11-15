@@ -1078,7 +1078,9 @@
         "PAUSED": "Pausiert"
       },
       "max": "Du kannst höchstens {max} Ziele anlegen.",
-      "empty": "Du hast noch keine Ziele. Lege dein erstes an (bis zu {max})."
+      "empty": "Du hast noch keine Ziele. Lege dein erstes an (bis zu {max}).",
+      "edit": "Ziel bearbeiten",
+      "progress": "Fortschritt (%)"
     }
   },
   "assessment": {

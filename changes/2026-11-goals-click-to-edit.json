@@ -1,0 +1,6 @@
+{
+  "title": "Goals open for editing",
+  "category": "improved",
+  "description": "Clicking a goal on the dashboard opens it for editing (title, description, target date and progress) instead of marking it completed. Completing a goal has its own check control.",
+  "pr": 140
+}

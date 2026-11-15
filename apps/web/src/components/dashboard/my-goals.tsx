@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Target, Plus, Trash2, X, Calendar } from 'lucide-react';
+import { Target, Plus, Trash2, X, Calendar, Circle, CheckCircle2 } from 'lucide-react';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal } from '@/hooks/use-goals';
-import type { Goal, CreateGoalInput } from '@/hooks/use-goals';
+import type { Goal, CreateGoalInput, UpdateGoalInput } from '@/hooks/use-goals';
 
 const MAX_GOALS = 5;
 
@@ -37,6 +37,7 @@ function GoalItem({ goal }: { goal: Goal }) {
   const locale = useLocale();
   const updateMutation = useUpdateGoal();
   const deleteMutation = useDeleteGoal();
+  const [editing, setEditing] = useState(false);
   const [editingProgress, setEditingProgress] = useState(false);
   const [progressValue, setProgressValue] = useState(goal.progress);
 
@@ -61,6 +62,22 @@ function GoalItem({ goal }: { goal: Goal }) {
       })
     : null;
 
+  const completed = goal.status === 'COMPLETED';
+
+  if (editing) {
+    return (
+      <div
+        className="rounded-lg p-3"
+        style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid var(--theme-border, rgba(255,255,255,0.08))',
+        }}
+      >
+        <EditGoalForm goal={goal} onClose={() => setEditing(false)} />
+      </div>
+    );
+  }
+
   return (
     <div
       className="rounded-lg p-3 space-y-2"
@@ -70,28 +87,40 @@ function GoalItem({ goal }: { goal: Goal }) {
       }}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <button
-              onClick={handleStatusToggle}
-              disabled={updateMutation.isPending}
-              className="text-sm font-medium truncate text-left"
+        {/* Done / not done has its own control, like deleting: the goal itself opens for editing. */}
+        <button
+          onClick={handleStatusToggle}
+          disabled={updateMutation.isPending}
+          className="p-0.5 rounded-full shrink-0 mt-0.5"
+          style={{ color: completed ? '#22c55e' : 'var(--theme-text-muted)' }}
+          aria-label={completed ? t('goals.markActive') : t('goals.markCompleted')}
+          title={completed ? t('goals.markActive') : t('goals.markCompleted')}
+        >
+          {completed ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+        </button>
+        <button
+          onClick={() => setEditing(true)}
+          className="flex-1 min-w-0 text-left"
+          title={t('goals.edit')}
+        >
+          <span className="flex items-center gap-2 mb-1">
+            <span
+              className="text-sm font-medium truncate"
               style={{
-                color: goal.status === 'COMPLETED' ? 'var(--theme-text-muted)' : 'var(--theme-text)',
-                textDecoration: goal.status === 'COMPLETED' ? 'line-through' : 'none',
+                color: completed ? 'var(--theme-text-muted)' : 'var(--theme-text)',
+                textDecoration: completed ? 'line-through' : 'none',
               }}
-              title={goal.status === 'ACTIVE' ? t('goals.markCompleted') : t('goals.markActive')}
             >
               {goal.title}
-            </button>
+            </span>
             <Badge style={statusBadgeStyle(goal.status)}>{t(`goals.status.${goal.status}`)}</Badge>
-          </div>
+          </span>
           {goal.description && (
-            <p className="text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>
+            <span className="block text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>
               {goal.description}
-            </p>
+            </span>
           )}
-        </div>
+        </button>
         <button
           onClick={() => deleteMutation.mutate(goal.id)}
           disabled={deleteMutation.isPending}
@@ -179,6 +208,90 @@ function GoalItem({ goal }: { goal: Goal }) {
             }}
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Change everything about a goal: title, description, target date and progress. */
+function EditGoalForm({ goal, onClose }: { goal: Goal; onClose: () => void }) {
+  const t = useTranslations('dashboard');
+  const updateMutation = useUpdateGoal();
+  const [title, setTitle] = useState(goal.title);
+  const [description, setDescription] = useState(goal.description ?? '');
+  const [targetDate, setTargetDate] = useState(goal.targetDate ? goal.targetDate.slice(0, 10) : '');
+  const [progress, setProgress] = useState(goal.progress);
+
+  const handleSubmit = () => {
+    if (!title.trim()) return;
+    const input: UpdateGoalInput = {
+      title: title.trim(),
+      description: description.trim(),
+      // An emptied date field removes the date.
+      targetDate: targetDate || null,
+      progress: Math.max(0, Math.min(100, Math.round(progress || 0))),
+    };
+    updateMutation.mutate({ id: goal.id, ...input }, { onSuccess: () => onClose() });
+  };
+
+  const label = 'text-xs font-medium mb-1 block';
+  return (
+    <div className="space-y-3">
+      <div>
+        <label htmlFor={`goal-title-${goal.id}`} className={label} style={{ color: 'var(--theme-text-muted)' }}>
+          {t('goals.fieldTitle')}
+        </label>
+        <Input
+          id={`goal-title-${goal.id}`}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSubmit();
+            if (e.key === 'Escape') onClose();
+          }}
+        />
+      </div>
+      <div>
+        <label htmlFor={`goal-description-${goal.id}`} className={label} style={{ color: 'var(--theme-text-muted)' }}>
+          {t('goals.description')}
+        </label>
+        <Input
+          id={`goal-description-${goal.id}`}
+          placeholder={t('goals.descriptionPlaceholder')}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label htmlFor={`goal-date-${goal.id}`} className={label} style={{ color: 'var(--theme-text-muted)' }}>
+            {t('goals.targetDate')}
+          </label>
+          <Input id={`goal-date-${goal.id}`} type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+        </div>
+        <div>
+          <label htmlFor={`goal-progress-${goal.id}`} className={label} style={{ color: 'var(--theme-text-muted)' }}>
+            {t('goals.progress')}
+          </label>
+          <Input
+            id={`goal-progress-${goal.id}`}
+            type="number"
+            min={0}
+            max={100}
+            value={progress}
+            onChange={(e) => setProgress(Number(e.target.value))}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2 pt-1">
+        <Button size="sm" onClick={handleSubmit} disabled={!title.trim() || updateMutation.isPending}>
+          {t('goals.save')}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onClose} disabled={updateMutation.isPending}>
+          <X size={14} className="mr-1" />
+          {t('cancel')}
+        </Button>
       </div>
     </div>
   );
