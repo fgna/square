@@ -34,6 +34,15 @@ export function AssessmentPage() {
   const deleteMutation = useDeleteAssessments();
   const dimLabel = (key: string) => t.has(`dimensions.${key}`) ? t(`dimensions.${key}`) : key;
   const shortLabel = (key: string) => t.has(`dimensionsShort.${key}`) ? t(`dimensionsShort.${key}`) : dimLabel(key);
+  // A method pack may name every rating ("1" … "5", "na"); the Core default is a
+  // single word, and then only the numbers are shown.
+  // (t.has would look into a single word letter by letter: "Rating"[4] is "n".)
+  const scaleRaw: unknown = t.has('scale') ? t.raw('scale') : null;
+  const scaleLabel = (score: Answer): string | null => {
+    if (!scaleRaw || typeof scaleRaw !== 'object') return null;
+    const label = (scaleRaw as Record<string, unknown>)[score == null ? 'na' : String(score)];
+    return typeof label === 'string' && label.trim() ? label : null;
+  };
 
   const [mode, setMode] = useState<'view' | 'assess'>('view');
   const [currentDim, setCurrentDim] = useState(0);
@@ -121,9 +130,9 @@ export function AssessmentPage() {
           <p className="font-semibold pt-1" style={{ color: 'var(--theme-text)' }}>{t('scaleTitle')}</p>
           <ul className="grid sm:grid-cols-2 gap-x-4 gap-y-0.5">
             {SCALE.map((n) => (
-              <li key={n}><span className="font-semibold" style={{ color: 'var(--theme-primary)' }}>{n}</span> – {String(n)}</li>
+              <li key={n}><span className="font-semibold" style={{ color: 'var(--theme-primary)' }}>{n}</span>{scaleLabel(n) && <> – {scaleLabel(n)}</>}</li>
             ))}
-            <li><span className="font-semibold" style={{ color: 'var(--theme-primary)' }}>–</span> {t('unavailableRating')}</li>
+            <li><span className="font-semibold" style={{ color: 'var(--theme-primary)' }}>{t('naShort')}</span> – {scaleLabel(null) ?? t('unavailableRating')}</li>
           </ul>
         </div>
 
@@ -143,7 +152,7 @@ export function AssessmentPage() {
                       key={score ?? 'na'}
                       type="button"
                       aria-pressed={selected}
-                      title={score == null ? t('unavailableRating') : String(score)}
+                      title={score == null ? (scaleLabel(null) ?? t('unavailableRating')) : (scaleLabel(score) ?? String(score))}
                       onClick={() => handleAnswer(q.id, score)}
                       className={`${score == null ? 'px-3' : 'flex-1'} py-2 rounded-lg text-sm font-medium transition-all`}
                       style={{
@@ -159,7 +168,9 @@ export function AssessmentPage() {
               </div>
               {q.id in answers && (
                 <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>
-                  {answers[q.id] == null ? t('unavailableRating') : String(answers[q.id])}
+                  {answers[q.id] == null
+                    ? (scaleLabel(null) ?? t('unavailableRating'))
+                    : `${answers[q.id]}${scaleLabel(answers[q.id]) ? ` – ${scaleLabel(answers[q.id])}` : ''}`}
                 </p>
               )}
             </div>
