@@ -14,10 +14,11 @@ NEXT_PUBLIC_SQUARE_CAPABILITIES=courses,assessments
 ```
 
 Supported names: `feed`, `messages`, `events`, `courses`, `journal`,
-`assessments`, `testimonials`, `recordings`, `gamification`. An empty value disables all nine. Unset values enable all nine,
+`assessments`, `testimonials`, `recordings`, `gamification`, and
+`learning-groups`. An empty value disables all ten. Unset values enable all ten,
 preserving existing full-featured deployments. Unknown names fail startup/build.
 Each capability can be selected independently; there are currently no required
-dependencies between these nine capabilities.
+dependencies between these ten capabilities.
 
 The API's global capability guard rejects matching disabled endpoints with 404,
 independent of authorization or whether the caller knows the URL. Next middleware
@@ -33,7 +34,13 @@ background job or every cross-feature recommendation on the dashboard.
 A deployment accepting only identity/user administration should validate its
 actual browser and API flows before production rollout.
 
-`gamification` controls `/api/gamification/*`; disabled endpoints return 404. API and Web allowlists must match.
+`gamification` controls `/api/gamification/*`; disabled endpoints return 404.
+API and Web allowlists must match.
+
+`learning-groups` controls `/api/learning-groups/*` and the learning-group
+pages, including `/p/turbo-mathe/groups/*`. It can be enabled independently of
+`courses`; Turbo Mathe task routes remain available according to their own
+configuration when learning groups are disabled.
 
 `recordings` controls recording-specific routes under `/api/events/recordings/*` and
 `/api/events/:id/recordings` independently of the `events` switch. Operators can
@@ -42,5 +49,6 @@ public and admin pages and all `/api/testimonials/*` routes.
 
 For a **new minimal instance**, explicitly configure both environment variables
 with the desired allowlist (for example `courses,assessments`). This disables
-journal, testimonials and recordings. Do not apply that allowlist to existing
-full-featured deployments unless they intentionally opt in to that change.
+journal, testimonials, recordings, learning groups, and every other capability
+not named in the allowlist. Do not apply that allowlist to existing full-featured
+deployments unless they intentionally opt in to that change.
