@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogOut, Palette, User, Bell, Shield, Download, Trash2, Loader2, Mail, CalendarDays, AlarmClock, Sparkles, Link2, Unlink, CalendarPlus, Copy, Check, RefreshCw, Megaphone } from 'lucide-react';
 import { InterestPicker } from './interest-picker';
 import { LocaleSwitcher } from './locale-switcher';
+import { StartPagePicker } from './start-page-picker';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from '@/store/toast.store';
@@ -659,6 +660,7 @@ export function SettingsPage() {
         {/* Appearance tab */}
         <TabsContent value="appearance" className="mt-6 space-y-4">
           <LocaleSwitcher />
+          <StartPagePicker />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{t('appearance.title')}</CardTitle>

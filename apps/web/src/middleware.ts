@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isPathEnabled } from './lib/capabilities';
 import { HOME_PATH, HOME_PLUGIN } from './plugins/home.generated';
+import { LAST_PAGE_COOKIE, START_PAGE_COOKIE, resumeTarget, startPageChoice } from './lib/start-page';
 
 const PUBLIC_PATHS = ['/', '/login', '/register', '/api/health'];
 const AUTH_PATHS = ['/login', '/register'];
@@ -111,8 +112,19 @@ export function middleware(request: NextRequest) {
   const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));
   const isAdminPath = ADMIN_PATHS.some((p) => pathname.startsWith(p));
 
-  // Authenticated users on landing or auth pages → start page
-  if (authToken && (pathname === '/' || isAuthPath)) {
+  // Opening the app ("/", its start address) may pick up where the member left
+  // off on this device; the sign-in pages always lead to the start page.
+  if (authToken && pathname === '/') {
+    const resume = resumeTarget(request.cookies.get(LAST_PAGE_COOKIE)?.value, {
+      choice: startPageChoice(request.cookies.get(START_PAGE_COOKIE)?.value),
+      home,
+      now: Date.now(),
+    });
+    return redirect(resume && isPathEnabled(resume.split('?')[0]) ? resume : home);
+  }
+
+  // Authenticated users on auth pages → start page
+  if (authToken && isAuthPath) {
     return redirect(home);
   }
 
