@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Palette, User, Bell, Shield, Download, Trash2, Loader2, Mail, CalendarDays, AlarmClock, Sparkles, Link2, Unlink, CalendarPlus, Copy, Check, RefreshCw } from 'lucide-react';
+import { LogOut, Palette, User, Bell, Shield, Download, Trash2, Loader2, Mail, CalendarDays, AlarmClock, Sparkles, Link2, Unlink, CalendarPlus, Copy, Check, RefreshCw, Megaphone } from 'lucide-react';
 import { InterestPicker } from './interest-picker';
 import { LocaleSwitcher } from './locale-switcher';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -798,6 +798,38 @@ export function SettingsPage() {
                   checked={profile?.eventReminders ?? true}
                   onCheckedChange={(checked) => {
                     apiClient.patch('/users/me/event-reminders', { eventReminders: checked }).then(() => {
+                      queryClient.invalidateQueries({ queryKey: ['me'] });
+                    });
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Megaphone size={16} /> {t('notifications.announcementsTitle')}
+              </CardTitle>
+              <CardDescription>
+                {t('notifications.announcementsSubtitle')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>
+                    {t('notifications.announcementsToggle')}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
+                    {t('notifications.announcementsDesc')}
+                  </p>
+                </div>
+                <Switch
+                  aria-label={t('notifications.announcementsToggle')}
+                  checked={profile?.announcementEmails ?? true}
+                  onCheckedChange={(checked) => {
+                    apiClient.patch('/users/me/announcement-emails', { announcementEmails: checked }).then(() => {
                       queryClient.invalidateQueries({ queryKey: ['me'] });
                     });
                   }}

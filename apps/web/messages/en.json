@@ -780,7 +780,8 @@
       "MENTION": "mentioned you",
       "EVENT_REMINDER": "Event reminder",
       "MESSAGE": "sent you a message",
-      "GROUP_INVITE": "invited you to a learning group"
+      "GROUP_INVITE": "invited you to a learning group",
+      "ANNOUNCEMENT": "published an announcement"
     },
     "unknownType": "sent a notification"
   },
@@ -939,7 +940,11 @@
       "pushToggle": "Push notifications",
       "pushDesc": "Receive push notifications in your browser.",
       "marketingToggle": "Marketing emails",
-      "marketingDesc": "Receive updates about new features and promotions."
+      "marketingDesc": "Receive updates about new features and promotions.",
+      "announcementsTitle": "Announcements",
+      "announcementsSubtitle": "Only admins publish announcements, for example a weekly message.",
+      "announcementsToggle": "Announcements by e-mail",
+      "announcementsDesc": "Get an e-mail when a new announcement is published. It always shows in the bell."
     },
     "privacy": {
       "title": "Privacy & Data",

@@ -1,4 +1,4 @@
-export type NotificationType = 'REACTION' | 'COMMENT' | 'MENTION' | 'EVENT_REMINDER' | 'MESSAGE' | 'GROUP_INVITE';
+export type NotificationType = 'REACTION' | 'COMMENT' | 'MENTION' | 'EVENT_REMINDER' | 'MESSAGE' | 'GROUP_INVITE' | 'ANNOUNCEMENT';
 
 export interface Notification {
   id: string;

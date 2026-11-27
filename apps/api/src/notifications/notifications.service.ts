@@ -9,7 +9,7 @@ export class NotificationsService {
   async create(
     userId: string,
     actorId: string | null,
-    type: 'REACTION' | 'COMMENT' | 'MENTION' | 'EVENT_REMINDER' | 'MESSAGE' | 'GROUP_INVITE',
+    type: 'REACTION' | 'COMMENT' | 'MENTION' | 'EVENT_REMINDER' | 'MESSAGE' | 'GROUP_INVITE' | 'ANNOUNCEMENT',
     entityId?: string,
     entityType?: string,
   ) {

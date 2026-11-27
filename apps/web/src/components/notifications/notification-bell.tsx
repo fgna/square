@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Bell, Check, Heart, MessageCircle, Smile, Calendar, Mail, UsersRound } from 'lucide-react';
+import { Bell, Check, Heart, MessageCircle, Smile, Calendar, Mail, UsersRound, Megaphone } from 'lucide-react';
 import { formatDistanceToNow, type Locale as DateFnsLocale } from 'date-fns';
 import { useFormatters } from '@/lib/use-formatters';
 import { useRouter } from 'next/navigation';
@@ -24,6 +24,7 @@ const TYPE_ICONS: Record<NotificationType, React.ReactNode> = {
   EVENT_REMINDER: <Calendar size={12} className="text-green-400" />,
   MESSAGE: <Mail size={12} className="text-purple-400" />,
   GROUP_INVITE: <UsersRound size={12} className="text-amber-400" />,
+  ANNOUNCEMENT: <Megaphone size={12} className="text-orange-400" />,
 };
 
 type Translate = ((key: string, values?: Record<string, string | number>) => string) & {
@@ -51,14 +52,22 @@ export function describeNotification(
   return { who: notification.actor?.name ?? t('someone'), what: t.has(`types.${notification.type}`) ? t(`types.${notification.type}`) : t('unknownType') };
 }
 
+/** Where a click on a notification leads, or null when it only marks it read. */
+export function notificationHref(notification: Notification): string | null {
+  if (notification.event?.id) return `/events#event-${notification.event.id}`;
+  if (notification.type === 'MESSAGE' && notification.entityId) return `/messages?conv=${notification.entityId}`;
+  if (notification.type === 'GROUP_INVITE') return '/learning-groups';
+  if (notification.entityType === 'post' && notification.entityId) return `/feed/${notification.entityId}`;
+  return null;
+}
+
 function NotificationRow({ notification }: { notification: Notification }) {
   const t = useTranslations('notifications');
   const { dateFnsLocale } = useFormatters();
   const markRead = useMarkRead();
   const router = useRouter();
   const { who, what } = describeNotification(notification, t, dateFnsLocale);
-  const eventId = notification.event?.id;
-  const conversationId = notification.type === 'MESSAGE' ? notification.entityId : null;
+  const href = notificationHref(notification);
 
   return (
     <button
@@ -69,9 +78,7 @@ function NotificationRow({ notification }: { notification: Notification }) {
       }}
       onClick={() => {
         if (!notification.read) markRead.mutate(notification.id);
-        if (eventId) router.push(`/events#event-${eventId}`);
-        else if (conversationId) router.push(`/messages?conv=${conversationId}`);
-        else if (notification.type === 'GROUP_INVITE') router.push('/learning-groups');
+        if (href) router.push(href);
       }}
     >
       <div className="relative flex-shrink-0">
