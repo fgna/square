@@ -1,0 +1,6 @@
+{
+  "title": "Settings show when the digest really arrives",
+  "category": "fixed",
+  "description": "The e-mail digest options in Settings → Notifications named a fixed time (Monday 8 AM). They now show the day and time the platform is configured with (DIGEST_WEEKLY, DIGEST_DAILY_TIME).",
+  "pr": null
+}
