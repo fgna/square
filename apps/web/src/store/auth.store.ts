@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthUser } from '@community/shared';
+import { LAST_PAGE_COOKIE } from '@/lib/start-page';
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
@@ -32,6 +33,8 @@ function syncAuthCookies(role: string) {
 function clearAuthCookies() {
   deleteCookie('auth-session');
   deleteCookie('user-role');
+  // The next person on this device must not land on the last page of the previous one.
+  deleteCookie(LAST_PAGE_COOKIE);
 }
 
 interface AuthStore {

@@ -1,0 +1,6 @@
+{
+  "title": "Pick up where you left off",
+  "category": "new",
+  "description": "Instances can open the app on the page a member last had open, if that was within 24 hours (NEXT_PUBLIC_START_PAGE=last at build time). Members choose per device in Settings → Appearance whether the app opens there or on the start page. Settings, admin and sign-in pages are never resumed; signing out forgets the last page.",
+  "pr": 145
+}

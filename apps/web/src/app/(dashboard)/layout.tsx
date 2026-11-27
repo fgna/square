@@ -8,11 +8,13 @@ import { CommandPalette } from '@/components/command-palette/command-palette';
 import { OnboardingWizard, onboardingAllowedOn } from '@/components/onboarding/onboarding-wizard';
 import { useProfileSync } from '@/hooks/use-profile-sync';
 import { MediaDock } from '@/components/media/media-dock';
+import { useRememberPage } from '@/hooks/use-remember-page';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   useProfileSync();
+  useRememberPage(pathname);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--theme-background)' }}>

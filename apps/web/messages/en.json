@@ -913,6 +913,13 @@
       "title": "Language",
       "subtitle": "Choose your preferred language."
     },
+    "startPage": {
+      "title": "When you open the app",
+      "subtitle": "Applies to this device. “Pick up where you left off” opens the page you last had open, if that was within the last 24 hours.",
+      "last": "Pick up where you left off",
+      "home": "Always the start page",
+      "dashboard": "Always the dashboard"
+    },
     "notifications": {
       "journalTitle": "Journal reminder",
       "journalDesc": "A short e-mail so you complete your day in the journal.",

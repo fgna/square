@@ -913,6 +913,13 @@
       "title": "Sprache",
       "subtitle": "Wähle deine bevorzugte Sprache."
     },
+    "startPage": {
+      "title": "Beim Öffnen der App",
+      "subtitle": "Gilt für dieses Gerät. „Weitermachen“ öffnet die Seite, auf der du zuletzt warst, wenn das nicht länger als 24 Stunden her ist.",
+      "last": "Weitermachen, wo du warst",
+      "home": "Immer die Startseite",
+      "dashboard": "Immer das Dashboard"
+    },
     "notifications": {
       "journalTitle": "Journal-Erinnerung",
       "journalDesc": "Eine kurze E-Mail, damit du deinen Tag im Journal abschließt.",
