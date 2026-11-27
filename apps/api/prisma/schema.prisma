@@ -44,6 +44,8 @@ model User {
   lastDigestAt     DateTime?
   calendarInvites  Boolean              @default(true)
   eventReminders   Boolean              @default(true)
+  /// An e-mail when an admin publishes an announcement. The in-app notification always comes.
+  announcementEmails Boolean            @default(true)
   /// Journal reminder: null = the instance's default time, "off", or the member's own "HH:MM".
   journalReminder       String?
   lastJournalReminderAt DateTime?
@@ -124,6 +126,8 @@ model Post {
   isHidden   Boolean    @default(false)
   /// Scheduled by an admin: invisible to members until then; null once published.
   publishAt  DateTime?
+  /// When members were told about this announcement; set once, so editing never notifies again.
+  announcedAt DateTime?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
@@ -434,6 +438,7 @@ enum NotificationType {
   EVENT_REMINDER
   MESSAGE
   GROUP_INVITE
+  ANNOUNCEMENT
 }
 
 model Follow {

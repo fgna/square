@@ -3,11 +3,12 @@ import { PostsService } from './posts.service';
 import { BookmarksService } from './bookmarks.service';
 import { PostsController } from './posts.controller';
 import { PostSchedulerService } from './post-scheduler.service';
+import { AnnouncementsService } from './announcements.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [NotificationsModule],
-  providers: [PostsService, BookmarksService, PostSchedulerService],
+  providers: [PostsService, BookmarksService, PostSchedulerService, AnnouncementsService],
   controllers: [PostsController],
   exports: [PostsService, BookmarksService],
 })

@@ -780,7 +780,8 @@
       "MENTION": "hat dich erwähnt",
       "EVENT_REMINDER": "Veranstaltungserinnerung",
       "MESSAGE": "hat dir eine Nachricht geschickt",
-      "GROUP_INVITE": "hat dich in eine Lerngruppe eingeladen"
+      "GROUP_INVITE": "hat dich in eine Lerngruppe eingeladen",
+      "ANNOUNCEMENT": "hat eine Ankündigung veröffentlicht"
     },
     "unknownType": "hat eine Benachrichtigung ausgelöst"
   },
@@ -939,7 +940,11 @@
       "pushToggle": "Push-Benachrichtigungen",
       "pushDesc": "Push-Benachrichtigungen im Browser erhalten.",
       "marketingToggle": "Marketing-E-Mails",
-      "marketingDesc": "Updates über neue Funktionen und Aktionen erhalten."
+      "marketingDesc": "Updates über neue Funktionen und Aktionen erhalten.",
+      "announcementsTitle": "Ankündigungen",
+      "announcementsSubtitle": "Ankündigungen veröffentlichen nur Admins, zum Beispiel eine wöchentliche Botschaft.",
+      "announcementsToggle": "Ankündigungen per E-Mail",
+      "announcementsDesc": "Erhalte eine E-Mail, wenn eine neue Ankündigung erscheint. In der Glocke siehst du sie immer."
     },
     "privacy": {
       "title": "Datenschutz & Daten",

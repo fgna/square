@@ -8,6 +8,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateDigestDto } from './dto/update-digest.dto';
 import { UpdateCalendarInvitesDto } from './dto/update-calendar-invites.dto';
 import { UpdateEventRemindersDto } from './dto/update-event-reminders.dto';
+import { UpdateAnnouncementEmailsDto } from './dto/update-announcement-emails.dto';
 import { UpsertChallengeDto } from './dto/upsert-challenge.dto';
 import { UpdateInterestsDto } from './dto/update-interests.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
@@ -138,6 +139,12 @@ export class UsersController {
   @ApiOperation({ summary: 'Toggle event reminder notifications' })
   updateEventReminders(@CurrentUser() user: any, @Body() dto: UpdateEventRemindersDto) {
     return this.usersService.updateEventReminders(user.id, dto.eventReminders);
+  }
+
+  @Patch('me/announcement-emails')
+  @ApiOperation({ summary: 'Toggle e-mails about new announcements' })
+  updateAnnouncementEmails(@CurrentUser() user: any, @Body() dto: UpdateAnnouncementEmailsDto) {
+    return this.usersService.updateAnnouncementEmails(user.id, dto.announcementEmails);
   }
 
   @Get('me/challenge')
