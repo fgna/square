@@ -16,6 +16,7 @@ import { LogOut, Palette, User, Bell, Shield, Download, Trash2, Loader2, Mail, C
 import { InterestPicker } from './interest-picker';
 import { LocaleSwitcher } from './locale-switcher';
 import { StartPagePicker } from './start-page-picker';
+import { digestOptionDescription, type DigestSchedule } from './digest-schedule';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from '@/store/toast.store';
@@ -371,6 +372,11 @@ export function SettingsPage() {
   const { themes, setTheme, theme: currentTheme } = useTheme();
   const { updateUser } = useAuthStore();
   const queryClient = useQueryClient();
+  const { data: digestSchedule } = useQuery<DigestSchedule>({
+    queryKey: ['digest-schedule'],
+    queryFn: () => apiClient.get('/digest-templates/schedule').then((r) => r.data),
+    staleTime: Infinity,
+  });
 
   // "Explore" links to #interests when a member has picked none yet.
   const [tab, setTab] = useState('profile');
@@ -739,7 +745,7 @@ export function SettingsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium" style={{ color: 'var(--theme-text)' }}>{t(`notifications.${opt.key}`)}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{t(`notifications.${opt.key}Desc`)}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{digestOptionDescription(opt.key, digestSchedule, (key, values) => t(`notifications.${key}`, values))}</p>
                   </div>
                 </button>
               ))}

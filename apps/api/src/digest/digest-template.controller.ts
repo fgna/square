@@ -34,8 +34,8 @@ export class DigestTemplateController {
     return this.digestTemplateService.create(dto);
   }
 
+  // Every signed-in member: the settings page says when their digest arrives.
   @Get('schedule')
-  @Roles('ADMIN')
   @ApiOperation({ summary: 'When daily and weekly digests are sent (DIGEST_DAILY_TIME, DIGEST_WEEKLY)' })
   schedule() {
     return digestSchedule();
